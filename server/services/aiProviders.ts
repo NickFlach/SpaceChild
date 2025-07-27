@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from "openai";
 import { storage } from "../storage";
+import { createSpaceAgentProvider } from "./spaceAgent";
+import { createMindSphereProvider } from "./mindSphere";
 
 /*
 <important_code_snippet_instructions>
@@ -26,6 +28,8 @@ interface AIProviderResponse {
 class AIProviderService {
   private anthropic: Anthropic | null = null;
   private openai: OpenAI | null = null;
+  private spaceAgent: any = null;
+  private mindSphere: any = null;
 
   constructor() {
     if (process.env.ANTHROPIC_API_KEY) {
@@ -39,6 +43,10 @@ class AIProviderService {
         apiKey: process.env.OPENAI_API_KEY,
       });
     }
+    
+    // Initialize SpaceAgent and MindSphere providers
+    this.spaceAgent = createSpaceAgentProvider({});
+    this.mindSphere = createMindSphereProvider({});
   }
 
   async generateCode(prompt: string, provider: string = 'anthropic', projectId?: number): Promise<AIProviderResponse> {
@@ -47,6 +55,10 @@ class AIProviderService {
         return this.callAnthropic(prompt, projectId);
       case 'openai':
         return this.callOpenAI(prompt, projectId);
+      case 'spaceagent':
+        return this.callSpaceAgent(prompt, projectId);
+      case 'mindsphere':
+        return this.callMindSphere(prompt, projectId);
       default:
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
@@ -162,6 +174,74 @@ User Message: ${message}
       };
     } catch (error: any) {
       throw new Error(`OpenAI API error: ${error.message}`);
+    }
+  }
+
+  private async callSpaceAgent(prompt: string, projectId?: number): Promise<AIProviderResponse> {
+    try {
+      const result = await this.spaceAgent.chat({
+        messages: [{ role: 'user', content: prompt }],
+        projectId
+      });
+
+      const tokensUsed = result.usage?.totalTokens || 0;
+      const cost = 0; // SpaceAgent is internal, no cost
+
+      // Track usage if projectId is available
+      if (projectId) {
+        const project = await storage.getProject(projectId);
+        if (project) {
+          await storage.createAiProviderUsage({
+            userId: project.userId,
+            provider: 'spaceagent',
+            serviceType: 'chat',
+            tokensUsed,
+            costUsd: '0.0000'
+          });
+        }
+      }
+
+      return {
+        response: result.response,
+        tokensUsed,
+        cost: '0.0000'
+      };
+    } catch (error: any) {
+      throw new Error(`SpaceAgent error: ${error.message}`);
+    }
+  }
+
+  private async callMindSphere(prompt: string, projectId?: number): Promise<AIProviderResponse> {
+    try {
+      const result = await this.mindSphere.chat({
+        messages: [{ role: 'user', content: prompt }],
+        projectId
+      });
+
+      const tokensUsed = result.usage?.totalTokens || 0;
+      const cost = 0; // MindSphere is internal, no cost
+
+      // Track usage if projectId is available
+      if (projectId) {
+        const project = await storage.getProject(projectId);
+        if (project) {
+          await storage.createAiProviderUsage({
+            userId: project.userId,
+            provider: 'mindsphere',
+            serviceType: 'chat',
+            tokensUsed,
+            costUsd: '0.0000'
+          });
+        }
+      }
+
+      return {
+        response: result.response,
+        tokensUsed,
+        cost: '0.0000'
+      };
+    } catch (error: any) {
+      throw new Error(`MindSphere error: ${error.message}`);
     }
   }
 }

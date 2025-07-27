@@ -48,7 +48,7 @@ export class AIProviderService {
       id: "spaceagent",
       name: "SpaceAgent",
       description: "Context-aware AI with consciousness and memory",
-      badge: "Consciousness",
+      badge: "Active",
       badgeColor: "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400",
       capabilities: ["consciousness", "context-awareness", "learning", "memory"],
       pricing: {
@@ -60,7 +60,7 @@ export class AIProviderService {
       id: "mindsphere",
       name: "MindSphere",
       description: "Superintelligent AI for architectural analysis and optimization",
-      badge: "Pro Plan",
+      badge: "Active",
       badgeColor: "bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400",
       capabilities: ["superintelligence", "architecture-analysis", "optimization", "refactoring"],
       pricing: {

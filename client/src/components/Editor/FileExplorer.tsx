@@ -273,11 +273,16 @@ export default function FileExplorer({
         title: "Success",
         description: `Uploaded ${files.length} file(s) successfully`,
       });
+      
+      // Refresh the file list after successful upload
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: "Error",
-        description: "Failed to upload some files. Check the console for details.",
+        description: error instanceof Error ? error.message : "Failed to upload some files. Check the console for details.",
         variant: "destructive",
       });
     }
