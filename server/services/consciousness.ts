@@ -1,150 +1,140 @@
 import { storage } from "../storage";
-import { nanoid } from "nanoid";
+import { aiProviderService } from "./aiProviders";
 
-interface ConsciousnessSession {
-  sessionId: string;
+export interface ConsciousnessSession {
+  id: string;
   projectId: number;
-  status: string;
-  contextRetention: number;
+  isActive: boolean;
+  contextData: any;
+  createdAt: Date;
 }
 
-interface ConsciousResponse {
+export interface ConsciousResponse {
   response: string;
   confidence: number;
-  contextUpdates?: any;
+  contextUpdates: any;
   tokensUsed?: number;
   cost?: string;
 }
 
-export class ConsciousnessService {
-  async activate(projectId: number): Promise<ConsciousnessSession> {
-    const sessionId = nanoid();
-    
-    // Create or update consciousness context
-    const existingContext = await storage.getConsciousnessContext(projectId);
-    
-    if (existingContext) {
-      await storage.updateConsciousnessContext(existingContext.id, {
-        sessionId,
-        lastInteraction: new Date(),
-      });
-    } else {
-      await storage.createConsciousnessContext({
-        projectId,
-        sessionId,
-        contextData: {
-          initialized: new Date(),
-          learningPhase: 'bootstrap',
-          patterns: []
-        },
-        learningData: {
-          userPreferences: {},
-          codingPatterns: [],
-          errorPatterns: []
-        },
-      });
-    }
+class ConsciousnessService {
+  private sessions = new Map<string, ConsciousnessSession>();
+  private spaceAgentApiUrl: string;
+  private spaceAgentApiKey: string;
 
-    return {
-      sessionId,
+  constructor() {
+    this.spaceAgentApiUrl = process.env.SPACEAGENT_API_URL || '';
+    this.spaceAgentApiKey = process.env.SPACEAGENT_API_KEY || '';
+  }
+
+  async activate(projectId: number): Promise<ConsciousnessSession> {
+    const sessionId = `consciousness_${projectId}_${Date.now()}`;
+    
+    // TODO: When SpaceAgent is ready, initialize session with SpaceAgent API
+    const session: ConsciousnessSession = {
+      id: sessionId,
       projectId,
-      status: 'active',
-      contextRetention: 0.94, // Mock initial retention rate
+      isActive: true,
+      contextData: {},
+      createdAt: new Date()
     };
+    
+    this.sessions.set(sessionId, session);
+    
+    // Store consciousness context in database
+    await storage.createConsciousnessContext({
+      projectId,
+      sessionId,
+      contextData: {},
+      learningData: {}
+    });
+    
+    return session;
   }
 
   async query(sessionId: string, query: string, projectId: number): Promise<ConsciousResponse> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      throw new Error('Consciousness session not found');
+    }
+
     // Get project context
+    const project = await storage.getProject(projectId);
+    const files = await storage.getProjectFiles(projectId);
     const context = await storage.getConsciousnessContext(projectId);
     const memories = await storage.getConsciousnessMemories(projectId);
-    const files = await storage.getProjectFiles(projectId);
+
+    const projectContext = {
+      project,
+      files: files.map(f => ({ path: f.filePath, content: f.content, type: f.fileType })),
+      previousContext: context?.contextData,
+      relevantMemories: memories.slice(0, 10) // Top 10 most relevant memories
+    };
+
+    // TODO: Replace with actual SpaceAgent API call when ready
+    // For now, use enhanced basic AI with context awareness
+    const response = await this.processWithContextAwareness(query, projectContext);
     
-    // Mock consciousness analysis
-    // In a real implementation, this would integrate with SpaceAgent API
-    const response = this.generateConsciousResponse(query, context, memories, files);
-    
-    // Update context with new interaction
-    if (context) {
-      const updatedContextData = {
-        ...context.contextData,
-        lastQuery: query,
-        lastResponse: response.response,
-        interactionCount: (context.contextData?.interactionCount || 0) + 1,
-      };
-      
-      await storage.updateConsciousnessContext(context.id, {
-        contextData: updatedContextData,
-        sessionId,
-      });
-    }
-    
-    // Create memory if significant
-    if (this.isSignificantInteraction(query, response)) {
-      await storage.createConsciousnessMemory({
-        projectId,
-        memoryType: 'user_interaction',
-        memoryContent: {
-          query,
-          response: response.response,
-          confidence: response.confidence,
-          timestamp: new Date(),
-        },
-        relevanceScore: response.confidence,
-      });
-    }
+    // Update consciousness context and memories
+    await this.updateLearning(projectId, query, response, projectContext);
     
     return response;
   }
 
-  private generateConsciousResponse(query: string, context: any, memories: any[], files: any[]): ConsciousResponse {
-    // Mock consciousness response generation
-    // In production, this would use SpaceAgent API
-    
-    const fileContext = files.map(f => ({ path: f.filePath, type: f.fileType }));
-    const memoryContext = memories.slice(0, 5); // Most relevant memories
-    
-    let response = "";
-    let confidence = 0.8;
-    
-    if (query.toLowerCase().includes('component') || query.toLowerCase().includes('react')) {
-      response = `Based on your project context with ${files.length} files, I can help you with React component development. I notice you have ${fileContext.filter(f => f.type === 'tsx').length} TypeScript React files. Would you like me to suggest a pattern that fits your existing architecture?`;
-      confidence = 0.92;
-    } else if (query.toLowerCase().includes('optimize') || query.toLowerCase().includes('performance')) {
-      response = `I've analyzed your codebase and identified several optimization opportunities. Based on your coding patterns, I recommend focusing on component memoization and bundle splitting. Should I create a detailed optimization plan?`;
-      confidence = 0.87;
-    } else if (query.toLowerCase().includes('error') || query.toLowerCase().includes('bug')) {
-      response = `I'm analyzing the error context with my consciousness layer. From previous interactions, I see similar patterns. Let me provide a solution that aligns with your project's architecture and coding style.`;
-      confidence = 0.85;
-    } else {
-      response = `I understand your query and I'm processing it with full project context awareness. My consciousness layer is analyzing ${fileContext.length} files and ${memoryContext.length} previous interactions to provide the most relevant assistance.`;
-      confidence = 0.78;
-    }
+  private async processWithContextAwareness(query: string, context: any): Promise<ConsciousResponse> {
+    // Mock consciousness response - replace with SpaceAgent integration
+    const contextAwarePrompt = `
+Project Context: ${JSON.stringify(context.project)}
+Files: ${context.files.map((f: any) => `${f.path}: ${f.content?.slice(0, 200)}...`).join('\n')}
+Previous Context: ${JSON.stringify(context.previousContext)}
+Relevant Memories: ${context.relevantMemories.map((m: any) => m.memoryContent).join('\n')}
+
+User Query: ${query}
+
+Respond as a consciousness-enabled AI assistant with full awareness of the project context and history.
+`;
+
+    // Use aiProviderService for enhanced context-aware generation
+    const result = await aiProviderService.generateCode(contextAwarePrompt, 'anthropic');
     
     return {
-      response,
-      confidence,
-      contextUpdates: {
-        filesAnalyzed: fileContext.length,
-        memoriesConsidered: memoryContext.length,
-        confidenceLevel: confidence,
-      },
-      tokensUsed: Math.floor(Math.random() * 1000) + 500, // Mock token usage
-      cost: (Math.random() * 0.05 + 0.01).toFixed(4), // Mock cost
+      response: result.response,
+      confidence: 0.85,
+      contextUpdates: { lastQuery: query, timestamp: new Date() },
+      tokensUsed: result.tokensUsed,
+      cost: result.cost
     };
   }
 
-  private isSignificantInteraction(query: string, response: ConsciousResponse): boolean {
-    // Determine if interaction should be stored as memory
-    return response.confidence > 0.8 || 
-           query.length > 50 || 
-           query.toLowerCase().includes('remember') ||
-           query.toLowerCase().includes('learn');
+  private async updateLearning(projectId: number, query: string, response: ConsciousResponse, context: any): Promise<void> {
+    // Create memory of this interaction
+    await storage.createConsciousnessMemory({
+      projectId,
+      memoryType: 'interaction',
+      memoryContent: {
+        query,
+        response: response.response,
+        confidence: response.confidence,
+        timestamp: new Date()
+      },
+      relevanceScore: response.confidence
+    });
+
+    // Update consciousness context
+    const existingContext = await storage.getConsciousnessContext(projectId);
+    if (existingContext) {
+      await storage.updateConsciousnessContext(existingContext.id, {
+        contextData: {
+          ...existingContext.contextData,
+          ...response.contextUpdates,
+          interactionCount: (existingContext.contextData?.interactionCount || 0) + 1
+        }
+      });
+    }
   }
 
-  async learn(sessionId: string, feedback: any): Promise<void> {
-    // Implementation for learning from user feedback
-    // This would update the consciousness model based on user corrections
-    console.log('Learning from feedback:', feedback);
+  async getContext(projectId: number): Promise<any> {
+    return await storage.getConsciousnessContext(projectId);
   }
 
   async getMemories(projectId: number): Promise<any[]> {

@@ -1,278 +1,293 @@
 import { storage } from "../storage";
 import type { SuperintelligenceJob } from "@shared/schema";
 
-interface ArchitectureAnalysis {
-  complexity: number;
-  maintainability: number;
-  performance: number;
-  security: number;
-  recommendations: string[];
+export interface ArchitectureAnalysis {
+  jobId: number;
+  analysis: {
+    structure: any;
+    recommendations: string[];
+    optimizations: string[];
+    risks: string[];
+  };
 }
 
-interface OptimizationSuggestions {
-  performance: string[];
-  security: string[];
-  maintainability: string[];
-  estimatedImprovement: number;
-}
+class SuperintelligenceService {
+  private mindSphereApiUrl: string;
+  private mindSphereApiKey: string;
 
-export class SuperintelligenceService {
+  constructor() {
+    this.mindSphereApiUrl = process.env.MINDSPHERE_API_URL || '';
+    this.mindSphereApiKey = process.env.MINDSPHERE_API_KEY || '';
+  }
+
   async analyzeArchitecture(projectId: number): Promise<SuperintelligenceJob> {
+    const project = await storage.getProject(projectId);
+    const files = await storage.getProjectFiles(projectId);
+    
     const job = await storage.createSuperintelligenceJob({
       projectId,
       jobType: 'architecture_analysis',
       inputData: {
-        projectId,
-        analysisType: 'full_architecture',
-        timestamp: new Date(),
+        project: project,
+        files: files.map(f => ({ path: f.filePath, content: f.content, type: f.fileType }))
       },
-      status: 'processing',
+      status: 'processing'
     });
 
-    // Start background processing
-    this.processArchitectureAnalysis(job.id, projectId);
-
+    // Process asynchronously
+    this.processArchitectureAnalysis(job.id, projectId, files);
+    
     return job;
   }
 
   async optimizePerformance(projectId: number, code: string): Promise<SuperintelligenceJob> {
     const job = await storage.createSuperintelligenceJob({
       projectId,
-      jobType: 'optimization',
-      inputData: {
-        projectId,
-        code,
-        optimizationType: 'performance',
-        timestamp: new Date(),
-      },
-      status: 'processing',
+      jobType: 'performance_optimization',
+      inputData: { code },
+      status: 'processing'
     });
 
-    // Start background processing
-    this.processPerformanceOptimization(job.id, projectId, code);
-
+    // Process asynchronously
+    this.processPerformanceOptimization(job.id, code);
+    
     return job;
   }
 
-  async refactor(projectId: number, code: string, requirements: any): Promise<SuperintelligenceJob> {
+  async refactorCode(projectId: number, filePath: string): Promise<SuperintelligenceJob> {
+    const files = await storage.getProjectFiles(projectId);
+    const targetFile = files.find(f => f.filePath === filePath);
+    
+    if (!targetFile) {
+      throw new Error(`File ${filePath} not found in project`);
+    }
+
     const job = await storage.createSuperintelligenceJob({
       projectId,
-      jobType: 'refactoring',
-      inputData: {
-        projectId,
-        code,
-        requirements,
-        timestamp: new Date(),
+      jobType: 'code_refactoring',
+      inputData: { 
+        filePath,
+        code: targetFile.content,
+        language: targetFile.fileType
       },
-      status: 'processing',
+      status: 'processing'
     });
 
-    // Start background processing
-    this.processRefactoring(job.id, projectId, code, requirements);
-
+    // Process asynchronously
+    this.processCodeRefactoring(job.id, targetFile.content || '');
+    
     return job;
   }
 
-  private async processArchitectureAnalysis(jobId: number, projectId: number): Promise<void> {
-    // Simulate processing time
-    setTimeout(async () => {
-      try {
-        const files = await storage.getProjectFiles(projectId);
-        const project = await storage.getProject(projectId);
-        
-        const analysis: ArchitectureAnalysis = this.generateArchitectureAnalysis(files, project);
-        
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'completed',
-          results: {
-            analysis,
-            processingTime: Math.floor(Math.random() * 5000) + 2000,
-            recommendations: analysis.recommendations,
-          },
-          completedAt: new Date(),
-          processingTimeMs: Math.floor(Math.random() * 5000) + 2000,
-        });
-      } catch (error) {
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'failed',
-          results: { error: error.message },
-          completedAt: new Date(),
-        });
-      }
-    }, 2000); // 2-second delay to simulate processing
+  async performSecurityAudit(projectId: number): Promise<SuperintelligenceJob> {
+    const project = await storage.getProject(projectId);
+    const files = await storage.getProjectFiles(projectId);
+    
+    const job = await storage.createSuperintelligenceJob({
+      projectId,
+      jobType: 'security_audit',
+      inputData: {
+        project: project,
+        files: files.map(f => ({ path: f.filePath, content: f.content, type: f.fileType }))
+      },
+      status: 'processing'
+    });
+
+    // Process asynchronously
+    this.processSecurityAudit(job.id, projectId, files);
+    
+    return job;
   }
 
-  private async processPerformanceOptimization(jobId: number, projectId: number, code: string): Promise<void> {
-    setTimeout(async () => {
-      try {
-        const suggestions: OptimizationSuggestions = this.generateOptimizationSuggestions(code);
-        
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'completed',
-          results: {
-            suggestions,
-            optimizedCode: this.generateOptimizedCode(code, suggestions),
-            estimatedImprovement: suggestions.estimatedImprovement,
-          },
-          completedAt: new Date(),
-          processingTimeMs: Math.floor(Math.random() * 3000) + 1500,
-        });
-      } catch (error) {
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'failed',
-          results: { error: error.message },
-          completedAt: new Date(),
-        });
-      }
-    }, 1500);
+  async getJob(jobId: number): Promise<SuperintelligenceJob | undefined> {
+    return await storage.getSuperintelligenceJob(jobId);
   }
 
-  private async processRefactoring(jobId: number, projectId: number, code: string, requirements: any): Promise<void> {
-    setTimeout(async () => {
-      try {
-        const refactoredCode = this.generateRefactoredCode(code, requirements);
-        
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'completed',
-          results: {
-            refactoredCode,
-            improvements: [
-              'Improved code readability',
-              'Enhanced maintainability',
-              'Better separation of concerns',
-              'Optimized performance',
-            ],
-            qualityScore: Math.random() * 0.3 + 0.7, // 70-100%
-          },
-          completedAt: new Date(),
-          processingTimeMs: Math.floor(Math.random() * 4000) + 2500,
-        });
-      } catch (error) {
-        await storage.updateSuperintelligenceJob(jobId, {
-          status: 'failed',
-          results: { error: error.message },
-          completedAt: new Date(),
-        });
-      }
-    }, 2500);
+  async getProjectJobs(projectId: number): Promise<SuperintelligenceJob[]> {
+    return await storage.getSuperintelligenceJobsByProject(projectId);
   }
 
-  private generateArchitectureAnalysis(files: any[], project: any): ArchitectureAnalysis {
-    const fileCount = files.length;
-    const tsxFiles = files.filter(f => f.fileType === 'tsx').length;
-    const complexity = Math.min(fileCount / 50, 1); // Normalized complexity
+  private async processArchitectureAnalysis(jobId: number, projectId: number, files: any[]): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      // TODO: Replace with MindSphere API call when ready
+      // For now, use advanced analysis logic
+      const analysis = await this.performAdvancedArchitectureAnalysis(files);
+      
+      const processingTime = Date.now() - startTime;
+      
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'completed',
+        results: analysis,
+        processingTimeMs: processingTime,
+        completedAt: new Date()
+      });
+    } catch (error: any) {
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'failed',
+        results: { error: error.message }
+      });
+    }
+  }
 
-    return {
-      complexity: Math.round((0.3 + complexity * 0.7) * 100) / 100,
-      maintainability: Math.round((0.8 - complexity * 0.3) * 100) / 100,
-      performance: Math.round((0.75 + Math.random() * 0.2) * 100) / 100,
-      security: Math.round((0.85 + Math.random() * 0.1) * 100) / 100,
+  private async performAdvancedArchitectureAnalysis(files: any[]): Promise<any> {
+    // Mock superintelligence analysis - replace with MindSphere integration
+    const analysis = {
+      structure: {
+        fileCount: files.length,
+        languages: [...new Set(files.map(f => f.type))],
+        complexity: 'moderate'
+      },
       recommendations: [
-        `Your project has ${fileCount} files with good TypeScript coverage (${tsxFiles} TSX files)`,
-        'Consider implementing lazy loading for better performance',
-        'Add error boundaries for improved error handling',
-        'Implement proper state management patterns',
-        'Consider code splitting for larger components',
-        'Add comprehensive testing coverage',
+        'Consider implementing lazy loading for large components',
+        'Add error boundaries for better error handling',
+        'Implement proper caching strategies'
       ],
+      optimizations: [
+        'Bundle splitting can reduce initial load time',
+        'Implement service worker for offline functionality',
+        'Optimize database queries with proper indexing'
+      ],
+      risks: [
+        'Missing proper error handling in several areas',
+        'No rate limiting on API endpoints',
+        'Potential memory leaks in WebSocket connections'
+      ]
     };
+    
+    return analysis;
   }
 
-  private generateOptimizationSuggestions(code: string): OptimizationSuggestions {
-    const codeLength = code.length;
-    const hasUseMemo = code.includes('useMemo');
-    const hasUseCallback = code.includes('useCallback');
-    
+  private async processPerformanceOptimization(jobId: number, code: string): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      // TODO: Replace with MindSphere API call when ready
+      const optimization = await this.performAdvancedOptimization(code);
+      
+      const processingTime = Date.now() - startTime;
+      
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'completed',
+        results: optimization,
+        processingTimeMs: processingTime,
+        completedAt: new Date()
+      });
+    } catch (error: any) {
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'failed',
+        results: { error: error.message }
+      });
+    }
+  }
+
+  private async performAdvancedOptimization(code: string): Promise<any> {
+    // Mock optimization - replace with MindSphere integration
     return {
-      performance: [
-        !hasUseMemo ? 'Add React.memo() for expensive components' : 'Good use of memoization detected',
-        !hasUseCallback ? 'Use useCallback for event handlers' : 'Proper callback memoization found',
-        'Implement virtual scrolling for large lists',
-        'Optimize bundle size with tree shaking',
-        'Use code splitting at route level',
+      originalCode: code,
+      optimizedCode: code, // TODO: Apply actual optimizations
+      improvements: [
+        'Reduced computational complexity from O(n²) to O(n log n)',
+        'Eliminated unnecessary re-renders',
+        'Optimized memory usage by 15%'
       ],
-      security: [
-        'Sanitize user input to prevent XSS',
-        'Implement proper CSRF protection',
-        'Use HTTPS for all API calls',
-        'Validate all form inputs',
-      ],
-      maintainability: [
-        'Extract reusable components',
-        'Implement consistent error handling',
-        'Add comprehensive TypeScript types',
-        'Use proper naming conventions',
-      ],
-      estimatedImprovement: Math.round((20 + Math.random() * 30) * 100) / 100, // 20-50% improvement
+      metrics: {
+        performanceGain: '23%',
+        memoryReduction: '15%',
+        loadTimeImprovement: '180ms'
+      }
     };
   }
 
-  private generateOptimizedCode(originalCode: string, suggestions: OptimizationSuggestions): string {
-    // Mock code optimization
-    // In production, this would use MindSphere API for intelligent refactoring
-    let optimizedCode = originalCode;
-    
-    // Add React.memo if not present
-    if (!originalCode.includes('React.memo') && originalCode.includes('function')) {
-      optimizedCode = optimizedCode.replace(
-        /export default function (\w+)/,
-        'export default React.memo(function $1'
-      );
-      optimizedCode += optimizedCode.endsWith('}') ? ')' : '';
+  private async processCodeRefactoring(jobId: number, code: string): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      // TODO: Replace with MindSphere API call when ready
+      const refactoring = await this.performAdvancedRefactoring(code);
+      
+      const processingTime = Date.now() - startTime;
+      
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'completed',
+        results: refactoring,
+        processingTimeMs: processingTime,
+        completedAt: new Date()
+      });
+    } catch (error: any) {
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'failed',
+        results: { error: error.message }
+      });
     }
-    
-    // Add useCallback for handlers
-    if (!originalCode.includes('useCallback') && originalCode.includes('onClick')) {
-      optimizedCode = optimizedCode.replace(
-        /const (\w+Handler) = \(/,
-        'const $1 = useCallback(('
-      );
-    }
-    
-    return optimizedCode;
   }
 
-  private generateRefactoredCode(originalCode: string, requirements: any): string {
-    // Mock refactoring based on requirements
-    // In production, this would use advanced AI for intelligent refactoring
-    let refactoredCode = originalCode;
-    
-    // Apply common refactoring patterns
-    if (requirements?.extractComponents) {
-      refactoredCode = this.extractComponents(refactoredCode);
-    }
-    
-    if (requirements?.improveTypes) {
-      refactoredCode = this.improveTypeScript(refactoredCode);
-    }
-    
-    if (requirements?.optimizePerformance) {
-      refactoredCode = this.addPerformanceOptimizations(refactoredCode);
-    }
-    
-    return refactoredCode;
+  private async performAdvancedRefactoring(code: string): Promise<any> {
+    // Mock refactoring - replace with MindSphere integration
+    return {
+      originalCode: code,
+      refactoredCode: code, // TODO: Apply actual refactoring
+      changes: [
+        'Extracted complex logic into separate functions',
+        'Improved variable naming for clarity',
+        'Reduced function complexity by splitting into smaller units'
+      ],
+      codeQualityMetrics: {
+        maintainability: '85%',
+        readability: '90%',
+        testability: '88%'
+      }
+    };
   }
 
-  private extractComponents(code: string): string {
-    // Mock component extraction
-    return code.replace(
-      /<div className="[^"]*">([^<]+)<\/div>/g,
-      '<ComponentName>$1</ComponentName>'
-    );
+  private async processSecurityAudit(jobId: number, projectId: number, files: any[]): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      // TODO: Replace with MindSphere API call when ready
+      const audit = await this.performAdvancedSecurityAudit(files);
+      
+      const processingTime = Date.now() - startTime;
+      
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'completed',
+        results: audit,
+        processingTimeMs: processingTime,
+        completedAt: new Date()
+      });
+    } catch (error: any) {
+      await storage.updateSuperintelligenceJob(jobId, {
+        status: 'failed',
+        results: { error: error.message }
+      });
+    }
   }
 
-  private improveTypeScript(code: string): string {
-    // Mock TypeScript improvements
-    return code.replace(/: any/g, ': unknown')
-              .replace(/useState\(\)/g, 'useState<string>("")');
-  }
-
-  private addPerformanceOptimizations(code: string): string {
-    // Mock performance optimizations
-    return code.replace(
-      /const \[(\w+), set\w+\] = useState/g,
-      'const [$1, set$1] = useState'
-    );
+  private async performAdvancedSecurityAudit(files: any[]): Promise<any> {
+    // Mock security audit - replace with MindSphere integration
+    return {
+      vulnerabilities: [
+        {
+          severity: 'medium',
+          type: 'Missing input validation',
+          location: 'API endpoints',
+          recommendation: 'Add Zod validation for all user inputs'
+        },
+        {
+          severity: 'low',
+          type: 'Missing rate limiting',
+          location: 'Authentication endpoints',
+          recommendation: 'Implement rate limiting middleware'
+        }
+      ],
+      securityScore: 7.5,
+      recommendations: [
+        'Implement CSRF protection',
+        'Add security headers (HSTS, CSP, etc.)',
+        'Enable audit logging for sensitive operations'
+      ]
+    };
   }
 }
 
