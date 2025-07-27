@@ -4,6 +4,7 @@ import {
   projectFiles,
   consciousnessContext,
   consciousnessMemories,
+  projectMemories,
   superintelligenceJobs,
   aiProviderUsage,
   type User,
@@ -16,13 +17,15 @@ import {
   type InsertConsciousnessContext,
   type ConsciousnessMemory,
   type InsertConsciousnessMemory,
+  type ProjectMemory,
+  type InsertProjectMemory,
   type SuperintelligenceJob,
   type InsertSuperintelligenceJob,
   type AiProviderUsage,
   type InsertAiProviderUsage,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -49,6 +52,13 @@ export interface IStorage {
   updateConsciousnessContext(id: number, context: Partial<InsertConsciousnessContext>): Promise<ConsciousnessContext>;
   getConsciousnessMemories(projectId: number): Promise<ConsciousnessMemory[]>;
   createConsciousnessMemory(memory: InsertConsciousnessMemory): Promise<ConsciousnessMemory>;
+  
+  // Project memory operations
+  getProjectMemories(projectId: number, memoryType?: string): Promise<ProjectMemory[]>;
+  getProjectMemory(id: number): Promise<ProjectMemory | undefined>;
+  createProjectMemory(memory: InsertProjectMemory): Promise<ProjectMemory>;
+  updateProjectMemory(id: number, memory: Partial<InsertProjectMemory>): Promise<ProjectMemory>;
+  searchProjectMemories(projectId: number, query: string): Promise<ProjectMemory[]>;
   
   // Superintelligence operations
   getSuperintelligenceJobs(projectId: number): Promise<SuperintelligenceJob[]>;
@@ -229,6 +239,61 @@ export class DatabaseStorage implements IStorage {
       .from(aiProviderUsage)
       .where(eq(aiProviderUsage.userId, userId))
       .orderBy(desc(aiProviderUsage.requestTimestamp));
+  }
+
+  // Project memory operations
+  async getProjectMemories(projectId: number, memoryType?: string): Promise<ProjectMemory[]> {
+    if (memoryType) {
+      return await db
+        .select()
+        .from(projectMemories)
+        .where(and(
+          eq(projectMemories.projectId, projectId),
+          eq(projectMemories.memoryType, memoryType)
+        ))
+        .orderBy(desc(projectMemories.confidence), desc(projectMemories.usageCount));
+    }
+    
+    return await db
+      .select()
+      .from(projectMemories)
+      .where(eq(projectMemories.projectId, projectId))
+      .orderBy(desc(projectMemories.confidence), desc(projectMemories.usageCount));
+  }
+
+  async getProjectMemory(id: number): Promise<ProjectMemory | undefined> {
+    const [memory] = await db.select().from(projectMemories).where(eq(projectMemories.id, id));
+    return memory;
+  }
+
+  async createProjectMemory(memory: InsertProjectMemory): Promise<ProjectMemory> {
+    const [newMemory] = await db.insert(projectMemories).values(memory).returning();
+    return newMemory;
+  }
+
+  async updateProjectMemory(id: number, memory: Partial<InsertProjectMemory>): Promise<ProjectMemory> {
+    const [updatedMemory] = await db
+      .update(projectMemories)
+      .set({ 
+        ...memory, 
+        updatedAt: new Date(),
+        usageCount: sql`${projectMemories.usageCount} + 1`,
+        lastUsed: new Date()
+      })
+      .where(eq(projectMemories.id, id))
+      .returning();
+    return updatedMemory;
+  }
+
+  async searchProjectMemories(projectId: number, query: string): Promise<ProjectMemory[]> {
+    // Simple search implementation - in production this could use full-text search
+    const memories = await this.getProjectMemories(projectId);
+    const searchTerms = query.toLowerCase().split(' ');
+    
+    return memories.filter(memory => {
+      const searchText = `${memory.title} ${memory.content}`.toLowerCase();
+      return searchTerms.some(term => searchText.includes(term));
+    });
   }
 }
 

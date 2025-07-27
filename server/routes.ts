@@ -7,6 +7,8 @@ import { insertProjectSchema, insertProjectFileSchema } from "@shared/schema";
 import { consciousnessService } from "./services/consciousness";
 import { superintelligenceService } from "./services/superintelligence";
 import { aiProviderService } from "./services/aiProviders";
+import { projectMemoryService } from "./services/projectMemory";
+import projectMemoryRoutes from "./routes/projectMemory";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -221,7 +223,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { message, provider = 'anthropic', projectId } = req.body;
       const userId = req.user.claims.sub;
       
-      const result = await aiProviderService.chat(message, provider, projectId);
+      // Get relevant memories if projectId is provided
+      let contextualHints: string[] = [];
+      if (projectId) {
+        contextualHints = await projectMemoryService.applyLearnedPatterns(projectId, message);
+      }
+      
+      // Add contextual hints to the message
+      const enhancedMessage = contextualHints.length > 0 
+        ? `${message}\n\nContext from previous interactions:\n${contextualHints.join('\n')}`
+        : message;
+      
+      const result = await aiProviderService.chat(enhancedMessage, provider, projectId);
+      
+      // Learn from the interaction if projectId is provided
+      if (projectId && result.response) {
+        await projectMemoryService.learnFromInteraction(
+          projectId,
+          'code_generation',
+          result.response,
+          { 
+            userMessage: message,
+            provider,
+            timestamp: new Date().toISOString()
+          }
+        );
+      }
       
       // Track usage
       await storage.createAiProviderUsage({
@@ -366,6 +393,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch job" });
     }
   });
+
+  // Register project memory routes
+  app.use(projectMemoryRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);

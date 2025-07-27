@@ -85,6 +85,21 @@ export const consciousnessMemories = pgTable("consciousness_memories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Project memories table for storing learned patterns and preferences
+export const projectMemories = pgTable("project_memories", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  memoryType: varchar("memory_type", { length: 100 }).notNull(), // 'pattern', 'preference', 'solution', 'knowledge'
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  metadata: jsonb("metadata").default('{}'), // Additional context like file paths, technologies used
+  usageCount: integer("usage_count").default(0),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default('0.5'),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Superintelligence jobs table
 export const superintelligenceJobs = pgTable("superintelligence_jobs", {
   id: serial("id").primaryKey(),
@@ -123,6 +138,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   files: many(projectFiles),
   consciousnessContext: many(consciousnessContext),
   consciousnessMemories: many(consciousnessMemories),
+  projectMemories: many(projectMemories),
   superintelligenceJobs: many(superintelligenceJobs),
 }));
 
@@ -143,6 +159,13 @@ export const consciousnessContextRelations = relations(consciousnessContext, ({ 
 export const consciousnessMemoriesRelations = relations(consciousnessMemories, ({ one }) => ({
   project: one(projects, {
     fields: [consciousnessMemories.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const projectMemoriesRelations = relations(projectMemories, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectMemories.projectId],
     references: [projects.id],
   }),
 }));
@@ -190,6 +213,13 @@ export const insertConsciousnessMemorySchema = createInsertSchema(consciousnessM
   createdAt: true,
 });
 
+export const insertProjectMemorySchema = createInsertSchema(projectMemories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastUsed: true,
+});
+
 export const insertSuperintelligenceJobSchema = createInsertSchema(superintelligenceJobs).omit({
   id: true,
   createdAt: true,
@@ -212,6 +242,8 @@ export type InsertConsciousnessContext = z.infer<typeof insertConsciousnessConte
 export type ConsciousnessContext = typeof consciousnessContext.$inferSelect;
 export type InsertConsciousnessMemory = z.infer<typeof insertConsciousnessMemorySchema>;
 export type ConsciousnessMemory = typeof consciousnessMemories.$inferSelect;
+export type InsertProjectMemory = z.infer<typeof insertProjectMemorySchema>;
+export type ProjectMemory = typeof projectMemories.$inferSelect;
 export type InsertSuperintelligenceJob = z.infer<typeof insertSuperintelligenceJobSchema>;
 export type SuperintelligenceJob = typeof superintelligenceJobs.$inferSelect;
 export type InsertAiProviderUsage = z.infer<typeof insertAiProviderUsageSchema>;
