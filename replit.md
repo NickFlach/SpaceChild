@@ -38,6 +38,9 @@ Preferred communication style: Simple, everyday language.
 - Project templates and configuration management
 - Real-time file editing with auto-save capabilities
 - File explorer with folder structure visualization
+- Multi-file and folder upload support
+- Zip file extraction capability with automatic file organization
+- Visual file type indicators
 
 ### AI Integration Layer
 - **Multi-Provider Support**: Anthropic Claude, OpenAI GPT-4, custom SpaceAgent, and MindSphere

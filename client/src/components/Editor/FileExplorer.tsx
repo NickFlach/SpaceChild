@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload } from "lucide-react";
+import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, FileArchive } from "lucide-react";
 import type { ProjectFile, Project } from "@shared/schema";
+import JSZip from "jszip";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileExplorerProps {
   files: ProjectFile[];
@@ -38,6 +40,8 @@ export default function FileExplorer({
     content: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const buildFileTree = (files: ProjectFile[]): FileTreeNode[] => {
     const root: { [key: string]: FileTreeNode } = {};
@@ -168,6 +172,81 @@ export default function FileExplorer({
     setFileForm({ filePath: "", fileType: "tsx", content: "" });
   };
 
+  // Process zip file and extract its contents
+  const processZipFile = async (file: File) => {
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const files: Array<{ path: string; content: string; type: string }> = [];
+      
+      // Extract all files from the zip
+      const promises = Object.keys(zip.files).map(async (filename) => {
+        const zipFile = zip.files[filename];
+        if (!zipFile.dir) {
+          const content = await zipFile.async('string');
+          const fileType = filename.split('.').pop() || 'txt';
+          files.push({
+            path: filename,
+            content,
+            type: fileType
+          });
+        }
+      });
+      
+      await Promise.all(promises);
+      
+      // Create all files
+      for (const file of files) {
+        await onCreateFile({
+          filePath: file.path,
+          content: file.content,
+          fileType: file.type,
+        });
+      }
+      
+      toast({
+        title: "Success",
+        description: `Extracted ${files.length} files from ${file.name}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to extract zip file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle file upload (single or multiple files, including zip)
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files) return;
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Check if it's a zip file
+      if (file.name.endsWith('.zip')) {
+        await processZipFile(file);
+      } else {
+        // Regular file processing
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          if (evt.target?.result) {
+            const content = evt.target.result as string;
+            const fileType = file.name.split('.').pop() || 'txt';
+            const filePath = file.webkitRelativePath || file.name;
+            
+            await onCreateFile({
+              filePath,
+              content,
+              fileType,
+            });
+          }
+        };
+        reader.readAsText(file);
+      }
+    }
+  };
+
   const getDefaultContent = (fileType: string, filePath: string) => {
     const fileName = filePath.split("/").pop()?.replace(/\.[^/.]+$/, "");
     
@@ -210,43 +289,55 @@ export {};`;
           </h3>
           {currentProject && (
             <div className="flex items-center space-x-1">
+              {/* File upload input */}
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
+                accept="*"
                 className="hidden"
                 onChange={async (e) => {
-                  const files = e.target.files;
-                  if (!files) return;
-                  
-                  for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const reader = new FileReader();
-                    reader.onload = async (evt) => {
-                      if (evt.target?.result) {
-                        const content = evt.target.result as string;
-                        const fileType = file.name.split('.').pop() || 'txt';
-                        await onCreateFile({
-                          filePath: file.name,
-                          content,
-                          fileType,
-                        });
-                      }
-                    };
-                    reader.readAsText(file);
-                  }
-                  
+                  await handleFileUpload(e.target.files);
                   // Reset input
                   e.target.value = '';
                 }}
               />
+              
+              {/* Folder upload input */}
+              <input
+                ref={folderInputRef}
+                type="file"
+                multiple
+                /* @ts-ignore - webkitdirectory is not in React typings */
+                webkitdirectory=""
+                className="hidden"
+                onChange={async (e) => {
+                  await handleFileUpload(e.target.files);
+                  // Reset input
+                  e.target.value = '';
+                }}
+              />
+              
+              {/* File upload button */}
               <Button 
                 size="sm" 
                 variant="ghost" 
                 className="p-1"
                 onClick={() => fileInputRef.current?.click()}
+                title="Upload files or zip archives"
               >
                 <Upload className="h-4 w-4" />
+              </Button>
+              
+              {/* Folder upload button */}
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="p-1"
+                onClick={() => folderInputRef.current?.click()}
+                title="Upload folder"
+              >
+                <FolderOpen className="h-4 w-4" />
               </Button>
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
