@@ -117,17 +117,18 @@ Respond as a consciousness-enabled AI assistant with full awareness of the proje
         confidence: response.confidence,
         timestamp: new Date()
       },
-      relevanceScore: response.confidence
+      relevanceScore: response.confidence.toString()
     });
 
     // Update consciousness context
     const existingContext = await storage.getConsciousnessContext(projectId);
     if (existingContext) {
+      const existingData = (existingContext.contextData || {}) as any;
       await storage.updateConsciousnessContext(existingContext.id, {
         contextData: {
-          ...existingContext.contextData,
+          ...existingData,
           ...response.contextUpdates,
-          interactionCount: (existingContext.contextData?.interactionCount || 0) + 1
+          interactionCount: (existingData.interactionCount || 0) + 1
         }
       });
     }

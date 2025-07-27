@@ -136,7 +136,7 @@ class SuperintelligenceService {
     const analysis = {
       structure: {
         fileCount: files.length,
-        languages: [...new Set(files.map(f => f.type))],
+        languages: Array.from(new Set(files.map(f => f.type))),
         complexity: 'moderate'
       },
       recommendations: [

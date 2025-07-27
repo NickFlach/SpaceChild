@@ -52,9 +52,10 @@ export interface IStorage {
   
   // Superintelligence operations
   getSuperintelligenceJobs(projectId: number): Promise<SuperintelligenceJob[]>;
+  getSuperintelligenceJobsByProject(projectId: number): Promise<SuperintelligenceJob[]>;
   getSuperintelligenceJob(id: number): Promise<SuperintelligenceJob | undefined>;
   createSuperintelligenceJob(job: InsertSuperintelligenceJob): Promise<SuperintelligenceJob>;
-  updateSuperintelligenceJob(id: number, job: Partial<InsertSuperintelligenceJob>): Promise<SuperintelligenceJob>;
+  updateSuperintelligenceJob(id: number, job: Partial<InsertSuperintelligenceJob & { completedAt?: Date }>): Promise<SuperintelligenceJob>;
   
   // AI provider usage tracking
   createAiProviderUsage(usage: InsertAiProviderUsage): Promise<AiProviderUsage>;
@@ -189,6 +190,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(superintelligenceJobs.createdAt));
   }
 
+  async getSuperintelligenceJobsByProject(projectId: number): Promise<SuperintelligenceJob[]> {
+    return await db
+      .select()
+      .from(superintelligenceJobs)
+      .where(eq(superintelligenceJobs.projectId, projectId))
+      .orderBy(desc(superintelligenceJobs.createdAt));
+  }
+
   async getSuperintelligenceJob(id: number): Promise<SuperintelligenceJob | undefined> {
     const [job] = await db.select().from(superintelligenceJobs).where(eq(superintelligenceJobs.id, id));
     return job;
@@ -199,7 +208,7 @@ export class DatabaseStorage implements IStorage {
     return newJob;
   }
 
-  async updateSuperintelligenceJob(id: number, job: Partial<InsertSuperintelligenceJob>): Promise<SuperintelligenceJob> {
+  async updateSuperintelligenceJob(id: number, job: Partial<InsertSuperintelligenceJob & { completedAt?: Date }>): Promise<SuperintelligenceJob> {
     const [updatedJob] = await db
       .update(superintelligenceJobs)
       .set(job)
