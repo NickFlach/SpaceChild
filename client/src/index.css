@@ -1,0 +1,281 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Space Child specific colors */
+  --consciousness: hsl(266, 45%, 47%);
+  --consciousness-foreground: hsl(0, 0%, 100%);
+  --superintelligence: hsl(142, 71%, 45%);
+  --superintelligence-foreground: hsl(0, 0%, 100%);
+  --space-child-gradient: linear-gradient(135deg, var(--primary), var(--consciousness));
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+  
+  /* Space Child specific colors for dark theme */
+  --consciousness: hsl(266, 45%, 55%);
+  --consciousness-foreground: hsl(0, 0%, 100%);
+  --superintelligence: hsl(142, 71%, 55%);
+  --superintelligence-foreground: hsl(0, 0%, 100%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+
+  /* Consciousness pulse animation */
+  .pulse-consciousness {
+    animation: pulseConsciousness 2s infinite;
+  }
+  
+  @keyframes pulseConsciousness {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(266, 45%, 47% / 0.3); 
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(266, 45%, 47% / 0.6); 
+    }
+  }
+
+  /* Superintelligence pulse animation */
+  .pulse-superintelligence {
+    animation: pulseSuperintelligence 2s infinite;
+  }
+  
+  @keyframes pulseSuperintelligence {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(142, 71%, 45% / 0.3); 
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(142, 71%, 45% / 0.6); 
+    }
+  }
+
+  /* Monaco Editor-like syntax highlighting */
+  .monaco-editor {
+    @apply font-mono text-sm;
+  }
+
+  .monaco-keyword {
+    @apply text-blue-600 dark:text-blue-400 font-medium;
+  }
+
+  .monaco-string {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .monaco-comment {
+    @apply text-gray-500 dark:text-gray-400 italic;
+  }
+
+  .monaco-number {
+    @apply text-orange-600 dark:text-orange-400;
+  }
+
+  .monaco-function {
+    @apply text-purple-600 dark:text-purple-400;
+  }
+
+  .monaco-variable {
+    @apply text-foreground;
+  }
+
+  /* Space Child branding */
+  .space-child-gradient {
+    background: var(--space-child-gradient);
+  }
+  
+  .consciousness-glow {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px hsl(266, 45%, 47% / 0.2);
+  }
+  
+  .superintelligence-glow {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px hsl(142, 71%, 45% / 0.2);
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+  
+  @keyframes slideInRight {
+    from { 
+      transform: translateX(100%); 
+    }
+    to { 
+      transform: translateX(0); 
+    }
+  }
+
+  .bounce-in {
+    animation: bounceIn 0.5s ease-out;
+  }
+  
+  @keyframes bounceIn {
+    0% { 
+      transform: scale(0.3); 
+      opacity: 0; 
+    }
+    50% { 
+      transform: scale(1.05); 
+    }
+    70% { 
+      transform: scale(0.9); 
+    }
+    100% { 
+      transform: scale(1); 
+      opacity: 1; 
+    }
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block;
+  }
+  
+  .status-online {
+    @apply bg-green-500;
+  }
+  
+  .status-processing {
+    @apply bg-blue-500 animate-pulse;
+  }
+  
+  .status-error {
+    @apply bg-red-500;
+  }
+  
+  .status-warning {
+    @apply bg-yellow-500;
+  }
+
+  /* Code editor utilities */
+  .code-line-numbers {
+    @apply text-muted-foreground text-right pr-4 select-none font-mono text-sm;
+    min-width: 3rem;
+  }
+  
+  .code-content {
+    @apply flex-1 font-mono text-sm whitespace-pre-wrap;
+  }
+  
+  .code-highlight {
+    @apply bg-primary/10 border-l-2 border-primary;
+  }
+  
+  .code-error {
+    @apply bg-destructive/10 border-l-2 border-destructive;
+  }
+  
+  .code-warning {
+    @apply bg-yellow-500/10 border-l-2 border-yellow-500;
+  }
+
+  /* Consciousness-specific utilities */
+  .consciousness-active {
+    @apply bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800;
+  }
+  
+  .consciousness-inactive {
+    @apply bg-muted/50 border-muted;
+  }
+
+  /* Superintelligence-specific utilities */
+  .superintelligence-active {
+    @apply bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800;
+  }
+  
+  .superintelligence-inactive {
+    @apply bg-muted/50 border-muted;
+  }
+}
