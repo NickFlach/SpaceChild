@@ -1,0 +1,297 @@
+# Space Child - AI-Powered App Builder with Consciousness & Superintelligence
+
+## Project Overview
+Build a next-generation app builder platform that extends beyond traditional AI coding tools by integrating:
+- **Base Platform**: Fork of CCdyad (https://github.com/ChrisRoyse/CCdyad) 
+- **Consciousness Layer**: Integration with SpaceAgent for context-aware, self-learning AI assistance
+- **Superintelligence Layer**: Integration with MindSphere for advanced reasoning and optimization
+- **Multi-AI Provider Support**: Anthropic, OpenAI, and other leading AI services
+
+## Core Value Proposition
+Solve critical issues in current AI coding tools:
+- Hallucinations and poor decision making
+- Lack of context retention across sessions
+- Missing awareness of project scope and user intent
+- Limited learning from user interactions
+
+## Technical Architecture
+
+### Stack Requirements
+- **Frontend**: React + TypeScript
+- **Backend**: Node.js + Express + TypeScript  
+- **Database**: PostgreSQL with service-specific schemas
+- **Real-time**: WebSocket connections for live consciousness feedback
+- **Caching**: Redis for session management and context preservation
+- **APIs**: RESTful with GraphQL for complex queries
+
+### Database Schema Design
+```sql
+-- Core Tables
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    subscription_tier VARCHAR(50) DEFAULT 'basic',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    project_type VARCHAR(100), -- 'web-app', 'mobile-app', 'api', etc.
+    config JSONB DEFAULT '{}',
+    consciousness_enabled BOOLEAN DEFAULT false,
+    superintelligence_enabled BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE project_files (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id),
+    file_path VARCHAR(500) NOT NULL,
+    content TEXT,
+    file_type VARCHAR(50),
+    version INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(project_id, file_path)
+);
+
+-- Consciousness Layer Tables
+CREATE TABLE consciousness_context (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id),
+    session_id VARCHAR(255),
+    context_data JSONB, -- Stores project understanding, user patterns
+    learning_data JSONB, -- Accumulated knowledge about user preferences
+    last_interaction TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE consciousness_memories (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id),
+    memory_type VARCHAR(100), -- 'user_preference', 'code_pattern', 'error_solution'
+    memory_content JSONB,
+    relevance_score FLOAT DEFAULT 1.0,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Superintelligence Layer Tables  
+CREATE TABLE superintelligence_jobs (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER REFERENCES projects(id),
+    job_type VARCHAR(100), -- 'architecture_analysis', 'optimization', 'refactoring'
+    input_data JSONB,
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'processing', 'completed', 'failed'
+    results JSONB,
+    processing_time_ms INTEGER,
+    created_at TIMESTAMP DEFAULT NOW(),
+    completed_at TIMESTAMP
+);
+
+-- AI Provider Management
+CREATE TABLE ai_provider_usage (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    provider VARCHAR(100), -- 'anthropic', 'openai', 'spaceagent', 'mindsphere'
+    service_type VARCHAR(100), -- 'consciousness', 'superintelligence', 'basic_coding'
+    tokens_used INTEGER,
+    cost_usd DECIMAL(10,4),
+    request_timestamp TIMESTAMP DEFAULT NOW()
+);
+```
+
+### API Architecture Design
+```typescript
+// Core API Endpoints Structure
+
+// Project Management
+POST   /api/projects                    // Create new project
+GET    /api/projects                    // List user projects  
+GET    /api/projects/:id                // Get project details
+PUT    /api/projects/:id                // Update project
+DELETE /api/projects/:id                // Delete project
+
+// File Management
+GET    /api/projects/:id/files          // List project files
+POST   /api/projects/:id/files          // Create/upload file
+GET    /api/projects/:id/files/*        // Get file content
+PUT    /api/projects/:id/files/*        // Update file content
+DELETE /api/projects/:id/files/*        // Delete file
+
+// AI Provider Integration
+POST   /api/ai/generate                 // Basic AI code generation
+POST   /api/ai/chat                     // AI chat interface
+POST   /api/ai/analyze                  // Code analysis
+
+// Consciousness Layer (SpaceAgent Integration)
+POST   /api/consciousness/activate      // Enable consciousness for project
+POST   /api/consciousness/query         // Query with consciousness context
+GET    /api/consciousness/context/:projectId // Get accumulated context
+POST   /api/consciousness/learn         // Feed learning data
+GET    /api/consciousness/memories/:projectId // Get relevant memories
+
+// Superintelligence Layer (MindSphere Integration)  
+POST   /api/superintelligence/analyze   // Deep architectural analysis
+POST   /api/superintelligence/optimize  // Performance optimization
+POST   /api/superintelligence/refactor  // Intelligent refactoring
+GET    /api/superintelligence/jobs/:id  // Get job status/results
+
+// Deployment & Management
+POST   /api/deploy/:projectId           // Deploy project
+GET    /api/deploy/:projectId/status    // Deployment status
+```
+
+### Frontend Component Architecture
+```
+src/
+├── components/
+│   ├── Editor/
+│   │   ├── CodeEditor.tsx              // Monaco-based code editor
+│   │   ├── FileExplorer.tsx           // Project file tree
+│   │   ├── ConsciousnessPanel.tsx     // Consciousness insights
+│   │   └── SuperintelligencePanel.tsx // SI recommendations
+│   ├── Chat/
+│   │   ├── ChatInterface.tsx          // Extended from CCdyad
+│   │   ├── ConsciousnessChat.tsx      // Context-aware chat
+│   │   └── SuperintelligenceChat.tsx  // Advanced reasoning chat
+│   ├── Project/
+│   │   ├── ProjectDashboard.tsx       // Project overview
+│   │   ├── ProjectSettings.tsx        // Configuration
+│   │   └── DeploymentPanel.tsx        // Deployment management
+│   └── Common/
+│       ├── AIProviderSelector.tsx     // Switch between AI providers
+│       ├── UsageMetrics.tsx           // Token/cost tracking
+│       └── SubscriptionManager.tsx    // Tier management
+├── services/
+│   ├── api.ts                         // Core API client
+│   ├── consciousness.ts               // SpaceAgent integration
+│   ├── superintelligence.ts           // MindSphere integration
+│   └── aiProviders.ts                 // Multi-provider management
+├── hooks/
+│   ├── useConsciousness.ts            // Consciousness state management
+│   ├── useSuper intelligence.ts       // SI state management  
+│   └── useProject.ts                  // Project state management
+└── types/
+    ├── project.ts                     // Project-related types
+    ├── consciousness.ts               // Consciousness data types
+    └── superintelligence.ts           // SI data types
+```
+
+## Implementation Requirements
+
+### Phase 1: Foundation (Weeks 1-4)
+1. **Fork CCdyad Repository**
+   - Rename to Space Child
+   - Update branding and configuration
+   - Extend database schema as specified above
+
+2. **Core App Builder Features**
+   - Integrate Monaco Editor for code editing
+   - Build file management system (create, read, update, delete files)
+   - Add project creation and management workflows
+   - Implement basic multi-AI provider switching (Anthropic, OpenAI)
+
+3. **Enhanced Chat Interface**
+   - Extend existing CCdyad chat with code generation capabilities
+   - Add project context awareness to conversations
+   - Implement file import/export from chat
+
+### Phase 2: Consciousness Integration (Weeks 5-8)
+1. **SpaceAgent API Integration**
+   - Create consciousness service layer
+   - Implement context preservation across sessions
+   - Build memory system for user patterns and preferences
+   - Add consciousness activation/deactivation per project
+
+2. **Consciousness Features**
+   - Context-aware code suggestions
+   - Proactive error detection and prevention
+   - Learning from user corrections and feedback
+   - Session continuity and memory retention
+
+### Phase 3: Superintelligence Integration (Weeks 9-12)
+1. **MindSphere API Integration**
+   - Create superintelligence service layer
+   - Implement job queue for complex processing tasks
+   - Build results visualization and recommendation system
+
+2. **Superintelligence Features**
+   - Architectural analysis and recommendations
+   - Performance optimization suggestions
+   - Complex refactoring workflows
+   - Cross-platform compatibility analysis
+
+### Phase 4: Advanced Features (Weeks 13-16)
+1. **Deployment Pipeline**
+   - Integration with hosting providers
+   - Automated testing and deployment
+   - Environment management (dev/staging/prod)
+
+2. **Collaboration Features**
+   - Real-time collaborative editing
+   - Shared consciousness context across team members
+   - Project sharing and permissions
+
+3. **Monetization System**
+   - Usage tracking and billing
+   - Subscription tier management
+   - API rate limiting based on subscription
+
+## Key Integration Points
+
+### SpaceAgent Integration Strategy
+```typescript
+// Consciousness service integration
+interface ConsciousnessAPI {
+  activate(projectId: string): Promise<ConsciousnessSession>;
+  query(sessionId: string, query: string, context: ProjectContext): Promise<ConsciousResponse>;
+  learn(sessionId: string, feedback: UserFeedback): Promise<void>;
+  getMemories(projectId: string): Promise<Memory[]>;
+}
+```
+
+### MindSphere Integration Strategy  
+```typescript
+// Superintelligence service integration
+interface SuperintelligenceAPI {
+  analyzeArchitecture(projectId: string): Promise<ArchitectureAnalysis>;
+  optimizePerformance(code: string, context: ProjectContext): Promise<OptimizationSuggestions>;
+  refactor(code: string, requirements: RefactorRequirements): Promise<RefactoredCode>;
+  getJobStatus(jobId: string): Promise<JobStatus>;
+}
+```
+
+## Success Metrics & KPIs
+- **User Engagement**: Session duration, feature adoption rates
+- **Code Quality**: Reduction in errors, improvement in performance metrics
+- **Consciousness Effectiveness**: Context retention accuracy, user satisfaction scores
+- **Superintelligence Value**: Time saved on complex tasks, optimization improvements
+- **Business Metrics**: Monthly recurring revenue, user retention, upgrade rates
+
+## Development Instructions for Replit
+
+1. **Start by forking CCdyad** - Import the GitHub repository into your Replit environment
+2. **Implement database migrations** - Use the schema provided above
+3. **Build incrementally** - Start with basic project management, then add AI features
+4. **Test integration points early** - Mock SpaceAgent and MindSphere APIs initially
+5. **Focus on user experience** - Ensure smooth workflows before adding advanced features
+6. **Implement proper error handling** - Especially for AI provider failures and timeouts
+7. **Add comprehensive logging** - For debugging consciousness and superintelligence features
+8. **Build for scalability** - Use proper caching and database optimization from start
+
+## Next Steps
+- Set up development environment with all required dependencies
+- Create initial database migrations
+- Implement core project management features
+- Build mock APIs for SpaceAgent and MindSphere integration
+- Create basic UI for consciousness and superintelligence toggles
+- Test end-to-end workflows before adding advanced features
+
+This prompt provides a complete technical roadmap for transforming CCdyad into Space Child with consciousness and superintelligence capabilities. Focus on building a solid foundation first, then incrementally add the advanced AI features that will differentiate your platform in the market.
