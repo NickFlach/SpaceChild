@@ -126,10 +126,11 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
+      <div className="flex-1 overflow-hidden relative">
+        <ScrollArea className="absolute inset-0 p-4">
+          <div className="space-y-4" ref={scrollAreaRef}>
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -202,8 +203,9 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
               </div>
             </div>
           )}
-        </div>
-      </ScrollArea>
+          </div>
+        </ScrollArea>
+      </div>
       
       {/* Chat Input */}
       <div className="border-t border-border p-4">

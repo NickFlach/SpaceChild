@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, ChevronDown, File, Folder, Plus, FileText } from "lucide-react";
+import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload } from "lucide-react";
 import type { ProjectFile, Project } from "@shared/schema";
 
 interface FileExplorerProps {
@@ -37,6 +37,7 @@ export default function FileExplorer({
     fileType: "tsx",
     content: "",
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const buildFileTree = (files: ProjectFile[]): FileTreeNode[] => {
     const root: { [key: string]: FileTreeNode } = {};
@@ -208,12 +209,51 @@ export {};`;
             <span>File Explorer</span>
           </h3>
           {currentProject && (
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="ghost" className="p-1">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center space-x-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files) return;
+                  
+                  for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = async (evt) => {
+                      if (evt.target?.result) {
+                        const content = evt.target.result as string;
+                        const fileType = file.name.split('.').pop() || 'txt';
+                        await onCreateFile({
+                          filePath: file.name,
+                          content,
+                          fileType,
+                        });
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                  
+                  // Reset input
+                  e.target.value = '';
+                }}
+              />
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="p-1"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="ghost" className="p-1">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create New File</DialogTitle>
@@ -268,6 +308,7 @@ export {};`;
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           )}
         </div>
         

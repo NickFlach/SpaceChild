@@ -60,15 +60,9 @@ export default function Dashboard() {
     );
   }
 
-  const handleCreateProject = async () => {
+  const handleCreateProject = async (projectData: any) => {
     try {
-      await createProject({
-        name: "New Project",
-        description: "A new Space Child project",
-        projectType: "web-app",
-        consciousnessEnabled: true,
-        superintelligenceEnabled: false,
-      });
+      await createProject(projectData);
       toast({
         title: "Success",
         description: "Project created successfully!",
