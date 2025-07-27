@@ -35,11 +35,8 @@ export function useProject() {
   const { data: files } = useQuery<ProjectFile[]>({
     queryKey: ["/api/projects", currentProjectId, "files"],
     enabled: !!currentProjectId,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
+    refetchInterval: false,
+    retry: 2,
   });
 
   // Auto-select first project if none selected
@@ -108,8 +105,12 @@ export function useProject() {
 
   // Create file mutation
   const createFileMutation = useMutation({
-    mutationFn: async (file: InsertProjectFile) => {
-      const response = await apiRequest(`POST`, `/api/projects/${currentProjectId}/files`, file);
+    mutationFn: async (file: Omit<InsertProjectFile, 'projectId'>) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const response = await apiRequest(`POST`, `/api/projects/${currentProjectId}/files`, {
+        ...file,
+        projectId: currentProjectId
+      });
       return response.json();
     },
     onSuccess: () => {

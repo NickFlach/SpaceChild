@@ -15,12 +15,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Settings, Moon, Sun, User, Columns, FileCode } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
+import type { ProjectFile } from "@shared/schema";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
   
   const {

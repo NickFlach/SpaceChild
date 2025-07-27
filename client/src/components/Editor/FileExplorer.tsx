@@ -59,9 +59,11 @@ export default function FileExplorer({
             name: part,
             path: currentPath,
             type: index === parts.length - 1 ? "file" : "folder",
-            children: {},
             file: index === parts.length - 1 ? file : undefined,
-          };
+          } as FileTreeNode;
+          if (index < parts.length - 1) {
+            (current[part] as any).children = {};
+          }
         }
         
         if (index < parts.length - 1) {
@@ -220,30 +222,64 @@ export default function FileExplorer({
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    try {
+      const uploadPromises = [];
       
-      // Check if it's a zip file
-      if (file.name.endsWith('.zip')) {
-        await processZipFile(file);
-      } else {
-        // Regular file processing
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-          if (evt.target?.result) {
-            const content = evt.target.result as string;
-            const fileType = file.name.split('.').pop() || 'txt';
-            const filePath = file.webkitRelativePath || file.name;
-            
-            await onCreateFile({
-              filePath,
-              content,
-              fileType,
-            });
-          }
-        };
-        reader.readAsText(file);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Check if it's a zip file
+        if (file.name.toLowerCase().endsWith('.zip')) {
+          uploadPromises.push(processZipFile(file));
+        } else {
+          // Regular file processing
+          const promise = new Promise<void>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+              try {
+                if (evt.target?.result) {
+                  const content = evt.target.result as string;
+                  const fileType = file.name.split('.').pop() || 'txt';
+                  const filePath = file.webkitRelativePath || file.name;
+                  
+                  console.log('Creating file:', { filePath, fileType, contentLength: content.length });
+                  
+                  await onCreateFile({
+                    filePath,
+                    content,
+                    fileType,
+                  });
+                  console.log('File created successfully:', filePath);
+                  resolve();
+                }
+              } catch (error) {
+                console.error('Error creating file:', error);
+                reject(error);
+              }
+            };
+            reader.onerror = () => {
+              console.error('Error reading file:', file.name);
+              reject(new Error(`Failed to read file: ${file.name}`));
+            };
+            reader.readAsText(file);
+          });
+          uploadPromises.push(promise);
+        }
       }
+      
+      await Promise.all(uploadPromises);
+      
+      toast({
+        title: "Success",
+        description: `Uploaded ${files.length} file(s) successfully`,
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload some files. Check the console for details.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -297,6 +333,7 @@ export {};`;
                 accept="*"
                 className="hidden"
                 onChange={async (e) => {
+                  console.log('File input changed:', e.target.files);
                   await handleFileUpload(e.target.files);
                   // Reset input
                   e.target.value = '';
