@@ -3,31 +3,16 @@ import { Link } from "wouter";
 import { Brain, Sparkles, Code, Zap, Globe, Cpu } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
+import { StarField3D } from "@/components/Effects/StarField3D";
 import brainImagePath from "@assets/Screenshot_2025-07-27-19-57-41-27_96b26121e545231a3c569311a54cda96_1753664423442.jpg";
 import meditationImagePath from "@assets/ChatGPT Image Jul 27, 2025, 08_01_18 PM_1753664504307.png";
 
 export default function Landing() {
-  const starsRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    // Create animated stars background
-    if (starsRef.current) {
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.animationDelay = `${Math.random() * 3}s`;
-        star.style.animationDuration = `${3 + Math.random() * 2}s`;
-        starsRef.current.appendChild(star);
-      }
-    }
-  }, []);
   
   return (
     <div className="min-h-screen flex flex-col neural-network-bg relative overflow-hidden">
-      {/* Animated stars background */}
-      <div ref={starsRef} className="stars" />
+      {/* 3D Star Field Background */}
+      <StarField3D />
       
       {/* Hero Section */}
       <section className="space-child-hero min-h-screen flex items-center justify-center relative z-10">

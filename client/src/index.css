@@ -370,31 +370,7 @@
   box-shadow: 0 0 20px hsla(199, 100%, 50%, 0.3);
 }
 
-/* Animated background stars */
-@keyframes twinkle {
-  0% { opacity: 0; }
-  50% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-.stars {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: white;
-  border-radius: 50%;
-  animation: twinkle 3s infinite;
-}
+/* 3D Star field styles are now handled by StarField3D component */
 
 /* Hero section styles */
 .space-child-hero {
