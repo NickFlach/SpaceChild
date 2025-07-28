@@ -127,11 +127,12 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded;
+    @apply rounded;
+    background-color: hsl(var(--muted-foreground) / 0.3);
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    background-color: hsl(var(--muted-foreground) / 0.5);
   }
 
   /* Consciousness pulse animation */

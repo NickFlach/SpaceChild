@@ -10,6 +10,7 @@ import {
   boolean,
   decimal,
   serial,
+  real,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -234,6 +235,60 @@ export const insertAiProviderUsageSchema = createInsertSchema(aiProviderUsage).o
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Enhanced Consciousness Engine Tables
+export const enhancedMemories = pgTable("enhanced_memories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  sessionId: varchar("session_id").notNull(),
+  content: text("content").notNull(),
+  type: varchar("type").notNull(), // 'code', 'chat', 'error', 'success'
+  embedding: real("embedding").array().notNull(), // Vector embedding for semantic search
+  metadata: jsonb("metadata").default('{}'),
+  confidence: real("confidence").default(1.0),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id"),
+  category: varchar("category").notNull(), // 'coding_style', 'framework', 'ui_preference', etc.
+  value: text("value").notNull(),
+  strength: real("strength").default(1.0), // How strongly this preference is held
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const interactionPatterns = pgTable("interaction_patterns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  pattern: text("pattern").notNull(),
+  type: varchar("type").notNull(),
+  occurrences: integer("occurrences").default(1),
+  context: jsonb("context").default('{}'),
+  lastSeen: timestamp("last_seen").defaultNow(),
+});
+
+// Indexes for performance
+// TODO: Add indexes after tables are created
+// export const enhancedMemoryUserProjectIdx = index("enhanced_memory_user_project_idx")
+//   .on(enhancedMemories.userId, enhancedMemories.projectId);
+
+// export const preferenceUserCategoryIdx = index("preference_user_category_idx")
+//   .on(userPreferences.userId, userPreferences.category);
+
+// export const patternUserProjectIdx = index("pattern_user_project_idx")
+//   .on(interactionPatterns.userId, interactionPatterns.projectId);
+
+// Types
+export type EnhancedMemory = typeof enhancedMemories.$inferSelect;
+export type InsertEnhancedMemory = typeof enhancedMemories.$inferInsert;
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type InsertUserPreference = typeof userPreferences.$inferInsert;
+export type InteractionPattern = typeof interactionPatterns.$inferSelect;
+export type InsertInteractionPattern = typeof interactionPatterns.$inferInsert;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProjectFile = z.infer<typeof insertProjectFileSchema>;

@@ -7,7 +7,7 @@ import ProjectHeader from "@/components/Project/ProjectHeader";
 import FileExplorer from "@/components/Editor/FileExplorer";
 import CodeEditor from "@/components/Editor/CodeEditor";
 import ChatInterface from "@/components/Chat/ChatInterface";
-import ConsciousnessPanel from "@/components/Consciousness/ConsciousnessPanel";
+import { ConsciousnessPanel } from "@/components/Consciousness/ConsciousnessPanel";
 import SuperintelligencePanel from "@/components/Superintelligence/SuperintelligencePanel";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
@@ -171,10 +171,7 @@ export default function Dashboard() {
             currentProject={currentProject}
           />
           
-          <ConsciousnessPanel 
-            project={currentProject}
-            isEnabled={currentProject?.consciousnessEnabled}
-          />
+
         </div>
 
         {/* Main Content */}
@@ -222,8 +219,9 @@ export default function Dashboard() {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="chat">Chat</TabsTrigger>
+                  <TabsTrigger value="consciousness">Consciousness</TabsTrigger>
                   <TabsTrigger value="memory">Memory</TabsTrigger>
                   <TabsTrigger value="templates">Templates</TabsTrigger>
                   <TabsTrigger value="analysis">Analysis</TabsTrigger>
@@ -232,6 +230,12 @@ export default function Dashboard() {
                 
                 <TabsContent value="chat" className="flex-1 mt-0">
                   <ChatInterface project={currentProject} />
+                </TabsContent>
+                
+                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-4">
+                  <ConsciousnessPanel 
+                    projectId={currentProject?.id || null}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="memory" className="flex-1 mt-0 overflow-auto">

@@ -1,130 +1,118 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import type { ConsciousnessContext, ConsciousnessMemory } from "@shared/schema";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
 
 interface ConsciousnessSession {
   sessionId: string;
   projectId: number;
-  status: string;
-  contextRetention: number;
+  startTime: string;
+  isActive: boolean;
 }
 
-interface ConsciousResponse {
-  response: string;
+interface ConsciousnessMemory {
+  id: string;
+  content: string;
+  type: 'code' | 'chat' | 'error' | 'success';
   confidence: number;
-  contextUpdates?: any;
-  tokensUsed?: number;
-  cost?: string;
+  timestamp: Date;
 }
 
-export function useConsciousness(projectId?: number) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+interface ConsciousnessContext {
+  memories: ConsciousnessMemory[];
+  preferences: Array<{
+    category: string;
+    value: string;
+    strength: number;
+  }>;
+  patterns: Array<{
+    pattern: string;
+    occurrences: number;
+    lastSeen: Date;
+  }>;
+  insights: string[];
+}
 
-  // Consciousness context query
-  const { data: context, isLoading: isLoadingContext } = useQuery<ConsciousnessContext>({
-    queryKey: ["/api/consciousness/context", projectId],
+export function useConsciousness(projectId: number | null) {
+  const [activeSession, setActiveSession] = useState<ConsciousnessSession | null>(null);
+
+  // Get consciousness context for a project
+  const { data: context, isLoading: contextLoading } = useQuery<ConsciousnessContext>({
+    queryKey: ['/api/consciousness/context', projectId],
     enabled: !!projectId,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
+    refetchInterval: activeSession ? 30000 : false, // Refresh every 30s when active
   });
 
-  // Consciousness memories query
-  const { data: memories, isLoading: isLoadingMemories } = useQuery<ConsciousnessMemory[]>({
-    queryKey: ["/api/consciousness/memories", projectId],
-    enabled: !!projectId,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
-  });
-
-  // Activate consciousness mutation
+  // Activate consciousness for a project
   const activateMutation = useMutation({
-    mutationFn: async (projectId: number) => {
-      const response = await apiRequest("POST", "/api/consciousness/activate", { projectId });
+    mutationFn: async (projectId: number): Promise<ConsciousnessSession> => {
+      const response = await fetch('/api/consciousness/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId }),
+      });
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
       return response.json();
     },
-    onSuccess: (session: ConsciousnessSession) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/consciousness/context", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
-      toast({
-        title: "Success",
-        description: "Consciousness layer activated successfully!",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to activate consciousness layer",
-        variant: "destructive",
-      });
+    onSuccess: (session) => {
+      setActiveSession(session);
+      queryClient.invalidateQueries({ queryKey: ['/api/consciousness/context'] });
     },
   });
 
-  // Query consciousness mutation
+  // Query consciousness with context
   const queryMutation = useMutation({
-    mutationFn: async ({ sessionId, query, projectId }: { 
-      sessionId: string; 
-      query: string; 
-      projectId: number; 
-    }) => {
-      const response = await apiRequest("POST", "/api/consciousness/query", {
-        sessionId,
-        query,
-        projectId,
+    mutationFn: async ({ query, projectId }: { query: string; projectId: number }) => {
+      if (!activeSession) {
+        throw new Error("Consciousness not activated");
+      }
+      const response = await fetch('/api/consciousness/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: activeSession.sessionId,
+          query,
+          projectId,
+        }),
       });
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/consciousness/context", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/consciousness/memories", projectId] });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to process consciousness query",
-        variant: "destructive",
-      });
+      // Refresh context after each query
+      queryClient.invalidateQueries({ queryKey: ['/api/consciousness/context'] });
     },
   });
 
+  // Calculate overall consciousness metrics
+  const memories = context?.memories || [];
+  const metrics = {
+    isActive: !!activeSession?.isActive,
+    confidence: memories.length > 0 
+      ? memories.reduce((sum, m) => sum + m.confidence, 0) / memories.length 
+      : 0,
+    memoryCount: context?.memories?.length || 0,
+    patternCount: context?.patterns?.length || 0,
+    preferenceCount: context?.preferences?.length || 0,
+  };
+
   return {
-    // Data
+    // State
     context,
-    memories,
-    
-    // Loading states
-    isLoading: isLoadingContext || isLoadingMemories,
-    isLoadingContext,
-    isLoadingMemories,
-    
+    activeSession,
+    metrics,
+    isLoading: contextLoading,
+
     // Actions
-    activate: activateMutation.mutateAsync,
+    activate: (projectId: number) => activateMutation.mutateAsync(projectId),
     query: queryMutation.mutateAsync,
-    
-    // Mutation states
     isActivating: activateMutation.isPending,
     isQuerying: queryMutation.isPending,
   };
