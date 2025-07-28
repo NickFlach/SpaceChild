@@ -127,14 +127,8 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   
   const displayTemplates = searchMutation.data || templates || [];
   
-  // Debug logging
-  console.log("Template Debug:", {
-    isLoading,
-    templates,
-    templatesLength: templates?.length,
-    displayTemplates,
-    displayTemplatesLength: displayTemplates.length
-  });
+  // Debug logging (remove after fixing)
+  // console.log("Template Debug:", { isLoading, templates, templatesLength: templates?.length, displayTemplates, displayTemplatesLength: displayTemplates.length });
   
   if (isLoading) {
     return <div>Loading templates...</div>;
@@ -187,48 +181,52 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   }
   
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="space-y-3 h-full flex flex-col">
+      {/* Header - Compact */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold mb-2">Project Templates</h2>
-          <p className="text-muted-foreground">
-            Start your project with pre-configured templates optimized for Space Child AI
+          <h2 className="text-xl font-bold">Templates</h2>
+          <p className="text-sm text-muted-foreground">
+            AI-powered project starters
           </p>
         </div>
         <Button 
           onClick={() => setShowSmartCreator(true)}
+          size="sm"
           className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
         >
-          <Wand2 className="h-4 w-4 mr-2" />
-          AI Smart Template
+          <Wand2 className="h-4 w-4 mr-1" />
+          AI Smart
         </Button>
       </div>
       
-      {/* Search Bar */}
+      {/* Search Bar - Compact */}
       <form onSubmit={handleSearch} className="flex gap-2">
         <Input
-          placeholder="Search templates by name, tech stack, or features..."
+          placeholder="Search templates..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
+          className="flex-1 h-8"
+          size="sm"
         />
-        <Button type="submit" disabled={searchMutation.isPending}>
-          <Search className="h-4 w-4 mr-2" />
-          Search
+        <Button type="submit" disabled={searchMutation.isPending} size="sm" className="h-8">
+          <Search className="h-4 w-4" />
         </Button>
       </form>
       
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">All Templates</TabsTrigger>
-          <TabsTrigger value="web-app">Web Apps</TabsTrigger>
-          <TabsTrigger value="api">APIs</TabsTrigger>
-          <TabsTrigger value="fullstack">Full Stack</TabsTrigger>
-          <TabsTrigger value="other">Other</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Template Grid - Main content area */}
+      <div className="flex-1 overflow-auto">
+        <Tabs defaultValue="all" className="h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-5 h-8 mb-2">
+            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+            <TabsTrigger value="web-app" className="text-xs">Web</TabsTrigger>
+            <TabsTrigger value="api" className="text-xs">API</TabsTrigger>
+            <TabsTrigger value="fullstack" className="text-xs">Full Stack</TabsTrigger>
+            <TabsTrigger value="other" className="text-xs">Other</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all" className="flex-1 mt-0 overflow-auto">
+            <div className="grid grid-cols-1 gap-3">
             {displayTemplates.map((template: ProjectTemplate) => (
               <Card 
                 key={template.id} 
@@ -239,64 +237,55 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
                   setIsCreateDialogOpen(true);
                 }}
               >
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {getCategoryIcon(template.category)}
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                      <CardTitle className="text-base">{template.name}</CardTitle>
                     </div>
                     {template.popularity && template.popularity > 0 && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs">
                         <Sparkles className="h-3 w-3 mr-1" />
                         {template.popularity}
                       </Badge>
                     )}
                   </div>
-                  <CardDescription>{template.description}</CardDescription>
+                  <CardDescription className="text-sm">{template.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
                     {/* Tech Stack */}
                     <div>
-                      <p className="text-sm font-medium mb-1">Tech Stack</p>
+                      <p className="text-xs font-medium mb-1">Tech Stack</p>
                       <div className="flex flex-wrap gap-1">
-                        {(template.techStack as string[])?.slice(0, 4).map((tech) => (
-                          <Badge key={tech} variant="outline" className="text-xs">
+                        {(template.techStack as string[])?.slice(0, 3).map((tech) => (
+                          <Badge key={tech} variant="outline" className="text-xs px-1 py-0">
                             {tech}
                           </Badge>
                         ))}
-                        {(template.techStack as string[])?.length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{(template.techStack as string[]).length - 4}
+                        {(template.techStack as string[])?.length > 3 && (
+                          <Badge variant="outline" className="text-xs px-1 py-0">
+                            +{(template.techStack as string[]).length - 3}
                           </Badge>
                         )}
                       </div>
                     </div>
                     
-                    {/* Features */}
-                    {template.features && (template.features as string[]).length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-1">Features</p>
-                        <div className="flex flex-wrap gap-1">
-                          {(template.features as string[]).slice(0, 3).map((feature) => (
-                            <Badge key={feature} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* AI Providers */}
+                    {/* AI Providers - Compact display */}
                     {template.aiProviders && (template.aiProviders as string[]).length > 0 && (
                       <div>
-                        <p className="text-sm font-medium mb-1">AI Providers</p>
+                        <p className="text-xs font-medium mb-1">AI Providers</p>
                         <div className="flex flex-wrap gap-1">
-                          {(template.aiProviders as string[]).map((provider) => (
-                            <Badge key={provider} className="text-xs">
+                          {(template.aiProviders as string[]).slice(0, 2).map((provider) => (
+                            <Badge key={provider} className="text-xs px-1 py-0 bg-cyan-500 hover:bg-cyan-600">
                               {provider}
                             </Badge>
                           ))}
+                          {(template.aiProviders as string[]).length > 2 && (
+                            <Badge className="text-xs px-1 py-0 bg-cyan-500">
+                              +{(template.aiProviders as string[]).length - 2}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     )}
@@ -350,7 +339,8 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
             </div>
           </TabsContent>
         ))}
-      </Tabs>
+        </Tabs>
+      </div>
       
       {/* Create Project Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
