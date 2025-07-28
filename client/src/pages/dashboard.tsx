@@ -12,6 +12,7 @@ import { SuperintelligencePanel } from "@/components/Superintelligence/Superinte
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
 import TemplateGallery from "@/components/Templates/TemplateGallery";
+import MultiAgentPanel from "@/components/MultiAgent/MultiAgentPanel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -123,6 +124,14 @@ export default function Dashboard() {
             </div>
           )}
           
+          {/* Multi-Agent Indicator */}
+          {currentProject?.multiAgentEnabled && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-purple-500 font-medium">Agents Active</span>
+            </div>
+          )}
+          
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -219,16 +228,17 @@ export default function Dashboard() {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="grid w-full grid-cols-6">
-                  <TabsTrigger value="chat">Chat</TabsTrigger>
-                  <TabsTrigger value="consciousness">Consciousness</TabsTrigger>
-                  <TabsTrigger value="memory">Memory</TabsTrigger>
-                  <TabsTrigger value="templates">Templates</TabsTrigger>
-                  <TabsTrigger value="analysis">Analysis</TabsTrigger>
-                  <TabsTrigger value="deploy">Deploy</TabsTrigger>
+                <TabsList className="flex w-full overflow-x-auto flex-wrap">
+                  <TabsTrigger value="chat" className="flex-1 min-w-fit">Chat</TabsTrigger>
+                  <TabsTrigger value="consciousness" className="flex-1 min-w-fit">Consciousness</TabsTrigger>
+                  <TabsTrigger value="memory" className="flex-1 min-w-fit">Memory</TabsTrigger>
+                  <TabsTrigger value="templates" className="flex-1 min-w-fit">Templates</TabsTrigger>
+                  <TabsTrigger value="analysis" className="flex-1 min-w-fit">Analysis</TabsTrigger>
+                  <TabsTrigger value="agents" className="flex-1 min-w-fit">Agents</TabsTrigger>
+                  <TabsTrigger value="deploy" className="flex-1 min-w-fit">Deploy</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="chat" className="flex-1 mt-0">
+                <TabsContent value="chat" className="flex-1 mt-0 flex flex-col overflow-hidden">
                   <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
@@ -256,6 +266,14 @@ export default function Dashboard() {
                 <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-4">
                   {currentProject && (
                     <SuperintelligencePanel 
+                      project={currentProject}
+                    />
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="agents" className="flex-1 mt-0 overflow-auto p-4">
+                  {currentProject && (
+                    <MultiAgentPanel 
                       project={currentProject}
                     />
                   )}

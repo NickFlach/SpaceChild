@@ -498,6 +498,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multi-Agent System Routes
+  app.post('/api/multiagent/start', isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, goal } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!projectId || !goal) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { multiAgentService } = await import("./services/multiAgent");
+      await multiAgentService.startCollaboration(parseInt(projectId), userId, goal);
+      
+      res.json({ success: true, message: "Multi-agent collaboration started" });
+    } catch (error) {
+      console.error("Multi-agent start error:", error);
+      res.status(500).json({ error: "Failed to start multi-agent collaboration" });
+    }
+  });
+
+  app.get('/api/multiagent/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { multiAgentService } = await import("./services/multiAgent");
+      const status = await multiAgentService.getStatus();
+      const agentStatuses = multiAgentService.getAgentStatuses();
+      
+      res.json({ status, agentStatuses });
+    } catch (error) {
+      console.error("Multi-agent status error:", error);
+      res.status(500).json({ error: "Failed to get multi-agent status" });
+    }
+  });
+
   // Register project memory routes
   app.use(projectMemoryRoutes);
   

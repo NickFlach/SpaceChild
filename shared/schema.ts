@@ -385,3 +385,47 @@ export const superintelligenceRecommendations = pgTable("superintelligence_recom
 
 export type SuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferSelect;
 export type InsertSuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferInsert;
+
+// Multi-Agent System Tables
+export const multiAgentSessions = pgTable("multi_agent_sessions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  goal: text("goal").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("active"),
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at"),
+  result: jsonb("result"),
+});
+
+export const multiAgentMessages = pgTable("multi_agent_messages", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => multiAgentSessions.id).notNull(),
+  fromAgent: varchar("from_agent", { length: 50 }).notNull(),
+  toAgent: varchar("to_agent", { length: 50 }),
+  messageType: varchar("message_type", { length: 50 }).notNull(),
+  content: jsonb("content").notNull(),
+  priority: varchar("priority", { length: 20 }).notNull().default("medium"),
+  timestamp: timestamp("timestamp").notNull(),
+});
+
+export const multiAgentTasks = pgTable("multi_agent_tasks", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").references(() => multiAgentSessions.id).notNull(),
+  agentType: varchar("agent_type", { length: 50 }).notNull(),
+  taskType: varchar("task_type", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  dependencies: jsonb("dependencies").default([]).$type<string[]>(),
+  result: jsonb("result"),
+  createdAt: timestamp("created_at").notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export type InsertMultiAgentSession = typeof multiAgentSessions.$inferInsert;
+export type MultiAgentSession = typeof multiAgentSessions.$inferSelect;
+export type InsertMultiAgentMessage = typeof multiAgentMessages.$inferInsert;
+export type MultiAgentMessage = typeof multiAgentMessages.$inferSelect;
+export type InsertMultiAgentTask = typeof multiAgentTasks.$inferInsert;
+export type MultiAgentTask = typeof multiAgentTasks.$inferSelect;

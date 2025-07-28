@@ -508,7 +508,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
       Provide specific, actionable optimization suggestions.`;
 
       const response = await anthropic.messages.create({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-sonnet-4-20250514", // Latest Claude model - updated from deprecated version
         max_tokens: 1000,
         messages: [{ role: "user", content: prompt }]
       });
@@ -565,7 +565,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
       Provide specific, implementable recommendations.`;
 
       const response = await anthropic.messages.create({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-sonnet-4-20250514", // Latest Claude model - updated from deprecated version
         max_tokens: 1500,
         messages: [{ role: "user", content: prompt }]
       });
