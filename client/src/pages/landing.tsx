@@ -8,6 +8,12 @@ import brainImagePath from "@assets/Screenshot_2025-07-27-19-57-41-27_96b26121e5
 import meditationImagePath from "@assets/ChatGPT Image Jul 27, 2025, 08_01_18 PM_1753664504307.png";
 
 export default function Landing() {
+  const scrollToFeatures = () => {
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col neural-network-bg relative overflow-hidden">
@@ -50,12 +56,15 @@ export default function Landing() {
                     </Button>
                   </a>
                   
-                  <Link href="#features">
-                    <Button size="lg" variant="outline" className="text-lg px-8 py-6 font-semibold border-primary/30 hover:border-primary/60">
-                      <Brain className="mr-2" />
-                      Explore Features
-                    </Button>
-                  </Link>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="text-lg px-8 py-6 font-semibold border-primary/30 hover:border-primary/60"
+                    onClick={scrollToFeatures}
+                  >
+                    <Brain className="mr-2" />
+                    Explore Features
+                  </Button>
                 </div>
               </div>
               
