@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isAuthenticated } from "../replitAuth";
 import { projectTemplateService } from "../services/projectTemplates";
+import { smartTemplateService } from "../services/smartTemplates";
 
 const router = Router();
 
@@ -95,6 +96,46 @@ router.post('/api/templates/:id/create-project', isAuthenticated, async (req: an
   } catch (error) {
     console.error("Error creating project from template:", error);
     res.status(500).json({ message: "Failed to create project from template" });
+  }
+});
+
+// Smart Template Routes
+router.post('/api/templates/smart/analyze', isAuthenticated, async (req: any, res) => {
+  try {
+    const { config } = req.body;
+    const userId = req.user.claims.sub;
+    
+    if (!config || !config.projectDescription) {
+      return res.status(400).json({ message: "Project description is required" });
+    }
+    
+    const analysis = await smartTemplateService.analyzeProjectRequirements(config, userId);
+    res.json(analysis);
+  } catch (error) {
+    console.error("Error analyzing smart template requirements:", error);
+    res.status(500).json({ message: "Failed to analyze requirements" });
+  }
+});
+
+router.post('/api/templates/smart/create', isAuthenticated, async (req: any, res) => {
+  try {
+    const { projectName, config } = req.body;
+    const userId = req.user.claims.sub;
+    
+    if (!projectName || !config) {
+      return res.status(400).json({ message: "Project name and configuration are required" });
+    }
+    
+    const project = await smartTemplateService.createSmartProject(
+      userId,
+      projectName,
+      config
+    );
+    
+    res.json(project);
+  } catch (error) {
+    console.error("Error creating smart template project:", error);
+    res.status(500).json({ message: "Failed to create smart template project" });
   }
 });
 

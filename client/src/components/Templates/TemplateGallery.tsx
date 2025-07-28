@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Code, Globe, Database, Brain, Terminal, Sparkles } from "lucide-react";
+import { Search, Code, Globe, Database, Brain, Terminal, Sparkles, Wand2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { ProjectTemplate } from "@shared/schema";
+import SmartTemplateCreator from "./SmartTemplateCreator";
 
 interface TemplateGalleryProps {
   onProjectCreated?: (project: any) => void;
@@ -24,6 +25,7 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
   const [projectName, setProjectName] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showSmartCreator, setShowSmartCreator] = useState(false);
   
   // Fetch templates
   const { data: templates, isLoading } = useQuery({
@@ -131,11 +133,20 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Project Templates</h2>
-        <p className="text-muted-foreground">
-          Start your project with pre-configured templates optimized for Space Child AI
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Project Templates</h2>
+          <p className="text-muted-foreground">
+            Start your project with pre-configured templates optimized for Space Child AI
+          </p>
+        </div>
+        <Button 
+          onClick={() => setShowSmartCreator(true)}
+          className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+        >
+          <Wand2 className="h-4 w-4 mr-2" />
+          AI Smart Template
+        </Button>
       </div>
       
       {/* Search Bar */}
@@ -179,7 +190,7 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
                       {getCategoryIcon(template.category)}
                       <CardTitle className="text-lg">{template.name}</CardTitle>
                     </div>
-                    {template.popularity > 0 && (
+                    {template.popularity && template.popularity > 0 && (
                       <Badge variant="secondary">
                         <Sparkles className="h-3 w-3 mr-1" />
                         {template.popularity}
@@ -347,6 +358,23 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Smart Template Creator Dialog */}
+      {showSmartCreator && (
+        <SmartTemplateCreator
+          onProjectCreated={(project) => {
+            setShowSmartCreator(false);
+            if (onProjectCreated) {
+              onProjectCreated(project);
+            }
+            toast({
+              title: "Success",
+              description: "AI-powered project created successfully!",
+            });
+            queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const session = await consciousnessService.activate(projectId);
+      const session = await consciousnessService.activate(userId, projectId);
       
       // Update project to enable consciousness
       await storage.updateProject(projectId, { consciousnessEnabled: true });

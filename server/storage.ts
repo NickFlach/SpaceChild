@@ -374,6 +374,14 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(projectTemplates.id, templateId));
   }
+  
+  async updateProjectTemplate(id: number, data: Partial<InsertProjectTemplate>): Promise<ProjectTemplate | undefined> {
+    const [template] = await db.update(projectTemplates)
+      .set(data)
+      .where(eq(projectTemplates.id, id))
+      .returning();
+    return template;
+  }
 }
 
 export const storage = new DatabaseStorage();

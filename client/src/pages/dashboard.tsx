@@ -125,8 +125,12 @@ export default function Dashboard() {
             </div>
           )}
           
-          {/* Multi-Agent Indicator */}
-          {currentProject?.multiAgentEnabled && (
+          {/* Multi-Agent Indicator - check config for multi-agent status */}
+          {currentProject?.config && 
+           typeof currentProject.config === 'object' && 
+           currentProject.config !== null &&
+           'multiAgentEnabled' in currentProject.config && 
+           (currentProject.config as any).multiAgentEnabled && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
               <span className="text-xs text-purple-500 font-medium">Agents Active</span>
