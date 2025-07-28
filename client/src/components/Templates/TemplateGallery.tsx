@@ -181,12 +181,12 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   }
   
   return (
-    <div className="space-y-3 h-full flex flex-col">
+    <div className="space-y-2 h-full flex flex-col">
       {/* Header - Compact */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Templates</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-lg font-bold">Templates</h2>
+          <p className="text-xs text-muted-foreground">
             AI-powered project starters
           </p>
         </div>
@@ -201,32 +201,32 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
       </div>
       
       {/* Search Bar - Compact */}
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex gap-1">
         <Input
           placeholder="Search templates..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 h-8"
+          className="flex-1 h-7 text-xs"
           size="sm"
         />
-        <Button type="submit" disabled={searchMutation.isPending} size="sm" className="h-8">
-          <Search className="h-4 w-4" />
+        <Button type="submit" disabled={searchMutation.isPending} size="sm" className="h-7 px-2">
+          <Search className="h-3 w-3" />
         </Button>
       </form>
       
       {/* Template Grid - Main content area */}
       <div className="flex-1 overflow-auto">
         <Tabs defaultValue="all" className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-5 h-8 mb-2">
-            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-            <TabsTrigger value="web-app" className="text-xs">Web</TabsTrigger>
-            <TabsTrigger value="api" className="text-xs">API</TabsTrigger>
-            <TabsTrigger value="fullstack" className="text-xs">Full Stack</TabsTrigger>
-            <TabsTrigger value="other" className="text-xs">Other</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 h-7 mb-1">
+            <TabsTrigger value="all" className="text-xs py-1">All</TabsTrigger>
+            <TabsTrigger value="web-app" className="text-xs py-1">Web</TabsTrigger>
+            <TabsTrigger value="api" className="text-xs py-1">API</TabsTrigger>
+            <TabsTrigger value="fullstack" className="text-xs py-1">Full Stack</TabsTrigger>
+            <TabsTrigger value="other" className="text-xs py-1">Other</TabsTrigger>
           </TabsList>
           
           <TabsContent value="all" className="flex-1 mt-0 overflow-auto">
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2">
             {displayTemplates.map((template: ProjectTemplate) => (
               <Card 
                 key={template.id} 
@@ -237,20 +237,20 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
                   setIsCreateDialogOpen(true);
                 }}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {getCategoryIcon(template.category)}
-                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <CardTitle className="text-sm">{template.name}</CardTitle>
                     </div>
                     {template.popularity && template.popularity > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs px-1 py-0">
                         <Sparkles className="h-3 w-3 mr-1" />
                         {template.popularity}
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-sm">{template.description}</CardDescription>
+                  <CardDescription className="text-xs">{template.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-2">

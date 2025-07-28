@@ -247,19 +247,19 @@ export default function Dashboard() {
                   <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
-                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-4">
+                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-2">
                   <ConsciousnessPanel 
                     projectId={currentProject?.id || null}
                   />
                 </TabsContent>
                 
-                <TabsContent value="memory" className="flex-1 mt-0 overflow-auto">
+                <TabsContent value="memory" className="flex-1 mt-0 overflow-auto p-2">
                   {currentProject && (
                     <ProjectMemoryPanel projectId={currentProject.id} />
                   )}
                 </TabsContent>
                 
-                <TabsContent value="templates" className="flex-1 mt-0 overflow-auto p-4">
+                <TabsContent value="templates" className="flex-1 mt-0 overflow-auto p-2">
                   <TemplateGallery 
                     onProjectCreated={async (project) => {
                       await selectProject(project.id);
@@ -268,7 +268,7 @@ export default function Dashboard() {
                   />
                 </TabsContent>
                 
-                <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-4">
+                <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-2">
                   {currentProject && (
                     <SuperintelligencePanel 
                       project={currentProject}
@@ -276,7 +276,7 @@ export default function Dashboard() {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="agents" className="flex-1 mt-0 overflow-auto p-4">
+                <TabsContent value="agents" className="flex-1 mt-0 overflow-auto p-2">
                   {currentProject && (
                     <MultiAgentPanel 
                       project={currentProject}
@@ -284,7 +284,7 @@ export default function Dashboard() {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-4">
+                <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-2">
                   {currentProject && (
                     <DeploymentPanel 
                       project={currentProject}
