@@ -392,5 +392,84 @@ export class ConsciousAIProvider {
   }
 }
 
+/**
+ * Consciousness service wrapper for managing consciousness sessions
+ */
+class ConsciousnessService {
+  private sessions: Map<string, ConsciousnessEngine> = new Map();
+
+  /**
+   * Activate a new consciousness session
+   */
+  async activate(userId: string, projectId: number): Promise<{ sessionId: string; state: ConsciousnessState }> {
+    const sessionId = `${userId}-${projectId}-${Date.now()}`;
+    const context: MemoryContext = {
+      userId,
+      projectId,
+      sessionId,
+      timestamp: new Date()
+    };
+
+    const engine = new ConsciousnessEngine(context);
+    const state = await engine.initialize();
+    
+    this.sessions.set(sessionId, engine);
+    
+    return { sessionId, state };
+  }
+
+  /**
+   * Query the consciousness with context
+   */
+  async query(sessionId: string, query: string, projectId: number): Promise<{ response: string; confidence: number; tokensUsed?: number; cost?: string }> {
+    const engine = this.sessions.get(sessionId);
+    if (!engine) {
+      throw new Error('Session not found. Please activate consciousness first.');
+    }
+
+    // Store the query as a memory
+    await engine.rememberInteraction(query, 'chat');
+
+    // Retrieve relevant memories
+    const memories = await engine.retrieveRelevantMemories(query);
+
+    // Build context from memories
+    const contextInfo = memories.map(m => m.content).join('\n');
+    
+    // For now, return a simulated response
+    // In a real implementation, this would call an AI provider with the enriched context
+    const response = `Based on your query "${query}" and considering the project context:\n\n${contextInfo ? `Previous context:\n${contextInfo}\n\n` : ''}I understand you're working on ${query}. Let me help you with that.`;
+    
+    const confidence = engine.calculateSuggestionConfidence(response, query);
+
+    return {
+      response,
+      confidence,
+      tokensUsed: 100, // Placeholder
+      cost: '0.001' // Placeholder
+    };
+  }
+
+  /**
+   * Get consciousness engine for a session
+   */
+  getEngine(sessionId: string): ConsciousnessEngine | undefined {
+    return this.sessions.get(sessionId);
+  }
+
+  /**
+   * Clean up old sessions
+   */
+  cleanupSessions(maxAge: number = 24 * 60 * 60 * 1000): void {
+    const now = Date.now();
+    for (const [sessionId, engine] of this.sessions.entries()) {
+      const timestamp = parseInt(sessionId.split('-').pop() || '0');
+      if (now - timestamp > maxAge) {
+        this.sessions.delete(sessionId);
+      }
+    }
+  }
+}
+
 // Export singleton instance
-export const consciousnessService = new ConsciousnessEngine();
+export const consciousnessService = new ConsciousnessService();

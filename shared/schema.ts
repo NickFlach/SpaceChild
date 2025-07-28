@@ -334,3 +334,54 @@ export type InsertSuperintelligenceJob = z.infer<typeof insertSuperintelligenceJ
 export type SuperintelligenceJob = typeof superintelligenceJobs.$inferSelect;
 export type InsertAiProviderUsage = z.infer<typeof insertAiProviderUsageSchema>;
 export type AiProviderUsage = typeof aiProviderUsage.$inferSelect;
+
+// Superintelligence analysis results
+export const superintelligenceAnalyses = pgTable("superintelligence_analyses", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  fileId: varchar("file_id"),
+  analysisType: varchar("analysis_type").notNull(), // 'code_quality', 'performance', 'security', 'bug_prediction'
+  results: jsonb("results").notNull(),
+  confidence: real("confidence").default(0.8),
+  timestamp: timestamp("timestamp").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SuperintelligenceAnalysis = typeof superintelligenceAnalyses.$inferSelect;
+export type InsertSuperintelligenceAnalysis = typeof superintelligenceAnalyses.$inferInsert;
+
+// Superintelligence optimization suggestions
+export const superintelligenceOptimizations = pgTable("superintelligence_optimizations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  optimizationType: varchar("optimization_type").notNull(), // 'performance', 'memory', 'bundle_size', 'refactoring'
+  description: text("description").notNull(),
+  impact: varchar("impact").notNull(), // 'low', 'medium', 'high', 'critical'
+  estimatedImprovement: varchar("estimated_improvement"),
+  implementation: jsonb("implementation").notNull(), // Detailed steps and code examples
+  applied: boolean("applied").default(false),
+  confidence: real("confidence").default(0.75),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SuperintelligenceOptimization = typeof superintelligenceOptimizations.$inferSelect;
+export type InsertSuperintelligenceOptimization = typeof superintelligenceOptimizations.$inferInsert;
+
+// Superintelligence architecture recommendations
+export const superintelligenceRecommendations = pgTable("superintelligence_recommendations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  recommendationType: varchar("recommendation_type").notNull(), // 'structure', 'pattern', 'security', 'performance'
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  priority: varchar("priority").notNull(), // 'low', 'medium', 'high', 'critical'
+  impact: text("impact"),
+  rationale: text("rationale"),
+  implementation: jsonb("implementation").notNull(), // Steps, examples, migration guide
+  implemented: boolean("implemented").default(false),
+  confidence: real("confidence").default(0.8),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type SuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferSelect;
+export type InsertSuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferInsert;

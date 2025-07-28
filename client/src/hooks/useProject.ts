@@ -11,32 +11,36 @@ export function useProject() {
   const queryClient = useQueryClient();
 
   // Projects query
-  const { data: projects, isLoading: isLoadingProjects } = useQuery<Project[]>({
-    queryKey: ["/api/projects"],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
+  const { data: projects = [], isLoading: isLoadingProjects, error: projectsError } = useQuery<Project[]>({
+    queryKey: ["/api/projects"]
   });
+
+  // Handle projects error
+  useEffect(() => {
+    if (projectsError && isUnauthorizedError(projectsError as Error)) {
+      window.location.href = "/api/login";
+    }
+  }, [projectsError]);
 
   // Current project query
-  const { data: currentProject } = useQuery<Project>({
+  const { data: currentProject, error: currentProjectError } = useQuery<Project>({
     queryKey: ["/api/projects", currentProjectId],
-    enabled: !!currentProjectId,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
+    enabled: !!currentProjectId
   });
 
+  // Handle current project error
+  useEffect(() => {
+    if (currentProjectError && isUnauthorizedError(currentProjectError as Error)) {
+      window.location.href = "/api/login";
+    }
+  }, [currentProjectError]);
+
   // Project files query
-  const { data: files } = useQuery<ProjectFile[]>({
+  const { data: files = [] } = useQuery<ProjectFile[]>({
     queryKey: ["/api/projects", currentProjectId, "files"],
     enabled: !!currentProjectId,
     refetchInterval: false,
-    retry: 2,
+    retry: 2
   });
 
   // Auto-select first project if none selected

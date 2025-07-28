@@ -8,7 +8,7 @@ import FileExplorer from "@/components/Editor/FileExplorer";
 import CodeEditor from "@/components/Editor/CodeEditor";
 import ChatInterface from "@/components/Chat/ChatInterface";
 import { ConsciousnessPanel } from "@/components/Consciousness/ConsciousnessPanel";
-import SuperintelligencePanel from "@/components/Superintelligence/SuperintelligencePanel";
+import { SuperintelligencePanel } from "@/components/Superintelligence/SuperintelligencePanel";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
 import TemplateGallery from "@/components/Templates/TemplateGallery";
@@ -157,7 +157,7 @@ export default function Dashboard() {
         <div className="w-80 bg-card border-r border-border flex flex-col">
           <ProjectHeader 
             projects={projects}
-            currentProject={currentProject}
+            currentProject={currentProject || null}
             onCreateProject={handleCreateProject}
             onSelectProject={selectProject}
             isLoading={isLoadingProjects}
@@ -168,7 +168,7 @@ export default function Dashboard() {
             selectedFile={selectedFile}
             onSelectFile={setSelectedFile}
             onCreateFile={createFile}
-            currentProject={currentProject}
+            currentProject={currentProject || null}
           />
           
 
@@ -209,7 +209,7 @@ export default function Dashboard() {
               <CodeEditor
                 file={selectedFile}
                 onFileChange={updateFile}
-                project={currentProject}
+                project={currentProject || null}
               />
             </div>
           </ResizablePanel>
@@ -229,7 +229,7 @@ export default function Dashboard() {
                 </TabsList>
                 
                 <TabsContent value="chat" className="flex-1 mt-0">
-                  <ChatInterface project={currentProject} />
+                  <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
                 <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-4">
@@ -253,11 +253,12 @@ export default function Dashboard() {
                   />
                 </TabsContent>
                 
-                <TabsContent value="analysis" className="flex-1 mt-0">
-                  <SuperintelligencePanel 
-                    project={currentProject}
-                    isEnabled={currentProject?.superintelligenceEnabled}
-                  />
+                <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-4">
+                  {currentProject && (
+                    <SuperintelligencePanel 
+                      project={currentProject}
+                    />
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="deploy" className="flex-1 mt-0 p-4">

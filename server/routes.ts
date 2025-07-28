@@ -339,25 +339,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Superintelligence Layer Routes
   app.post('/api/superintelligence/analyze', isAuthenticated, async (req: any, res) => {
     try {
-      const { projectId } = req.body;
+      const { projectId, fileId, code, language } = req.body;
       const userId = req.user.claims.sub;
       
-      const project = await storage.getProject(projectId);
+      if (!projectId || !code) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
       if (!project || project.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const job = await superintelligenceService.analyzeArchitecture(projectId);
-      res.json(job);
+      const analysis = await superintelligenceService.analyzeCode(
+        parseInt(projectId),
+        fileId || '',
+        code,
+        language
+      );
+      
+      res.json({ analysis });
     } catch (error) {
-      console.error("Error starting architecture analysis:", error);
-      res.status(500).json({ message: "Failed to start architecture analysis" });
+      console.error("Code analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze code" });
     }
   });
 
   app.post('/api/superintelligence/optimize', isAuthenticated, async (req: any, res) => {
     try {
+      const { projectId, analysis } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!projectId || !analysis) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const optimizations = await superintelligenceService.optimizePerformance(
+        parseInt(projectId),
+        analysis
+      );
+      
+      res.json({ optimizations });
+    } catch (error) {
+      console.error("Optimization error:", error);
+      res.status(500).json({ error: "Failed to generate optimizations" });
+    }
+  });
+
+  app.post('/api/superintelligence/recommend', isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, projectType, currentStructure } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!projectId || !projectType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const recommendations = await superintelligenceService.recommendArchitecture(
+        parseInt(projectId),
+        projectType,
+        currentStructure || {}
+      );
+      
+      res.json({ recommendations });
+    } catch (error) {
+      console.error("Recommendation error:", error);
+      res.status(500).json({ error: "Failed to generate recommendations" });
+    }
+  });
+
+  app.post('/api/superintelligence/predict-bugs', isAuthenticated, async (req: any, res) => {
+    try {
       const { projectId, code } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!projectId || !code) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const predictions = await superintelligenceService.predictBugs(
+        parseInt(projectId),
+        code
+      );
+      
+      res.json({ predictions });
+    } catch (error) {
+      console.error("Bug prediction error:", error);
+      res.status(500).json({ error: "Failed to predict bugs" });
+    }
+  });
+
+  app.get('/api/superintelligence/analyses/:projectId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
       
       const project = await storage.getProject(projectId);
@@ -365,33 +454,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const job = await superintelligenceService.optimizePerformance(projectId, code);
-      res.json(job);
+      const analyses = await superintelligenceService.getProjectAnalyses(projectId);
+      res.json({ analyses });
     } catch (error) {
-      console.error("Error starting performance optimization:", error);
-      res.status(500).json({ message: "Failed to start performance optimization" });
+      console.error("Error fetching analyses:", error);
+      res.status(500).json({ error: "Failed to fetch analyses" });
     }
   });
 
-  app.get('/api/superintelligence/jobs/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/superintelligence/optimizations/:projectId', isAuthenticated, async (req: any, res) => {
     try {
-      const jobId = parseInt(req.params.id);
-      const job = await storage.getSuperintelligenceJob(jobId);
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.claims.sub;
       
-      if (!job) {
-        return res.status(404).json({ message: "Job not found" });
-      }
-      
-      // Verify user has access to this job's project
-      const project = await storage.getProject(job.projectId);
-      if (!project || project.userId !== req.user.claims.sub) {
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(job);
+      const optimizations = await superintelligenceService.getProjectOptimizations(projectId);
+      res.json({ optimizations });
     } catch (error) {
-      console.error("Error fetching job:", error);
-      res.status(500).json({ message: "Failed to fetch job" });
+      console.error("Error fetching optimizations:", error);
+      res.status(500).json({ error: "Failed to fetch optimizations" });
+    }
+  });
+
+  app.get('/api/superintelligence/recommendations/:projectId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.claims.sub;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const recommendations = await superintelligenceService.getProjectRecommendations(projectId);
+      res.json({ recommendations });
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      res.status(500).json({ error: "Failed to fetch recommendations" });
     }
   });
 
