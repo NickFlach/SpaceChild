@@ -15,7 +15,7 @@ import TemplateGallery from "@/components/Templates/TemplateGallery";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Settings, Moon, Sun, User, Columns, FileCode } from "lucide-react";
+import { Settings, Moon, Sun, User, Columns, FileCode, Sparkles } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
 import type { ProjectFile } from "@shared/schema";
 
@@ -97,10 +97,10 @@ export default function Dashboard() {
         <div className="flex items-center space-x-4">
           {/* Space Child Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <FileCode className="h-4 w-4 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center space-child-glow">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Space Child
             </span>
           </div>
@@ -116,16 +116,16 @@ export default function Dashboard() {
           {/* Consciousness Indicator */}
           {currentProject?.consciousnessEnabled && (
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-purple-500 font-medium">Conscious</span>
+              <div className="w-3 h-3 bg-consciousness rounded-full animate-pulse"></div>
+              <span className="text-xs text-consciousness font-medium">Conscious</span>
             </div>
           )}
           
           {/* Superintelligence Indicator */}
           {currentProject?.superintelligenceEnabled && (
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-500 font-medium">SI Active</span>
+              <div className="w-3 h-3 bg-superintelligence rounded-full animate-pulse"></div>
+              <span className="text-xs text-superintelligence font-medium">SI Active</span>
             </div>
           )}
           
