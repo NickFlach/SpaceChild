@@ -28,6 +28,7 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [provider, setProvider] = useState("anthropic");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -96,11 +97,20 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
     }
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Also scroll when chat mutation is pending (typing indicator appears)
+    if (chatMutation.isPending) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [chatMutation.isPending]);
 
   const getProviderIcon = (provider: string) => {
     switch (provider) {
@@ -126,140 +136,164 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col">
       {/* Chat Messages */}
-      <div className="flex-1 overflow-hidden relative">
-        <ScrollArea className="absolute inset-0 p-4">
-          <div className="space-y-4" ref={scrollAreaRef}>
-          {messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="font-medium mb-2">Start a conversation</h3>
-              <p className="text-sm">
-                Ask me anything about your code, architecture, or need help with development.
-              </p>
-              {project?.consciousnessEnabled && (
-                <Badge className="mt-2 bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400">
-                  Consciousness Active
-                </Badge>
-              )}
-            </div>
-          ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`flex space-x-3 ${message.role === "user" ? "justify-end" : ""}`}>
-                {message.role === "assistant" && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    {getProviderIcon(message.provider || "anthropic")}
-                  </div>
-                )}
-                
-                <div className={`flex-1 ${message.role === "user" ? "max-w-xs" : ""}`}>
-                  <div className={`rounded-lg p-3 ${
-                    message.role === "user" 
-                      ? "bg-primary text-primary-foreground ml-auto" 
-                      : "bg-card border border-border"
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                  <div className={`flex items-center mt-1 text-xs text-muted-foreground ${
-                    message.role === "user" ? "justify-end" : ""
-                  }`}>
-                    <span>
-                      {message.provider && message.role === "assistant" 
-                        ? `${message.provider} • ` 
-                        : ""
-                      }
-                      {formatTimestamp(message.timestamp)}
-                    </span>
-                    {message.tokensUsed && (
-                      <span className="ml-2">• {message.tokensUsed} tokens</span>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-4 min-h-full flex flex-col">
+            {messages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-muted-foreground py-8">
+                  <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="font-medium mb-2">Start a conversation</h3>
+                  <p className="text-sm">
+                    Ask me anything about your code, architecture, or need help with development.
+                  </p>
+                  {project?.consciousnessEnabled && (
+                    <Badge className="mt-2 bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400">
+                      Consciousness Active
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex space-x-3 ${message.role === "user" ? "justify-end" : ""}`}>
+                    {message.role === "assistant" && (
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        {getProviderIcon(message.provider || "anthropic")}
+                      </div>
+                    )}
+                    
+                    <div className={`flex-1 ${message.role === "user" ? "max-w-xs" : "max-w-4xl"}`}>
+                      <div className={`rounded-lg p-3 ${
+                        message.role === "user" 
+                          ? "bg-primary text-primary-foreground ml-auto" 
+                          : "bg-card border border-border"
+                      }`}>
+                        <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                      </div>
+                      <div className={`flex items-center mt-1 text-xs text-muted-foreground ${
+                        message.role === "user" ? "justify-end" : ""
+                      }`}>
+                        <span>
+                          {message.provider && message.role === "assistant" 
+                            ? `${message.provider} • ` 
+                            : ""
+                          }
+                          {formatTimestamp(message.timestamp)}
+                        </span>
+                        {message.tokensUsed && (
+                          <span className="ml-2">• {message.tokensUsed} tokens</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {message.role === "user" && (
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-primary-foreground" />
+                      </div>
                     )}
                   </div>
-                </div>
+                ))}
                 
-                {message.role === "user" && (
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-primary-foreground" />
+                {/* Typing Indicator */}
+                {chatMutation.isPending && (
+                  <div className="flex space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-card border border-border rounded-lg p-3">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-            ))
-          )}
-          
-          {/* Typing Indicator */}
-          {chatMutation.isPending && (
-            <div className="flex space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <Bot className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="bg-card border border-border rounded-lg p-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+            {/* Invisible div for scrolling reference */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
       </div>
       
       {/* Chat Input */}
-      <div className="border-t border-border p-4">
-        <div className="flex space-x-2">
-          <div className="flex-1 relative">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={
-                project?.consciousnessEnabled 
-                  ? "Ask AI with full project context awareness..."
-                  : "Ask AI to help with your code..."
-              }
-              className="resize-none pr-20"
-              rows={3}
-              disabled={chatMutation.isPending}
-            />
-            <div className="absolute bottom-2 right-2 flex space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1 h-auto"
+      <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="p-4">
+          <div className="flex space-x-2">
+            <div className="flex-1 relative">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  project?.consciousnessEnabled 
+                    ? "Ask AI with full project context awareness..."
+                    : "Ask AI to help with your code..."
+                }
+                className="resize-none pr-20 min-h-[60px] max-h-[120px]"
+                rows={2}
                 disabled={chatMutation.isPending}
-              >
-                <Paperclip className="h-3 w-3" />
-              </Button>
+              />
+              <div className="absolute bottom-2 right-2 flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-auto opacity-60 hover:opacity-100"
+                  disabled={chatMutation.isPending}
+                  title="Attach file (coming soon)"
+                >
+                  <Paperclip className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-auto opacity-60 hover:opacity-100"
+                  disabled={chatMutation.isPending}
+                  title="Voice input (coming soon)"
+                >
+                  <Mic className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col space-y-2">
               <Button
-                variant="ghost"
+                onClick={handleSend}
+                disabled={!input.trim() || chatMutation.isPending}
+                className="self-end"
                 size="sm"
-                className="p-1 h-auto"
-                disabled={chatMutation.isPending}
               >
-                <Mic className="h-3 w-3" />
+                {chatMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
+              {messages.length > 0 && (
+                <Button
+                  onClick={scrollToBottom}
+                  variant="outline"
+                  size="sm"
+                  className="self-end opacity-60 hover:opacity-100"
+                  title="Scroll to bottom"
+                >
+                  ↓
+                </Button>
+              )}
             </div>
           </div>
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || chatMutation.isPending}
-            className="self-end"
-          >
-            {chatMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-          <span>
-            Context: {project ? `${project.name} + current file` : "No project"}
-          </span>
-          <span>Press Enter to send, Shift+Enter for new line</span>
+          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+            <span>
+              Context: {project ? `${project.name} + current file` : "No project"}
+            </span>
+            <span>Press Enter to send, Shift+Enter for new line</span>
+          </div>
         </div>
       </div>
     </div>
