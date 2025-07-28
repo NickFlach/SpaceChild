@@ -627,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(projectMemoryRoutes);
   
   // Register template routes
-  app.use(templateRoutes);
+  app.use('/api', templateRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);

@@ -329,7 +329,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
-    const [newTemplate] = await db.insert(projectTemplates).values([template]).returning();
+    const [newTemplate] = await db.insert(projectTemplates).values(template).returning();
     return newTemplate;
   }
   
@@ -377,7 +377,11 @@ export class DatabaseStorage implements IStorage {
   
   async updateProjectTemplate(id: number, data: Partial<InsertProjectTemplate>): Promise<ProjectTemplate | undefined> {
     const [template] = await db.update(projectTemplates)
-      .set(data)
+      .set({
+        ...data,
+        techStack: data.techStack ? Array.from(data.techStack as string[]) : undefined,
+        features: data.features ? Array.from(data.features as string[]) : undefined,
+      } as any)
       .where(eq(projectTemplates.id, id))
       .returning();
     return template;
