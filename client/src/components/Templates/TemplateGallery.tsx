@@ -127,8 +127,63 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
   
   const displayTemplates = searchMutation.data || templates || [];
   
+  // Debug logging
+  console.log("Template Debug:", {
+    isLoading,
+    templates,
+    templatesLength: templates?.length,
+    displayTemplates,
+    displayTemplatesLength: displayTemplates.length
+  });
+  
   if (isLoading) {
     return <div>Loading templates...</div>;
+  }
+  
+  if (!displayTemplates || displayTemplates.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Project Templates</h2>
+            <p className="text-muted-foreground">
+              Start your project with pre-configured templates optimized for Space Child AI
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowSmartCreator(true)}
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            AI Smart Template
+          </Button>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground mb-4">No templates available</p>
+          <p className="text-sm text-muted-foreground">
+            Try using the AI Smart Template to create your project
+          </p>
+        </div>
+        
+        {/* Smart Template Creator Dialog */}
+        {showSmartCreator && (
+          <SmartTemplateCreator
+            onProjectCreated={(project) => {
+              setShowSmartCreator(false);
+              if (onProjectCreated) {
+                onProjectCreated(project);
+              }
+              toast({
+                title: "Success",
+                description: "AI-powered project created successfully!",
+              });
+              queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+            }}
+          />
+        )}
+      </div>
+    );
   }
   
   return (
