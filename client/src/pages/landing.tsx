@@ -1,18 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Brain, Sparkles, Code, Zap, Globe, Cpu } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
 import { StarField3D } from "@/components/Effects/StarField3D";
+import { FeatureDetailModal } from "@/components/Landing/FeatureDetailModal";
 import brainImagePath from "@assets/Screenshot_2025-07-27-19-57-41-27_96b26121e545231a3c569311a54cda96_1753664423442.jpg";
 import meditationImagePath from "@assets/ChatGPT Image Jul 27, 2025, 08_01_18 PM_1753664504307.png";
 
 export default function Landing() {
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
     if (featuresSection) {
       featuresSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const openFeatureDetail = (featureId: string) => {
+    setSelectedFeature(featureId);
+    setIsModalOpen(true);
   };
   
   return (
@@ -101,8 +110,12 @@ export default function Landing() {
             
             {/* Feature Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+              {/* Consciousness Engine */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('consciousness')}
+              >
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-semibold">Consciousness Engine</h3>
@@ -110,10 +123,17 @@ export default function Landing() {
                   Context-aware AI that learns from your interactions, remembers your preferences, 
                   and adapts to your unique development style
                 </p>
+                <div className="pt-2 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
+                </div>
               </div>
               
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center">
+              {/* Superintelligence */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('superintelligence')}
+              >
+                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
                   <Zap className="w-8 h-8 text-accent" />
                 </div>
                 <h3 className="text-2xl font-semibold">Superintelligence</h3>
@@ -121,10 +141,17 @@ export default function Landing() {
                   Advanced code analysis, architecture recommendations, and performance optimization 
                   powered by cutting-edge AI models
                 </p>
+                <div className="pt-2 text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
+                </div>
               </div>
               
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-consciousness/20 flex items-center justify-center">
+              {/* Smart Templates */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('templates')}
+              >
+                <div className="w-16 h-16 rounded-full bg-consciousness/20 flex items-center justify-center group-hover:bg-consciousness/30 transition-colors">
                   <Code className="w-8 h-8 text-consciousness" />
                 </div>
                 <h3 className="text-2xl font-semibold">Smart Templates</h3>
@@ -132,39 +159,63 @@ export default function Landing() {
                   Pre-configured project templates with AI recommendations, starter code, 
                   and best practices built-in
                 </p>
-              </div>
-              
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Globe className="w-8 h-8 text-primary" />
+                <div className="pt-2 text-consciousness text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
                 </div>
-                <h3 className="text-2xl font-semibold">Multi-Provider AI</h3>
-                <p className="text-muted-foreground">
-                  Choose from Anthropic Claude, OpenAI GPT-4, SpaceAgent, and MindSphere 
-                  for diverse AI capabilities
-                </p>
               </div>
               
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-accent" />
+              {/* Multi-Agent Collaboration */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('multiAgent')}
+              >
+                <div className="w-16 h-16 rounded-full bg-superintelligence/20 flex items-center justify-center group-hover:bg-superintelligence/30 transition-colors">
+                  <Globe className="w-8 h-8 text-superintelligence" />
+                </div>
+                <h3 className="text-2xl font-semibold">Multi-Agent Collaboration</h3>
+                <p className="text-muted-foreground">
+                  Multiple specialized AI agents working in harmony to build your application 
+                  faster and better than ever before
+                </p>
+                <div className="pt-2 text-superintelligence text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
+                </div>
+              </div>
+              
+              {/* Project Memory */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('memory')}
+              >
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                  <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-semibold">Project Memory</h3>
                 <p className="text-muted-foreground">
                   Intelligent memory system that captures patterns, preferences, and insights 
                   from your development process
                 </p>
+                <div className="pt-2 text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
+                </div>
               </div>
               
-              <div className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-transform">
-                <div className="w-16 h-16 rounded-full bg-consciousness/20 flex items-center justify-center">
-                  <Cpu className="w-8 h-8 text-consciousness" />
+              {/* Conscious Deployment */}
+              <div 
+                className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => openFeatureDetail('deployment')}
+              >
+                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
+                  <Cpu className="w-8 h-8 text-accent" />
                 </div>
-                <h3 className="text-2xl font-semibold">Real-time Assistance</h3>
+                <h3 className="text-2xl font-semibold">Conscious Deployment</h3>
                 <p className="text-muted-foreground">
-                  Get instant AI-powered suggestions, error detection, and code improvements 
-                  as you build your applications
+                  Intelligent deployment that monitors, adapts, and self-heals to keep your 
+                  applications running perfectly
                 </p>
+                <div className="pt-2 text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more →
+                </div>
               </div>
             </div>
             
@@ -208,6 +259,16 @@ export default function Landing() {
           <p>&copy; 2025 Space Child. Elevating development with consciousness.</p>
         </div>
       </footer>
+
+      {/* Feature Detail Modal */}
+      <FeatureDetailModal 
+        featureId={selectedFeature}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedFeature(null);
+        }}
+      />
     </div>
   );
 }
