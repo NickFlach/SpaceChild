@@ -15,9 +15,10 @@ import TemplateGallery from "@/components/Templates/TemplateGallery";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Settings, Moon, Sun, User, Columns, FileCode, Sparkles } from "lucide-react";
+import { Settings, Moon, Sun, User, Columns, FileCode } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
-import type { ProjectFile } from "@shared/schema";
+import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
+import type { ProjectFile, Project } from "@shared/schema";
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -71,7 +72,7 @@ export default function Dashboard() {
         description: "Project created successfully!",
       });
     } catch (error) {
-      if (isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error as Error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -96,14 +97,7 @@ export default function Dashboard() {
       <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 z-50">
         <div className="flex items-center space-x-4">
           {/* Space Child Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center space-child-glow">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Space Child
-            </span>
-          </div>
+          <SpaceChildLogo size="sm" />
           <div className="h-6 w-px bg-border"></div>
           <span className="text-sm text-muted-foreground">
             {currentProject?.name || "No project selected"}

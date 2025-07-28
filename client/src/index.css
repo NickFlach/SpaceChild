@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cosmic branding animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.9));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Cosmic logo glow effect */
+.space-child-glow {
+  background: radial-gradient(circle at center, 
+    rgba(0, 212, 255, 0.1) 0%, 
+    rgba(0, 193, 224, 0.05) 50%, 
+    transparent 100%);
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.2),
+    inset 0 0 10px rgba(0, 212, 255, 0.1);
+}
+
 :root {
   /* Space Child Brand Colors - Light Mode with Cosmic Theme */
   --background: hsl(210, 30%, 98%);

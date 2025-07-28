@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Brain, Sparkles, Code, Zap, Globe, Cpu } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
 import brainImagePath from "@assets/Screenshot_2025-07-27-19-57-41-27_96b26121e545231a3c569311a54cda96_1753664423442.jpg";
 import meditationImagePath from "@assets/ChatGPT Image Jul 27, 2025, 08_01_18 PM_1753664504307.png";
 
@@ -35,15 +36,20 @@ export default function Landing() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
               <div className="text-center lg:text-left space-y-8">
-                <div className="space-y-4">
-                  <h1 className="text-5xl md:text-7xl font-bold space-child-text-glow">
-                    <span className="bg-gradient-to-r from-[hsl(199,100%,60%)] via-[hsl(193,100%,50%)] to-[hsl(199,100%,60%)] bg-clip-text text-transparent">
-                      Space Child
-                    </span>
-                  </h1>
-                  <p className="text-2xl md:text-3xl text-muted-foreground font-light">
-                    AI-Powered App Builder with Consciousness
-                  </p>
+                <div className="space-y-6">
+                  <div className="flex justify-center lg:justify-start">
+                    <SpaceChildLogo size="lg" showText={false} />
+                  </div>
+                  <div className="space-y-4">
+                    <h1 className="text-5xl md:text-7xl font-bold space-child-text-glow">
+                      <span className="bg-gradient-to-r from-[hsl(199,100%,60%)] via-[hsl(193,100%,50%)] to-[hsl(199,100%,60%)] bg-clip-text text-transparent">
+                        Space Child
+                      </span>
+                    </h1>
+                    <p className="text-2xl md:text-3xl text-muted-foreground font-light">
+                      AI-Powered App Builder with Consciousness
+                    </p>
+                  </div>
                 </div>
                 
                 <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
