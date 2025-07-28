@@ -244,6 +244,37 @@ export type InsertConsciousnessMemory = z.infer<typeof insertConsciousnessMemory
 export type ConsciousnessMemory = typeof consciousnessMemories.$inferSelect;
 export type InsertProjectMemory = z.infer<typeof insertProjectMemorySchema>;
 export type ProjectMemory = typeof projectMemories.$inferSelect;
+
+// Project Templates
+export const projectTemplates = pgTable("project_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(), // web-app, api, ml-model, etc.
+  techStack: jsonb("tech_stack").notNull().$type<string[]>(), // ["react", "typescript", "tailwind", etc.]
+  aiProviders: jsonb("ai_providers").$type<string[]>(), // Recommended AI providers
+  features: jsonb("features").$type<string[]>(), // ["authentication", "database", etc.]
+  starterFiles: jsonb("starter_files").notNull().$type<Array<{
+    path: string;
+    content: string;
+    description?: string;
+  }>>(),
+  config: jsonb("config").$type<{
+    projectType: 'web' | 'backend' | 'fullstack' | 'cli' | 'library';
+    consciousnessEnabled?: boolean;
+    superintelligenceEnabled?: boolean;
+    defaultAiProvider?: string;
+    envVariables?: Array<{ key: string; description: string; required: boolean }>;
+  }>(),
+  popularity: integer("popularity").default(0), // Usage count
+  createdBy: varchar("created_by"), // System or user ID
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertProjectTemplateSchema = createInsertSchema(projectTemplates);
+export type InsertProjectTemplate = z.infer<typeof insertProjectTemplateSchema>;
+export type ProjectTemplate = typeof projectTemplates.$inferSelect;
 export type InsertSuperintelligenceJob = z.infer<typeof insertSuperintelligenceJobSchema>;
 export type SuperintelligenceJob = typeof superintelligenceJobs.$inferSelect;
 export type InsertAiProviderUsage = z.infer<typeof insertAiProviderUsageSchema>;

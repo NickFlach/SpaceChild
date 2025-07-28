@@ -7,6 +7,7 @@ import {
   projectMemories,
   superintelligenceJobs,
   aiProviderUsage,
+  projectTemplates,
   type User,
   type UpsertUser,
   type Project,
@@ -23,6 +24,8 @@ import {
   type InsertSuperintelligenceJob,
   type AiProviderUsage,
   type InsertAiProviderUsage,
+  type ProjectTemplate,
+  type InsertProjectTemplate,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -70,6 +73,15 @@ export interface IStorage {
   // AI provider usage tracking
   createAiProviderUsage(usage: InsertAiProviderUsage): Promise<AiProviderUsage>;
   getAiProviderUsage(userId: string): Promise<AiProviderUsage[]>;
+  
+  // Project Template operations
+  getProjectTemplates(category?: string): Promise<ProjectTemplate[]>;
+  getProjectTemplate(id: number): Promise<ProjectTemplate | undefined>;
+  createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate>;
+  searchProjectTemplates(query: string): Promise<ProjectTemplate[]>;
+  getPopularProjectTemplates(limit: number): Promise<ProjectTemplate[]>;
+  getProjectTemplatesByTechStack(tech: string): Promise<ProjectTemplate[]>;
+  incrementTemplateUsage(templateId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -294,6 +306,73 @@ export class DatabaseStorage implements IStorage {
       const searchText = `${memory.title} ${memory.content}`.toLowerCase();
       return searchTerms.some(term => searchText.includes(term));
     });
+  }
+  
+  // Project Template operations
+  async getProjectTemplates(category?: string): Promise<ProjectTemplate[]> {
+    if (category) {
+      return await db
+        .select()
+        .from(projectTemplates)
+        .where(eq(projectTemplates.category, category))
+        .orderBy(desc(projectTemplates.popularity));
+    }
+    return await db
+      .select()
+      .from(projectTemplates)
+      .orderBy(desc(projectTemplates.popularity));
+  }
+  
+  async getProjectTemplate(id: number): Promise<ProjectTemplate | undefined> {
+    const [template] = await db.select().from(projectTemplates).where(eq(projectTemplates.id, id));
+    return template;
+  }
+  
+  async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
+    const [newTemplate] = await db.insert(projectTemplates).values([template]).returning();
+    return newTemplate;
+  }
+  
+  async searchProjectTemplates(query: string): Promise<ProjectTemplate[]> {
+    // Search in name, description, tech stack, and features
+    const templates = await db.select().from(projectTemplates);
+    const searchTerms = query.toLowerCase().split(' ');
+    
+    return templates.filter(template => {
+      const searchText = [
+        template.name,
+        template.description || '',
+        ...(template.techStack as string[] || []),
+        ...(template.features as string[] || [])
+      ].join(' ').toLowerCase();
+      
+      return searchTerms.some(term => searchText.includes(term));
+    }).sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+  }
+  
+  async getPopularProjectTemplates(limit: number): Promise<ProjectTemplate[]> {
+    return await db
+      .select()
+      .from(projectTemplates)
+      .orderBy(desc(projectTemplates.popularity))
+      .limit(limit);
+  }
+  
+  async getProjectTemplatesByTechStack(tech: string): Promise<ProjectTemplate[]> {
+    const templates = await db.select().from(projectTemplates);
+    return templates.filter(template => {
+      const techStack = template.techStack as string[] || [];
+      return techStack.some(t => t.toLowerCase().includes(tech.toLowerCase()));
+    });
+  }
+  
+  async incrementTemplateUsage(templateId: number): Promise<void> {
+    await db
+      .update(projectTemplates)
+      .set({
+        popularity: sql`${projectTemplates.popularity} + 1`,
+      })
+      .where(eq(projectTemplates.id, templateId));
   }
 }
 

@@ -11,6 +11,7 @@ import ConsciousnessPanel from "@/components/Consciousness/ConsciousnessPanel";
 import SuperintelligencePanel from "@/components/Superintelligence/SuperintelligencePanel";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
+import TemplateGallery from "@/components/Templates/TemplateGallery";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -227,9 +228,10 @@ export default function Dashboard() {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="chat">Chat</TabsTrigger>
                   <TabsTrigger value="memory">Memory</TabsTrigger>
+                  <TabsTrigger value="templates">Templates</TabsTrigger>
                   <TabsTrigger value="analysis">Analysis</TabsTrigger>
                   <TabsTrigger value="deploy">Deploy</TabsTrigger>
                 </TabsList>
@@ -242,6 +244,15 @@ export default function Dashboard() {
                   {currentProject && (
                     <ProjectMemoryPanel projectId={currentProject.id} />
                   )}
+                </TabsContent>
+                
+                <TabsContent value="templates" className="flex-1 mt-0 overflow-auto p-4">
+                  <TemplateGallery 
+                    onProjectCreated={async (project) => {
+                      await selectProject(project.id);
+                      setActiveTab("chat");
+                    }}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="analysis" className="flex-1 mt-0">

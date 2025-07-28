@@ -9,6 +9,7 @@ import { superintelligenceService } from "./services/superintelligence";
 import { aiProviderService } from "./services/aiProviders";
 import { projectMemoryService } from "./services/projectMemory";
 import projectMemoryRoutes from "./routes/projectMemory";
+import templateRoutes from "./routes/templates";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -396,6 +397,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register project memory routes
   app.use(projectMemoryRoutes);
+  
+  // Register template routes
+  app.use(templateRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);
