@@ -429,3 +429,66 @@ export type InsertMultiAgentMessage = typeof multiAgentMessages.$inferInsert;
 export type MultiAgentMessage = typeof multiAgentMessages.$inferSelect;
 export type InsertMultiAgentTask = typeof multiAgentTasks.$inferInsert;
 export type MultiAgentTask = typeof multiAgentTasks.$inferSelect;
+
+// Deployment Intelligence Tables
+export const deployments = pgTable("deployments", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  environment: varchar("environment", { length: 50 }).notNull(),
+  version: varchar("version", { length: 100 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  features: jsonb("features").default([]).$type<string[]>(),
+  deployedBy: varchar("deployed_by").notNull(),
+  deployedAt: timestamp("deployed_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  healthStatus: varchar("health_status", { length: 50 }),
+  rollbackVersion: varchar("rollback_version", { length: 100 }),
+  scalingConfig: jsonb("scaling_config").$type<{
+    minInstances: number;
+    maxInstances: number;
+    targetCPU: number;
+    targetMemory: number;
+  }>(),
+});
+
+export const deploymentMetrics = pgTable("deployment_metrics", {
+  id: serial("id").primaryKey(),
+  deploymentId: integer("deployment_id").references(() => deployments.id).notNull(),
+  metricType: varchar("metric_type", { length: 50 }).notNull(),
+  value: real("value").notNull(),
+  metadata: jsonb("metadata"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const deploymentIssues = pgTable("deployment_issues", {
+  id: serial("id").primaryKey(),
+  deploymentId: integer("deployment_id").references(() => deployments.id).notNull(),
+  issueType: varchar("issue_type", { length: 50 }).notNull(),
+  severity: varchar("severity", { length: 20 }).notNull(),
+  description: text("description").notNull(),
+  detectedAt: timestamp("detected_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  status: varchar("status", { length: 50 }).notNull(),
+  resolution: text("resolution"),
+});
+
+export const deploymentOptimizations = pgTable("deployment_optimizations", {
+  id: serial("id").primaryKey(),
+  deploymentId: integer("deployment_id").references(() => deployments.id).notNull(),
+  optimizationType: varchar("optimization_type", { length: 50 }).notNull(),
+  description: text("description").notNull(),
+  impact: varchar("impact", { length: 20 }).notNull(),
+  appliedAt: timestamp("applied_at").defaultNow().notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  results: jsonb("results"),
+});
+
+// Deployment types
+export type InsertDeployment = typeof deployments.$inferInsert;
+export type Deployment = typeof deployments.$inferSelect;
+export type InsertDeploymentMetric = typeof deploymentMetrics.$inferInsert;
+export type DeploymentMetric = typeof deploymentMetrics.$inferSelect;
+export type InsertDeploymentIssue = typeof deploymentIssues.$inferInsert;
+export type DeploymentIssue = typeof deploymentIssues.$inferSelect;
+export type InsertDeploymentOptimization = typeof deploymentOptimizations.$inferInsert;
+export type DeploymentOptimization = typeof deploymentOptimizations.$inferSelect;

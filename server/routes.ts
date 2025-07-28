@@ -536,6 +536,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deployment Intelligence Routes
+  app.post('/api/deployments/deploy', isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, environment, version, features } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!projectId || !environment || !version) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      const project = await storage.getProject(parseInt(projectId));
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { deploymentService } = await import("./services/deployment");
+      const deployment = await deploymentService.deployWithIntelligence({
+        projectId: parseInt(projectId),
+        environment,
+        version,
+        features: features || []
+      }, userId);
+      
+      res.json({ deployment });
+    } catch (error) {
+      console.error("Deployment error:", error);
+      res.status(500).json({ error: "Failed to deploy" });
+    }
+  });
+
+  app.get('/api/deployments/:projectId/analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.claims.sub;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { deploymentService } = await import("./services/deployment");
+      const analytics = await deploymentService.getDeploymentAnalytics(projectId);
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ error: "Failed to fetch deployment analytics" });
+    }
+  });
+
+  app.post('/api/deployments/rollback', isAuthenticated, async (req: any, res) => {
+    try {
+      const { deploymentId } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!deploymentId) {
+        return res.status(400).json({ error: "Missing deployment ID" });
+      }
+      
+      // Verify deployment ownership
+      const { deploymentService } = await import("./services/deployment");
+      const { db } = await import("./db");
+      const { deployments } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      const [deployment] = await db.select()
+        .from(deployments)
+        .where(eq(deployments.id, deploymentId));
+      
+      if (!deployment) {
+        return res.status(404).json({ error: "Deployment not found" });
+      }
+      
+      const project = await storage.getProject(deployment.projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await deploymentService.performRollback(deployment);
+      
+      res.json({ success: true, message: "Rollback initiated" });
+    } catch (error) {
+      console.error("Rollback error:", error);
+      res.status(500).json({ error: "Failed to rollback" });
+    }
+  });
+
   // Register project memory routes
   app.use(projectMemoryRoutes);
   

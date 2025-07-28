@@ -13,6 +13,7 @@ import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
 import TemplateGallery from "@/components/Templates/TemplateGallery";
 import MultiAgentPanel from "@/components/MultiAgent/MultiAgentPanel";
+import DeploymentPanel from "@/components/Deployment/DeploymentPanel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -235,7 +236,7 @@ export default function Dashboard() {
                   <TabsTrigger value="templates" className="flex-1 min-w-fit">Templates</TabsTrigger>
                   <TabsTrigger value="analysis" className="flex-1 min-w-fit">Analysis</TabsTrigger>
                   <TabsTrigger value="agents" className="flex-1 min-w-fit">Agents</TabsTrigger>
-                  <TabsTrigger value="deploy" className="flex-1 min-w-fit">Deploy</TabsTrigger>
+                  <TabsTrigger value="deployment" className="flex-1 min-w-fit">Deploy</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="chat" className="flex-1 mt-0 flex flex-col overflow-hidden">
@@ -279,10 +280,12 @@ export default function Dashboard() {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="deploy" className="flex-1 mt-0 p-4">
-                  <div className="text-center text-muted-foreground">
-                    <p>Deployment features coming soon...</p>
-                  </div>
+                <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-4">
+                  {currentProject && (
+                    <DeploymentPanel 
+                      project={currentProject}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
