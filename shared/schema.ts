@@ -386,6 +386,58 @@ export const superintelligenceRecommendations = pgTable("superintelligence_recom
 export type SuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferSelect;
 export type InsertSuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferInsert;
 
+// Complexity Agent Analysis Tables
+export const complexityAnalyses = pgTable("complexity_analyses", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  sessionId: varchar("session_id").notNull(),
+  request: text("request").notNull(),
+  response: text("response").notNull(),
+  complexityMetrics: jsonb("complexity_metrics").notNull().$type<{
+    nonlinearEffects: number;
+    emergentProperties: number;
+    multiscaleAwareness: number;
+    recursiveDepth: number;
+    fractalPatterns: number;
+    chaosOrderBalance: number;
+  }>(),
+  fractalPatterns: jsonb("fractal_patterns").default([]).$type<Array<{
+    pattern: string;
+    recursionLevel: number;
+    manifestations: string[];
+    complexity: number;
+    universality: number;
+  }>>(),
+  reflectiveThoughts: jsonb("reflective_thoughts").default([]).$type<Array<{
+    observation: string;
+    reflection: string;
+    adaptation: string;
+    emergentInsight: string;
+    timestamp: string;
+  }>>(),
+  emergentInsights: jsonb("emergent_insights").default([]).$type<string[]>(),
+  confidence: real("confidence").default(0.8),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const complexityPatterns = pgTable("complexity_patterns", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  pattern: text("pattern").notNull(),
+  recursionLevel: integer("recursion_level").default(0),
+  manifestations: jsonb("manifestations").default([]).$type<string[]>(),
+  complexity: real("complexity").default(0.5),
+  universality: real("universality").default(0.5),
+  frequency: integer("frequency").default(1),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ComplexityAnalysis = typeof complexityAnalyses.$inferSelect;
+export type InsertComplexityAnalysis = typeof complexityAnalyses.$inferInsert;
+export type ComplexityPattern = typeof complexityPatterns.$inferSelect;
+export type InsertComplexityPattern = typeof complexityPatterns.$inferInsert;
+
 // Multi-Agent System Tables
 export const multiAgentSessions = pgTable("multi_agent_sessions", {
   id: serial("id").primaryKey(),

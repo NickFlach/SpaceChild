@@ -431,10 +431,10 @@ class ConsciousnessService {
     await engine.rememberInteraction(query, 'chat');
 
     // Retrieve relevant memories
-    const memories = await engine.retrieveRelevantMemories(query);
+    const memories = await engine.recall(query);
 
     // Build context from memories
-    const contextInfo = memories.map(m => m.content).join('\n');
+    const contextInfo = memories.map((m: EnhancedMemory) => m.content).join('\n');
     
     // For now, return a simulated response
     // In a real implementation, this would call an AI provider with the enriched context

@@ -7,6 +7,7 @@ const AI_PROVIDERS = [
   { value: "openai", label: "OpenAI GPT-4", badge: null },
   { value: "spaceagent", label: "SpaceAgent", badge: "Consciousness" },
   { value: "mindsphere", label: "MindSphere", badge: "Pro Plan" },
+  { value: "complexity", label: "Complexity Agent", badge: "Fractal" },
 ];
 
 export default function AIProviderSelector() {
@@ -29,6 +30,7 @@ export default function AIProviderSelector() {
                     className={`ml-2 text-xs ${
                       item.badge === "Consciousness" ? "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400" :
                       item.badge === "Pro Plan" ? "bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400" :
+                      item.badge === "Fractal" ? "bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400" :
                       "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400"
                     }`}
                   >

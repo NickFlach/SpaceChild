@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { storage } from "../storage";
 import { createSpaceAgentProvider } from "./spaceAgent";
 import { createMindSphereProvider } from "./mindSphere";
+import { createComplexityAgentProvider } from "./complexityAgent";
 
 /*
 <important_code_snippet_instructions>
@@ -30,6 +31,7 @@ class AIProviderService {
   private openai: OpenAI | null = null;
   private spaceAgent: any = null;
   private mindSphere: any = null;
+  private complexityAgent: any = null;
 
   constructor() {
     if (process.env.ANTHROPIC_API_KEY) {
@@ -44,9 +46,10 @@ class AIProviderService {
       });
     }
     
-    // Initialize SpaceAgent and MindSphere providers
+    // Initialize SpaceAgent, MindSphere, and ComplexityAgent providers
     this.spaceAgent = createSpaceAgentProvider({});
     this.mindSphere = createMindSphereProvider({});
+    this.complexityAgent = createComplexityAgentProvider({});
   }
 
   async generateCode(prompt: string, provider: string = 'anthropic', projectId?: number): Promise<AIProviderResponse> {
@@ -59,6 +62,8 @@ class AIProviderService {
         return this.callSpaceAgent(prompt, projectId);
       case 'mindsphere':
         return this.callMindSphere(prompt, projectId);
+      case 'complexity':
+        return this.callComplexityAgent(prompt, projectId);
       default:
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
@@ -242,6 +247,46 @@ User Message: ${message}
       };
     } catch (error: any) {
       throw new Error(`MindSphere error: ${error.message}`);
+    }
+  }
+
+  private async callComplexityAgent(prompt: string, projectId?: number): Promise<AIProviderResponse> {
+    try {
+      // Get project context for complexity agent initialization
+      const project = projectId ? await storage.getProject(projectId) : null;
+      const userId = project?.userId || 'anonymous';
+      const sessionId = `complexity-${Date.now()}`;
+
+      // Create complexity agent instance with proper context
+      const complexityAgent = this.complexityAgent.create({
+        userId,
+        projectId: projectId || 0,
+        sessionId
+      });
+
+      const result = await complexityAgent.processRequest(prompt, { projectId });
+
+      const tokensUsed = result.response.length / 4; // Rough estimate
+      const cost = 0; // ComplexityAgent is internal, no cost
+
+      // Track usage if projectId is available
+      if (projectId && project) {
+        await storage.createAiProviderUsage({
+          userId: project.userId,
+          provider: 'complexity',
+          serviceType: 'conscious-analysis',
+          tokensUsed: Math.round(tokensUsed),
+          costUsd: '0.0000'
+        });
+      }
+
+      return {
+        response: result.response,
+        tokensUsed: Math.round(tokensUsed),
+        cost: '0.0000'
+      };
+    } catch (error: any) {
+      throw new Error(`ComplexityAgent error: ${error.message}`);
     }
   }
 }

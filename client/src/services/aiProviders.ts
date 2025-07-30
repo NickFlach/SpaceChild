@@ -172,6 +172,12 @@ export class AIProviderService {
       case "optimization":
       case "refactoring":
         return "mindsphere";
+      case "complexity":
+      case "fractal":
+      case "recursive":
+      case "pattern":
+      case "emergence":
+        return "complexity";
       case "creative":
       case "brainstorming":
         return "openai";

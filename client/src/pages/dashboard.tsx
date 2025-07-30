@@ -9,6 +9,7 @@ import CodeEditor from "@/components/Editor/CodeEditor";
 import ChatInterface from "@/components/Chat/ChatInterface";
 import { ConsciousnessPanel } from "@/components/Consciousness/ConsciousnessPanel";
 import { SuperintelligencePanel } from "@/components/Superintelligence/SuperintelligencePanel";
+import ComplexityPanel from "@/components/ComplexityAgent/ComplexityPanel";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
 import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
 import TemplateGallery from "@/components/Templates/TemplateGallery";
@@ -236,6 +237,7 @@ export default function Dashboard() {
                 <TabsList className="flex w-full overflow-x-auto flex-wrap">
                   <TabsTrigger value="chat" className="flex-1 min-w-fit">Chat</TabsTrigger>
                   <TabsTrigger value="consciousness" className="flex-1 min-w-fit">Consciousness</TabsTrigger>
+                  <TabsTrigger value="complexity" className="flex-1 min-w-fit">Complexity</TabsTrigger>
                   <TabsTrigger value="memory" className="flex-1 min-w-fit">Memory</TabsTrigger>
                   <TabsTrigger value="templates" className="flex-1 min-w-fit">Templates</TabsTrigger>
                   <TabsTrigger value="analysis" className="flex-1 min-w-fit">Analysis</TabsTrigger>
@@ -251,6 +253,12 @@ export default function Dashboard() {
                   <ConsciousnessPanel 
                     projectId={currentProject?.id || null}
                   />
+                </TabsContent>
+
+                <TabsContent value="complexity" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <ComplexityPanel projectId={currentProject.id} />
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="memory" className="flex-1 mt-0 overflow-auto p-2">
