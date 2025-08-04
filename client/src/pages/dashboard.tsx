@@ -235,16 +235,18 @@ export default function Dashboard() {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="flex w-full overflow-x-auto flex-wrap">
-                  <TabsTrigger value="chat" className="flex-1 min-w-fit">Chat</TabsTrigger>
-                  <TabsTrigger value="consciousness" className="flex-1 min-w-fit">Consciousness</TabsTrigger>
-                  <TabsTrigger value="complexity" className="flex-1 min-w-fit">Complexity</TabsTrigger>
-                  <TabsTrigger value="memory" className="flex-1 min-w-fit">Memory</TabsTrigger>
-                  <TabsTrigger value="templates" className="flex-1 min-w-fit">Templates</TabsTrigger>
-                  <TabsTrigger value="analysis" className="flex-1 min-w-fit">Analysis</TabsTrigger>
-                  <TabsTrigger value="agents" className="flex-1 min-w-fit">Agents</TabsTrigger>
-                  <TabsTrigger value="terminal" className="flex-1 min-w-fit">Terminal</TabsTrigger>
-                  <TabsTrigger value="deployment" className="flex-1 min-w-fit">Deploy</TabsTrigger>
+                <TabsList className="w-full overflow-x-auto flex-shrink-0">
+                  <div className="flex min-w-full px-1">
+                    <TabsTrigger value="chat" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Chat</TabsTrigger>
+                    <TabsTrigger value="consciousness" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">AI Mind</TabsTrigger>
+                    <TabsTrigger value="complexity" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Complex</TabsTrigger>
+                    <TabsTrigger value="memory" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Memory</TabsTrigger>
+                    <TabsTrigger value="templates" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Templates</TabsTrigger>
+                    <TabsTrigger value="analysis" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Analysis</TabsTrigger>
+                    <TabsTrigger value="agents" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Agents</TabsTrigger>
+                    <TabsTrigger value="terminal" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Terminal</TabsTrigger>
+                    <TabsTrigger value="deployment" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Deploy</TabsTrigger>
+                  </div>
                 </TabsList>
                 
                 <TabsContent value="chat" className="flex-1 mt-0 flex flex-col overflow-hidden">
