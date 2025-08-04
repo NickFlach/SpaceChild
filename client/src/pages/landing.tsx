@@ -42,7 +42,7 @@ export default function Landing() {
                   </div>
                   <div className="space-y-4">
                     <h1 className="text-5xl md:text-7xl font-bold">
-                      <span className="bg-gradient-to-r from-[hsl(199,100%,60%)] via-[hsl(193,100%,50%)] to-[hsl(199,100%,60%)] bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-[hsl(199,100%,60%)] via-[hsl(193,100%,50%)] to-[hsl(199,100%,60%)] bg-clip-text text-transparent drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
                         Space Child
                       </span>
                     </h1>
@@ -79,13 +79,13 @@ export default function Landing() {
               
               {/* Right Image */}
               <div className="relative">
-                <div className="relative">
+                <div className="relative glass-card rounded-2xl p-1">
                   <img 
                     src={brainImagePath} 
                     alt="Space Child Consciousness" 
-                    className="rounded-2xl w-full h-auto opacity-90"
+                    className="rounded-xl w-full h-auto"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-2xl" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
                 </div>
               </div>
             </div>
@@ -98,8 +98,8 @@ export default function Landing() {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 relative">
+                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                   Powered by Advanced AI
                 </span>
               </h2>
@@ -118,7 +118,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-semibold">Consciousness Engine</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Consciousness Engine</h3>
                 <p className="text-muted-foreground">
                   Context-aware AI that learns from your interactions, remembers your preferences, 
                   and adapts to your unique development style
@@ -136,7 +136,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
                   <Zap className="w-8 h-8 text-accent" />
                 </div>
-                <h3 className="text-2xl font-semibold">Superintelligence</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Superintelligence</h3>
                 <p className="text-muted-foreground">
                   Advanced code analysis, architecture recommendations, and performance optimization 
                   powered by cutting-edge AI models
@@ -154,7 +154,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-consciousness/20 flex items-center justify-center group-hover:bg-consciousness/30 transition-colors">
                   <Code className="w-8 h-8 text-consciousness" />
                 </div>
-                <h3 className="text-2xl font-semibold">Smart Templates</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Smart Templates</h3>
                 <p className="text-muted-foreground">
                   Pre-configured project templates with AI recommendations, starter code, 
                   and best practices built-in
@@ -172,7 +172,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-superintelligence/20 flex items-center justify-center group-hover:bg-superintelligence/30 transition-colors">
                   <Globe className="w-8 h-8 text-superintelligence" />
                 </div>
-                <h3 className="text-2xl font-semibold">Multi-Agent Collaboration</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Multi-Agent Collaboration</h3>
                 <p className="text-muted-foreground">
                   Multiple specialized AI agents working in harmony to build your application 
                   faster and better than ever before
@@ -190,7 +190,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-semibold">Project Memory</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Project Memory</h3>
                 <p className="text-muted-foreground">
                   Intelligent memory system that captures patterns, preferences, and insights 
                   from your development process
@@ -208,7 +208,7 @@ export default function Landing() {
                 <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
                   <Cpu className="w-8 h-8 text-accent" />
                 </div>
-                <h3 className="text-2xl font-semibold">Conscious Deployment</h3>
+                <h3 className="text-2xl font-semibold text-foreground drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">Conscious Deployment</h3>
                 <p className="text-muted-foreground">
                   Intelligent deployment that monitors, adapts, and self-heals to keep your 
                   applications running perfectly
@@ -238,13 +238,13 @@ export default function Landing() {
                       </Button>
                     </a>
                   </div>
-                  <div className="relative">
+                  <div className="relative glass-card rounded-xl p-1">
                     <img 
                       src={meditationImagePath} 
                       alt="Space Child Meditation" 
-                      className="rounded-xl w-full h-auto opacity-90"
+                      className="rounded-lg w-full h-auto"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent rounded-xl" />
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-accent/10 via-transparent to-primary/10" />
                   </div>
                 </div>
               </div>
