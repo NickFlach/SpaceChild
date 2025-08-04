@@ -41,7 +41,7 @@ export default function Landing() {
                     <SpaceChildLogo size="lg" showText={false} />
                   </div>
                   <div className="space-y-4">
-                    <h1 className="text-5xl md:text-7xl font-bold space-child-text-glow">
+                    <h1 className="text-5xl md:text-7xl font-bold">
                       <span className="bg-gradient-to-r from-[hsl(199,100%,60%)] via-[hsl(193,100%,50%)] to-[hsl(199,100%,60%)] bg-clip-text text-transparent">
                         Space Child
                       </span>
@@ -59,7 +59,7 @@ export default function Landing() {
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <a href="/api/login" className="inline-block">
-                    <Button size="lg" className="cosmic-button space-child-glow text-lg px-8 py-6 font-semibold">
+                    <Button size="lg" className="text-lg px-8 py-6 font-semibold bg-primary/90 hover:bg-primary">
                       <Sparkles className="mr-2" />
                       Start Building
                     </Button>
@@ -79,13 +79,13 @@ export default function Landing() {
               
               {/* Right Image */}
               <div className="relative">
-                <div className="relative animate-pulse-glow">
+                <div className="relative">
                   <img 
                     src={brainImagePath} 
                     alt="Space Child Consciousness" 
-                    className="rounded-2xl space-child-glow w-full h-auto"
+                    className="rounded-2xl w-full h-auto opacity-90"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent rounded-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-2xl" />
                 </div>
               </div>
             </div>
