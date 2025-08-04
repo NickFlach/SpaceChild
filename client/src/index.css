@@ -5,26 +5,26 @@
 /* Cosmic branding animations */
 @keyframes pulse-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.6));
+    filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
   }
   50% {
-    filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.9));
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
   }
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
+  animation: pulse-glow 4s ease-in-out infinite;
 }
 
 /* Cosmic logo glow effect */
 .space-child-glow {
   background: radial-gradient(circle at center, 
-    rgba(0, 212, 255, 0.1) 0%, 
-    rgba(0, 193, 224, 0.05) 50%, 
+    rgba(0, 212, 255, 0.05) 0%, 
+    rgba(0, 193, 224, 0.02) 50%, 
     transparent 100%);
   box-shadow: 
-    0 0 20px rgba(0, 212, 255, 0.2),
-    inset 0 0 10px rgba(0, 212, 255, 0.1);
+    0 0 10px rgba(0, 212, 255, 0.1),
+    inset 0 0 5px rgba(0, 212, 255, 0.05);
 }
 
 :root {
@@ -322,16 +322,10 @@
 }
 
 /* Space Child Custom Branding Styles */
-.space-child-glow {
-  box-shadow: 0 0 20px hsla(199, 100%, 50%, 0.4),
-              0 0 40px hsla(199, 100%, 50%, 0.2),
-              0 0 60px hsla(199, 100%, 50%, 0.1);
-}
-
 .space-child-text-glow {
-  text-shadow: 0 0 10px hsla(199, 100%, 60%, 0.8),
-               0 0 20px hsla(199, 100%, 60%, 0.4),
-               0 0 30px hsla(199, 100%, 60%, 0.2);
+  text-shadow: 0 0 5px hsla(199, 100%, 60%, 0.3),
+               0 0 10px hsla(199, 100%, 60%, 0.15),
+               0 0 15px hsla(199, 100%, 60%, 0.05);
 }
 
 .neural-network-bg {
@@ -377,7 +371,7 @@
 .space-child-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, hsl(222, 47%, 8%) 0%, hsl(222, 47%, 11%) 100%);
+  background: linear-gradient(180deg, hsl(222, 47%, 11%) 0%, hsl(222, 47%, 12%) 50%, hsl(222, 47%, 11%) 100%);
 }
 
 .space-child-hero::before {
@@ -385,8 +379,19 @@
   position: absolute;
   inset: 0;
   background-image: 
-    radial-gradient(circle at 20% 50%, hsla(199, 100%, 50%, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, hsla(193, 100%, 50%, 0.2) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, hsla(199, 100%, 50%, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 50%, hsla(193, 100%, 50%, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.space-child-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent 0%, hsl(222, 47%, 11%) 100%);
   pointer-events: none;
 }
 
