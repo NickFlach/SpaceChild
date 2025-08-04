@@ -64,6 +64,8 @@ class AIProviderService {
         return this.callMindSphere(prompt, projectId);
       case 'complexity':
         return this.callComplexityAgent(prompt, projectId);
+      case 'terminal-jarvis':
+        return this.callTerminalJarvis(prompt, projectId);
       default:
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
@@ -287,6 +289,41 @@ User Message: ${message}
       };
     } catch (error: any) {
       throw new Error(`ComplexityAgent error: ${error.message}`);
+    }
+  }
+
+  private async callTerminalJarvis(prompt: string, projectId?: number): Promise<AIProviderResponse> {
+    try {
+      const { TerminalJarvisService } = await import('./terminalJarvis.js');
+      const terminalService = new TerminalJarvisService();
+      
+      // Parse the prompt to extract command and arguments
+      const result = await terminalService.executeCommand(prompt, projectId);
+      
+      const tokensUsed = result.output.length / 4; // Rough estimate
+      const cost = 0; // Terminal Jarvis is free
+
+      // Track usage if projectId is available
+      if (projectId) {
+        const project = await storage.getProject(projectId);
+        if (project) {
+          await storage.createAiProviderUsage({
+            userId: project.userId,
+            provider: 'terminal-jarvis',
+            serviceType: 'cli-tool-management',
+            tokensUsed: Math.round(tokensUsed),
+            costUsd: '0.0000'
+          });
+        }
+      }
+
+      return {
+        response: result.output,
+        tokensUsed: Math.round(tokensUsed),
+        cost: '0.0000'
+      };
+    } catch (error: any) {
+      throw new Error(`Terminal Jarvis error: ${error.message}`);
     }
   }
 }

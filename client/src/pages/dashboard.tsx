@@ -15,6 +15,7 @@ import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
 import TemplateGallery from "@/components/Templates/TemplateGallery";
 import MultiAgentPanel from "@/components/MultiAgent/MultiAgentPanel";
 import DeploymentPanel from "@/components/Deployment/DeploymentPanel";
+import TerminalComponent from "@/components/ui/terminal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -242,6 +243,7 @@ export default function Dashboard() {
                   <TabsTrigger value="templates" className="flex-1 min-w-fit">Templates</TabsTrigger>
                   <TabsTrigger value="analysis" className="flex-1 min-w-fit">Analysis</TabsTrigger>
                   <TabsTrigger value="agents" className="flex-1 min-w-fit">Agents</TabsTrigger>
+                  <TabsTrigger value="terminal" className="flex-1 min-w-fit">Terminal</TabsTrigger>
                   <TabsTrigger value="deployment" className="flex-1 min-w-fit">Deploy</TabsTrigger>
                 </TabsList>
                 
@@ -290,6 +292,13 @@ export default function Dashboard() {
                       project={currentProject}
                     />
                   )}
+                </TabsContent>
+                
+                <TabsContent value="terminal" className="flex-1 mt-0 overflow-auto p-2">
+                  <TerminalComponent 
+                    projectId={currentProject?.id}
+                    className="h-full"
+                  />
                 </TabsContent>
                 
                 <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-2">

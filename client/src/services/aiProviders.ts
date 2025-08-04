@@ -68,6 +68,18 @@ export class AIProviderService {
         outputTokens: 0.045,
       },
     },
+    {
+      id: "terminal-jarvis",
+      name: "Terminal Jarvis",
+      description: "Multi-AI tool manager for CLI-based coding assistants (Claude, Gemini, Qwen, OpenCode)",
+      badge: "CLI Master",
+      badgeColor: "bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400",
+      capabilities: ["cli-tools", "tool-management", "multi-ai-access", "terminal-interface"],
+      pricing: {
+        inputTokens: 0.000, // Free tool manager
+        outputTokens: 0.000,
+      },
+    },
   ];
 
   static getProviders(): AIProvider[] {
@@ -124,7 +136,9 @@ export class AIProviderService {
       case "spaceagent":
         return "🛸";
       case "mindsphere":
-        return "⚡";
+        return "🌌";
+      case "terminal-jarvis":
+        return "💻";
       default:
         return "🤖";
     }
