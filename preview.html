@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Child - Local Preview</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0f1c 0%, #000000 100%);
+            color: #ffffff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 80vh;
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        .direct-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            color: #000;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .direct-link:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Space Child - AI-Powered App Builder</h1>
+        
+        <div class="iframe-container">
+            <iframe src="http://localhost:5000" title="Space Child Application"></iframe>
+        </div>
+        
+        <div class="info">
+            <p>Your Space Child application is running locally on port 5000.</p>
+            <p>If the iframe doesn't load, you can access it directly at:</p>
+            <a href="http://localhost:5000" class="direct-link" target="_blank">
+                Open in New Tab: http://localhost:5000
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh the iframe if there are connection issues
+        const iframe = document.querySelector('iframe');
+        let retryCount = 0;
+        
+        function checkIframe() {
+            iframe.onload = function() {
+                console.log('Application loaded successfully');
+                retryCount = 0;
+            };
+            
+            iframe.onerror = function() {
+                console.log('Failed to load, retrying...');
+                if (retryCount < 3) {
+                    setTimeout(() => {
+                        iframe.src = iframe.src + '?retry=' + Date.now();
+                        retryCount++;
+                    }, 2000);
+                }
+            };
+        }
+        
+        checkIframe();
+        
+        // Refresh every 30 seconds if there are issues
+        setInterval(() => {
+            try {
+                iframe.contentWindow.location.href;
+            } catch (e) {
+                console.log('Refreshing iframe...');
+                iframe.src = 'http://localhost:5000?refresh=' + Date.now();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

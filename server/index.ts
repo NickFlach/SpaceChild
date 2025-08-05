@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { resolve } from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedTemplates } from "./scripts/seedTemplates";
@@ -14,7 +15,12 @@ app.use((req, res, next) => {
 
   // Add headers to help with iframe loading
   res.header('X-Frame-Options', 'SAMEORIGIN');
-  res.header('Content-Security-Policy', "frame-ancestors 'self' *.replit.dev *.replit.com");
+  res.header('Content-Security-Policy', "frame-ancestors 'self' 'unsafe-inline' localhost:* *.replit.dev *.replit.com");
+  
+  // Allow local preview access
+  if (req.path === '/preview') {
+    return res.sendFile('/home/runner/workspace/preview.html');
+  }
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
