@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Child - Local Access</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1a2e 50%, #000000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+        .iframe-container {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #0a0f1c;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 212, 255, 0.3);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #ff4444;
+            margin-top: 20px;
+        }
+        .retry-btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Space Child - AI-Powered App Builder</div>
+            <div class="status" id="status">Loading...</div>
+        </div>
+        <div class="iframe-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Loading your Space Child application...</div>
+                <div class="error" id="error" style="display: none;">
+                    Connection failed. Your application might be starting up.
+                    <br><button class="retry-btn" onclick="loadApp()">Retry</button>
+                </div>
+            </div>
+            <iframe id="app-iframe" src="about:blank" style="display: none;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('app-iframe');
+        const loading = document.getElementById('loading');
+        const status = document.getElementById('status');
+        const error = document.getElementById('error');
+        
+        let retries = 0;
+        const maxRetries = 5;
+        
+        function updateStatus(text, color = '#00ff00') {
+            status.textContent = text;
+            status.style.borderColor = color;
+            status.style.background = `rgba(${color === '#00ff00' ? '0, 255, 0' : '255, 0, 0'}, 0.2)`;
+        }
+        
+        function loadApp() {
+            retries++;
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            iframe.style.display = 'none';
+            updateStatus('Connecting...', '#ffaa00');
+            
+            // Try to load the iframe
+            iframe.onload = function() {
+                try {
+                    // Check if the iframe loaded successfully
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        iframe.style.display = 'block';
+                        updateStatus('Connected', '#00ff00');
+                    }, 1000);
+                } catch (e) {
+                    showError();
+                }
+            };
+            
+            iframe.onerror = function() {
+                showError();
+            };
+            
+            // Set the source to your local app
+            iframe.src = 'http://localhost:5000?' + Date.now();
+            
+            // Timeout check
+            setTimeout(() => {
+                if (iframe.style.display === 'none') {
+                    showError();
+                }
+            }, 10000);
+        }
+        
+        function showError() {
+            if (retries < maxRetries) {
+                loading.style.display = 'block';
+                error.style.display = 'block';
+                updateStatus('Connection Error', '#ff0000');
+            } else {
+                loading.innerHTML = '<div style="color: #ff4444;">Unable to connect to the application.<br>Please check the console for more details.</div>';
+                updateStatus('Failed', '#ff0000');
+            }
+        }
+        
+        // Start loading the app
+        loadApp();
+        
+        // Auto-retry every 30 seconds if failed
+        setInterval(() => {
+            if (iframe.style.display === 'none' && retries < maxRetries) {
+                console.log('Auto-retrying connection...');
+                loadApp();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
