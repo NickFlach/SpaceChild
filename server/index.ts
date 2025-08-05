@@ -21,6 +21,11 @@ app.use((req, res, next) => {
   if (req.path === '/preview') {
     return res.sendFile('/home/runner/workspace/preview.html');
   }
+  
+  // Allow access guide
+  if (req.path === '/access-guide') {
+    return res.sendFile('/home/runner/workspace/access-guide.html');
+  }
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -76,17 +81,27 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   
+  // Clean port binding with error handling
+  const startServer = () => {
+    server.listen(port, "0.0.0.0", () => {
+      console.log(`✅ Space Child server successfully started on port ${port}`);
+      console.log(`🌐 Access your app at: http://localhost:${port}`);
+      log(`serving on port ${port}`);
+    });
+  };
+
   server.on('error', (err: any) => {
-    console.error('Server error:', err);
     if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use`);
+      console.error(`Port ${port} is busy. Retrying in 2 seconds...`);
+      setTimeout(() => {
+        server.close();
+        startServer();
+      }, 2000);
+    } else {
+      console.error('Server error:', err);
+      process.exit(1);
     }
-    process.exit(1);
   });
   
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`✅ Space Child server successfully started on port ${port}`);
-    console.log(`🌐 Access your app at: http://localhost:${port}`);
-    log(`serving on port ${port}`);
-  });
+  startServer();
 })();

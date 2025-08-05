@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Child - Access Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1a2e 50%, #000000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status.success { color: #00ff00; }
+        .methods {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .method {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 25px;
+            border-radius: 10px;
+        }
+        .method h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        .method p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00d4ff, #00c1e0);
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+        .troubleshooting {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .troubleshooting h3 {
+            color: #ffaa00;
+            margin-bottom: 15px;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .step::before {
+            content: "→ ";
+            color: #00d4ff;
+            font-weight: bold;
+            margin-left: -20px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Space Child</h1>
+            <p class="subtitle">AI-Powered App Builder with Consciousness</p>
+        </div>
+
+        <div class="status success">
+            <strong>✅ Server Status: RUNNING</strong><br>
+            Your Space Child application is successfully running on port 5000
+        </div>
+
+        <div class="methods">
+            <div class="method">
+                <h3>Method 1: Replit Webview</h3>
+                <p>Look for these options in your Replit interface:</p>
+                <div class="step">Click the "Webview" tab (usually next to Console/Shell)</div>
+                <div class="step">Look for a "Preview" or "Browser" tab in the top menu</div>
+                <div class="step">Check for any browser/globe icons in the Replit toolbar</div>
+                <button class="button" onclick="window.open('/', '_blank')">Try Opening App</button>
+            </div>
+
+            <div class="method">
+                <h3>Method 2: Direct URLs</h3>
+                <p>Your app should be accessible at these URLs:</p>
+                <div class="url">http://localhost:5000</div>
+                <div class="url">https://[your-repl-id].replit.dev</div>
+                <p>Copy and paste these into your browser address bar.</p>
+                <button class="button" onclick="testConnection()">Test Connection</button>
+            </div>
+
+            <div class="method">
+                <h3>Method 3: Mobile Access</h3>
+                <p>On your phone, try:</p>
+                <div class="step">Open the Replit mobile app</div>
+                <div class="step">Navigate to this project</div>
+                <div class="step">Look for "Open" or "Preview" button</div>
+                <div class="step">Try the direct URL in your mobile browser</div>
+            </div>
+
+            <div class="method">
+                <h3>Method 4: Alternative Preview</h3>
+                <p>If other methods don't work:</p>
+                <div class="url">/preview</div>
+                <div class="url">/test-app.html</div>
+                <button class="button" onclick="window.open('/preview', '_blank')">Open Preview</button>
+            </div>
+        </div>
+
+        <div class="troubleshooting">
+            <h3>Troubleshooting</h3>
+            <div class="step">If you see "Connection refused" - the server may be restarting, wait 30 seconds</div>
+            <div class="step">If you see a white/blank page - try refreshing (Ctrl+F5 or Cmd+Shift+R)</div>
+            <div class="step">If IT restrictions block access - use Replit's built-in webview instead of external URLs</div>
+            <div class="step">On mobile - ensure you're logged into Replit and the project is shared properly</div>
+            <div class="step">Clear browser cache if the app appears broken or outdated</div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: #666;">
+            <p>Space Child Server Status: <span id="serverStatus">Checking...</span></p>
+            <p>Last Updated: <span id="timestamp"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function updateTimestamp() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        }
+
+        function testConnection() {
+            const status = document.getElementById('serverStatus');
+            status.textContent = 'Testing...';
+            status.style.color = '#ffaa00';
+
+            fetch('/')
+                .then(response => {
+                    if (response.ok) {
+                        status.textContent = 'Connected ✅';
+                        status.style.color = '#00ff00';
+                        alert('Great! Your Space Child app is responding. Try the Webview tab in Replit or open the direct URL.');
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .catch(error => {
+                    status.textContent = `Connection Error: ${error.message}`;
+                    status.style.color = '#ff4444';
+                    alert('Connection failed. Try using Replit\'s Webview tab instead of direct URLs.');
+                });
+        }
+
+        // Auto-test connection on page load
+        window.onload = function() {
+            updateTimestamp();
+            setTimeout(testConnection, 1000);
+            
+            // Update timestamp every minute
+            setInterval(updateTimestamp, 60000);
+        };
+    </script>
+</body>
+</html>
