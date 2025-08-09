@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import PricingPage from "@/pages/pricing";
+import TestAuth from "@/pages/test-auth";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,6 +27,7 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/test-auth" component={TestAuth} />
       <Route path="/pricing" component={PricingPage} />
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />

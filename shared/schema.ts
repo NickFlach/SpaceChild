@@ -27,13 +27,22 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth
+// User storage table with Zero Knowledge Proof Authentication (SRP)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  username: varchar("username").unique().notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  // SRP (Secure Remote Password) fields for ZKP authentication
+  srpSalt: varchar("srp_salt"), // Salt used in SRP protocol
+  srpVerifier: varchar("srp_verifier"), // Verifier for SRP authentication
+  srpEphemeral: jsonb("srp_ephemeral"), // Temporary values for active session
+  // Session management
+  sessionToken: varchar("session_token"),
+  sessionExpiry: timestamp("session_expiry"),
+  // Subscription and credits
   subscriptionTier: varchar("subscription_tier").default('free'),
   monthlyCredits: integer("monthly_credits").default(100),
   usedCredits: integer("used_credits").default(0),

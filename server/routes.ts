@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { zkpAuthenticated } from "./services/zkpAuth";
+import zkpAuthRoutes from "./routes/zkpAuth";
 import { insertProjectSchema, insertProjectFileSchema } from "@shared/schema";
 import { consciousnessService } from "./services/consciousness";
 import { superintelligenceService } from "./services/superintelligence";
@@ -15,11 +17,14 @@ import scrapeRoutes from "./routes/scrape";
 import subscriptionRoutes from "./routes/subscriptions";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Auth middleware - Comment out Replit auth for now
+  // await setupAuth(app);
+  
+  // ZKP Auth routes
+  app.use('/api/zkp', zkpAuthRoutes);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes - Use ZKP authentication
+  app.get('/api/auth/user', zkpAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -31,7 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project Management Routes
-  app.get('/api/projects', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects', zkpAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const projects = await storage.getProjectsByUserId(userId);
@@ -42,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/projects', isAuthenticated, async (req: any, res) => {
+  app.post('/api/projects', zkpAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const projectData = insertProjectSchema.parse({ ...req.body, userId });
@@ -54,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -75,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/projects/:id', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -96,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/projects/:id', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -118,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File Management Routes
-  app.get('/api/projects/:id/files', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/files', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -135,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/projects/:id/files', isAuthenticated, async (req: any, res) => {
+  app.post('/api/projects/:id/files', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -153,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/projects/:id/files/*', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/files/*', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const filePath = req.params[0];
@@ -175,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/projects/:id/files/*', isAuthenticated, async (req: any, res) => {
+  app.put('/api/projects/:id/files/*', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const filePath = req.params[0];
@@ -199,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Provider Routes
-  app.post('/api/ai/generate', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/generate', zkpAuthenticated, async (req: any, res) => {
     try {
       const { prompt, provider = 'anthropic', projectId } = req.body;
       const userId = req.user.claims.sub;
@@ -222,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/chat', zkpAuthenticated, async (req: any, res) => {
     try {
       const { message, provider = 'anthropic', projectId } = req.body;
       const userId = req.user.claims.sub;
@@ -271,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Consciousness Layer Routes
-  app.post('/api/consciousness/activate', isAuthenticated, async (req: any, res) => {
+  app.post('/api/consciousness/activate', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId } = req.body;
       const userId = req.user.claims.sub;
@@ -293,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/consciousness/query', isAuthenticated, async (req: any, res) => {
+  app.post('/api/consciousness/query', zkpAuthenticated, async (req: any, res) => {
     try {
       const { sessionId, query, projectId } = req.body;
       const userId = req.user.claims.sub;
@@ -321,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/consciousness/context/:projectId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/consciousness/context/:projectId', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
@@ -340,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Superintelligence Layer Routes
-  app.post('/api/superintelligence/analyze', isAuthenticated, async (req: any, res) => {
+  app.post('/api/superintelligence/analyze', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, fileId, code, language } = req.body;
       const userId = req.user.claims.sub;
@@ -368,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/superintelligence/optimize', isAuthenticated, async (req: any, res) => {
+  app.post('/api/superintelligence/optimize', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, analysis } = req.body;
       const userId = req.user.claims.sub;
@@ -394,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/superintelligence/recommend', isAuthenticated, async (req: any, res) => {
+  app.post('/api/superintelligence/recommend', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, projectType, currentStructure } = req.body;
       const userId = req.user.claims.sub;
@@ -421,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/superintelligence/predict-bugs', isAuthenticated, async (req: any, res) => {
+  app.post('/api/superintelligence/predict-bugs', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, code } = req.body;
       const userId = req.user.claims.sub;
@@ -447,7 +452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/superintelligence/analyses/:projectId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/superintelligence/analyses/:projectId', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
@@ -465,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/superintelligence/optimizations/:projectId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/superintelligence/optimizations/:projectId', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
@@ -483,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/superintelligence/recommendations/:projectId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/superintelligence/recommendations/:projectId', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
@@ -502,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Multi-Agent System Routes
-  app.post('/api/multiagent/start', isAuthenticated, async (req: any, res) => {
+  app.post('/api/multiagent/start', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, goal } = req.body;
       const userId = req.user.claims.sub;
@@ -526,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/multiagent/status', isAuthenticated, async (req: any, res) => {
+  app.get('/api/multiagent/status', zkpAuthenticated, async (req: any, res) => {
     try {
       const { multiAgentService } = await import("./services/multiAgent");
       const status = await multiAgentService.getStatus();
@@ -540,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deployment Intelligence Routes
-  app.post('/api/deployments/deploy', isAuthenticated, async (req: any, res) => {
+  app.post('/api/deployments/deploy', zkpAuthenticated, async (req: any, res) => {
     try {
       const { projectId, environment, version, features } = req.body;
       const userId = req.user.claims.sub;
@@ -569,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/deployments/:projectId/analytics', isAuthenticated, async (req: any, res) => {
+  app.get('/api/deployments/:projectId/analytics', zkpAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.claims.sub;
@@ -589,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/deployments/rollback', isAuthenticated, async (req: any, res) => {
+  app.post('/api/deployments/rollback', zkpAuthenticated, async (req: any, res) => {
     try {
       const { deploymentId } = req.body;
       const userId = req.user.claims.sub;

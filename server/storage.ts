@@ -35,6 +35,13 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
+  // ZKP Auth operations
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: Partial<User>): Promise<User>;
+  updateUserSession(userId: string, token: string): Promise<void>;
+  clearUserSession(userId: string): Promise<void>;
+  
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
@@ -104,6 +111,44 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // ZKP Auth operations
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: Partial<User>): Promise<User> {
+    const [user] = await db.insert(users).values(userData as any).returning();
+    return user;
+  }
+
+  async updateUserSession(userId: string, token: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        sessionToken: token,
+        sessionExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async clearUserSession(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        sessionToken: null,
+        sessionExpiry: null,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
   }
 
   // Project operations

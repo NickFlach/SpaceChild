@@ -1,16 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Brain, Sparkles, Code, Zap, Globe, Cpu } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
 import { StarField3D } from "@/components/Effects/StarField3D";
 import { FeatureDetailModal } from "@/components/Landing/FeatureDetailModal";
+import LoginModal from "@/components/Auth/LoginModal";
+import { useAuth } from "@/hooks/useAuth";
 import brainImagePath from "@assets/Screenshot_2025-07-27-19-57-41-27_96b26121e545231a3c569311a54cda96_1753664423442.jpg";
 import meditationImagePath from "@assets/ChatGPT Image Jul 27, 2025, 08_01_18 PM_1753664504307.png";
 
 export default function Landing() {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const { setAuthToken } = useAuth();
+  const [, setLocation] = useLocation();
 
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
@@ -58,12 +63,15 @@ export default function Landing() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <a href="/api/login" className="inline-block">
-                    <Button size="lg" className="text-lg px-8 py-6 font-semibold bg-primary/90 hover:bg-primary">
-                      <Sparkles className="mr-2" />
-                      Start Building
-                    </Button>
-                  </a>
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-8 py-6 font-semibold bg-primary/90 hover:bg-primary"
+                    onClick={() => setShowLogin(true)}
+                    data-testid="button-start-building"
+                  >
+                    <Sparkles className="mr-2" />
+                    Start Building
+                  </Button>
                   
                   <Button 
                     size="lg" 
@@ -269,6 +277,20 @@ export default function Landing() {
           setSelectedFeature(null);
         }}
       />
+      
+      {/* Login Modal */}
+      {showLogin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <LoginModal 
+            onSuccess={(user) => {
+              setAuthToken(localStorage.getItem('zkp_token') || '');
+              setShowLogin(false);
+              setLocation('/'); // Navigate to dashboard
+            }}
+            onClose={() => setShowLogin(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
 - **Language**: TypeScript with ES modules
-- **Authentication**: Replit Auth with OpenID Connect
+- **Authentication**: Zero-Knowledge Proof authentication using SRP (Secure Remote Password) protocol
 - **Session Management**: PostgreSQL-backed sessions with `connect-pg-simple`
 - **API Design**: RESTful endpoints with WebSocket support for real-time features
 
@@ -63,6 +63,16 @@ Preferred communication style: Simple, everyday language.
 - **WebSocket**: Real-time communication
 - **Redis**: Planned for advanced caching and session management
 - **Custom AI Services**: SpaceAgent and MindSphere integration (in development)
+
+## Recent Changes (January 2025)
+
+### Zero-Knowledge Proof Authentication System
+- **Replaced Replit Auth**: Removed dependency on Replit's authentication system which was causing crashes
+- **SRP Protocol**: Implemented Secure Remote Password protocol for password-based authentication without transmitting passwords
+- **JWT Sessions**: Using JSON Web Tokens for session management with 24-hour expiry
+- **Database Schema**: Extended users table with SRP fields (salt, verifier, session tokens)
+- **Login UI**: Custom login/signup modal with cosmic-themed design matching Space Child branding
+- **Endpoints**: New authentication endpoints at `/api/zkp/*` for registration, login, and session management
 
 ## Open-Lovable Integration (January 2025)
 
