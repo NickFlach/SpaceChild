@@ -4,6 +4,7 @@ import { storage } from "../storage";
 import { createSpaceAgentProvider } from "./spaceAgent";
 import { createMindSphereProvider } from "./mindSphere";
 import { createComplexityAgentProvider } from "./complexityAgent";
+import { gptOSSProvider } from "./aiProviders/gptoss";
 
 /*
 <important_code_snippet_instructions>
@@ -32,6 +33,7 @@ class AIProviderService {
   private spaceAgent: any = null;
   private mindSphere: any = null;
   private complexityAgent: any = null;
+  private gptOSS = gptOSSProvider;
 
   constructor() {
     if (process.env.ANTHROPIC_API_KEY) {
@@ -66,6 +68,10 @@ class AIProviderService {
         return this.callComplexityAgent(prompt, projectId);
       case 'terminal-jarvis':
         return this.callTerminalJarvis(prompt, projectId);
+      case 'gpt-oss':
+      case 'gpt-oss-120b':
+      case 'gpt-oss-20b':
+        return this.callGPTOSS(prompt, projectId, provider);
       default:
         throw new Error(`Unsupported AI provider: ${provider}`);
     }
@@ -324,6 +330,78 @@ User Message: ${message}
       };
     } catch (error: any) {
       throw new Error(`Terminal Jarvis error: ${error.message}`);
+    }
+  }
+
+  private async callGPTOSS(prompt: string, projectId?: number, model?: string): Promise<AIProviderResponse> {
+    try {
+      // Set the model based on the provider selection
+      if (model === 'gpt-oss-120b') {
+        this.gptOSS.setModel('gpt-oss-120b');
+      } else if (model === 'gpt-oss-20b') {
+        this.gptOSS.setModel('gpt-oss-20b');
+      }
+
+      // Check if provider is available
+      if (!this.gptOSS.isAvailable()) {
+        throw new Error('GPT-OSS not available. Please set TOGETHER_API_KEY environment variable.');
+      }
+
+      // Format messages for GPT-OSS
+      const messages = [
+        { role: 'system' as const, content: 'You are a helpful AI assistant specialized in code generation and problem solving.' },
+        { role: 'user' as const, content: prompt }
+      ];
+
+      // Call GPT-OSS with options
+      const response = await this.gptOSS.complete(messages, {
+        temperature: 0.7,
+        maxTokens: 4096
+      });
+
+      // Calculate cost based on Together AI pricing
+      const inputTokens = response.usage?.promptTokens || 0;
+      const outputTokens = response.usage?.completionTokens || 0;
+      const totalTokens = response.usage?.totalTokens || 0;
+
+      // Pricing for Together AI (per 1M tokens)
+      // 120B: $0.16 input, $0.60 output
+      // 20B: $0.05 input, $0.20 output
+      const is120B = this.gptOSS.model.includes('120b');
+      const inputRate = is120B ? 0.00016 : 0.00005; // per 1K tokens
+      const outputRate = is120B ? 0.0006 : 0.0002; // per 1K tokens
+      
+      const inputCost = (inputTokens / 1000) * inputRate;
+      const outputCost = (outputTokens / 1000) * outputRate;
+      const totalCost = inputCost + outputCost;
+
+      // Track usage if projectId is available
+      if (projectId) {
+        const project = await storage.getProject(projectId);
+        if (project) {
+          await storage.createAiProviderUsage({
+            userId: project.userId,
+            provider: 'gpt-oss',
+            serviceType: 'chat',
+            tokensUsed: totalTokens,
+            costUsd: totalCost.toFixed(6)
+          });
+        }
+      }
+
+      // Combine reasoning with final response if available
+      let finalResponse = response.content;
+      if ((response as any).reasoning) {
+        finalResponse = `[Chain of Thought]\n${(response as any).reasoning}\n\n[Final Response]\n${response.content}`;
+      }
+
+      return {
+        response: finalResponse,
+        tokensUsed: totalTokens,
+        cost: totalCost.toFixed(6)
+      };
+    } catch (error: any) {
+      throw new Error(`GPT-OSS error: ${error.message}`);
     }
   }
 }

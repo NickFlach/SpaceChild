@@ -31,7 +31,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Components & Features
 - **Project Management System**: Multi-project workspace, file organization, real-time file editing, auto-save, file explorer, multi-file/folder upload, zip file extraction.
-- **AI Integration Layer**: Supports Anthropic Claude, OpenAI GPT-4, SpaceAgent, MindSphere, and Terminal Jarvis. Includes a unified interface for different AI services, context-aware AI with memory and learning, and advanced code analysis/optimization.
+- **AI Integration Layer**: Supports Anthropic Claude, OpenAI GPT-4, GPT-OSS (120B/20B), SpaceAgent, MindSphere, and Terminal Jarvis. Includes a unified interface for different AI services, context-aware AI with memory and learning, and advanced code analysis/optimization.
+- **GPT-OSS Integration (December 2025)**: OpenAI's open-weight models (gpt-oss-120b and gpt-oss-20b) via Together AI, featuring native tool calling, chain-of-thought reasoning, web search, and Python code execution capabilities. Configurable reasoning levels (low/medium/high) with full transparency into the model's thought process.
 - **Terminal Jarvis Integration**: A multi-AI tool manager providing unified CLI access to various models (Claude, Gemini, Qwen, OpenCode) through natural language command parsing.
 - **Chat and Code Assistance**: Real-time chat with AI providers, code generation, debugging assistance, context-aware suggestions, token usage tracking.
 - **Consciousness Features**: Session-based context retention, learning from user patterns, memory system for insights, confidence scoring for AI suggestions.
@@ -47,6 +48,7 @@ Preferred communication style: Simple, everyday language.
 - **Replit Platform**: Authentication and deployment environment
 - **Anthropic API**: Claude AI model access
 - **OpenAI API**: GPT-4 model access
+- **Together AI API**: GPT-OSS models (120B and 20B) hosting with OpenAI-compatible endpoints
 - **Groq API**: Fast inference for Kimi K2 and other models (planned)
 - **E2B API**: Secure code execution sandboxes (planned)
 - **Firecrawl API**: Web scraping and site cloning capabilities (planned)

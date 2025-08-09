@@ -80,6 +80,30 @@ export class AIProviderService {
         outputTokens: 0.000,
       },
     },
+    {
+      id: "gpt-oss-120b",
+      name: "GPT-OSS 120B",
+      description: "OpenAI's open-weight model with 117B parameters, native tool calling, and chain-of-thought reasoning",
+      badge: "Open Source",
+      badgeColor: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/50 dark:text-cyan-400",
+      capabilities: ["tool-calling", "chain-of-thought", "code-generation", "web-search", "python-execution"],
+      pricing: {
+        inputTokens: 0.00016, // $0.16 per 1M tokens
+        outputTokens: 0.0006, // $0.60 per 1M tokens
+      },
+    },
+    {
+      id: "gpt-oss-20b",
+      name: "GPT-OSS 20B",
+      description: "Lightweight GPT-OSS with 21B parameters, optimized for faster inference and lower resource usage",
+      badge: "Efficient",
+      badgeColor: "bg-teal-100 text-teal-600 dark:bg-teal-900/50 dark:text-teal-400",
+      capabilities: ["tool-calling", "chain-of-thought", "code-generation", "fast-inference"],
+      pricing: {
+        inputTokens: 0.00005, // $0.05 per 1M tokens
+        outputTokens: 0.0002, // $0.20 per 1M tokens
+      },
+    },
   ];
 
   static getProviders(): AIProvider[] {
