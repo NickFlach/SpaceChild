@@ -55,15 +55,12 @@ export class GroqProvider extends BaseAIProvider {
       usage.total_tokens = usage.prompt_tokens + usage.completion_tokens;
 
       return {
-        message,
+        content: message,
         usage: {
           promptTokens: usage.prompt_tokens,
           completionTokens: usage.completion_tokens,
           totalTokens: usage.total_tokens,
         },
-        model: this.model,
-        provider: 'groq',
-        responseTime,
       };
     } catch (error) {
       console.error('Groq API error:', error);
@@ -114,11 +111,8 @@ export class GroqProvider extends BaseAIProvider {
       usage.totalTokens = usage.promptTokens + usage.completionTokens;
 
       return {
-        message: fullMessage,
+        content: fullMessage,
         usage,
-        model: this.model,
-        provider: 'groq',
-        responseTime,
       };
     } catch (error) {
       console.error('Groq streaming error:', error);
@@ -141,8 +135,8 @@ export class GroqProvider extends BaseAIProvider {
       },
     ];
 
-    const response = await this.sendMessage(messages);
-    return this.extractCodeFromResponse(response.message);
+    const response = await this.complete(messages);
+    return this.extractCodeFromResponse(response.content);
   }
 
   private extractCodeFromResponse(response: string): string {

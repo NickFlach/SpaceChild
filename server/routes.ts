@@ -10,6 +10,8 @@ import { aiProviderService } from "./services/aiProviders";
 import { projectMemoryService } from "./services/projectMemory";
 import projectMemoryRoutes from "./routes/projectMemory";
 import templateRoutes from "./routes/templates";
+import sandboxRoutes from "./routes/sandbox";
+import scrapeRoutes from "./routes/scrape";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
