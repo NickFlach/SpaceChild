@@ -203,8 +203,10 @@ function createZodSchemaFromJson(schemaDefinition: any): z.ZodSchema<any> {
           schemaFields[key] = z.any();
       }
     } else if (typeof value === 'object' && value !== null) {
-      if (value.type === 'array' && value.items) {
-        schemaFields[key] = z.array(createZodSchemaFromJson(value.items));
+      // Type guard to safely access object properties
+      const objectValue = value as Record<string, any>;
+      if (objectValue.type === 'array' && objectValue.items) {
+        schemaFields[key] = z.array(createZodSchemaFromJson(objectValue.items));
       } else {
         schemaFields[key] = createZodSchemaFromJson(value);
       }
