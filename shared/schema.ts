@@ -273,6 +273,107 @@ export const interactionPatterns = pgTable("interaction_patterns", {
 
 // Indexes for performance
 // TODO: Add indexes after tables are created
+
+// E2B Sandbox Sessions table
+export const sandboxSessions = pgTable("sandbox_sessions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sandboxId: varchar("sandbox_id", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).default('active'), // active, paused, terminated
+  environment: varchar("environment", { length: 100 }).default('nodejs'), // nodejs, python, custom
+  metadata: jsonb("metadata").default('{}'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+// Scraped Data table for Firecrawl results
+export const scrapedData = pgTable("scraped_data", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  url: varchar("url", { length: 1000 }).notNull(),
+  scrapeType: varchar("scrape_type", { length: 50 }).default('single'), // single, crawl, extract
+  data: jsonb("data").notNull(),
+  metadata: jsonb("metadata").default('{}'),
+  markdown: text("markdown"),
+  extractedData: jsonb("extracted_data"),
+  createdAt: timestamp("created_at").defaultNow(),
+  cacheExpiry: timestamp("cache_expiry"),
+});
+
+// Code Generation History table
+export const codeGenerations = pgTable("code_generations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  prompt: text("prompt").notNull(),
+  generatedCode: text("generated_code").notNull(),
+  language: varchar("language", { length: 50 }).default('typescript'),
+  provider: varchar("provider", { length: 50 }).default('anthropic'),
+  metadata: jsonb("metadata").default('{}'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations for new tables
+export const sandboxSessionsRelations = relations(sandboxSessions, ({ one }) => ({
+  project: one(projects, {
+    fields: [sandboxSessions.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [sandboxSessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const scrapedDataRelations = relations(scrapedData, ({ one }) => ({
+  project: one(projects, {
+    fields: [scrapedData.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [scrapedData.userId],
+    references: [users.id],
+  }),
+}));
+
+export const codeGenerationsRelations = relations(codeGenerations, ({ one }) => ({
+  project: one(projects, {
+    fields: [codeGenerations.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [codeGenerations.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas for new tables
+export const insertSandboxSessionSchema = createInsertSchema(sandboxSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScrapedDataSchema = createInsertSchema(scrapedData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCodeGenerationSchema = createInsertSchema(codeGenerations).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for new tables
+export type SandboxSession = typeof sandboxSessions.$inferSelect;
+export type InsertSandboxSession = z.infer<typeof insertSandboxSessionSchema>;
+export type ScrapedData = typeof scrapedData.$inferSelect;
+export type InsertScrapedData = z.infer<typeof insertScrapedDataSchema>;
+export type CodeGeneration = typeof codeGenerations.$inferSelect;
+export type InsertCodeGeneration = z.infer<typeof insertCodeGenerationSchema>;
 // export const enhancedMemoryUserProjectIdx = index("enhanced_memory_user_project_idx")
 //   .on(enhancedMemories.userId, enhancedMemories.projectId);
 

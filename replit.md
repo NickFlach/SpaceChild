@@ -46,6 +46,9 @@ Preferred communication style: Simple, everyday language.
 - **Replit Platform**: Authentication and deployment environment
 - **Anthropic API**: Claude AI model access
 - **OpenAI API**: GPT-4 model access
+- **Groq API**: Fast inference for Kimi K2 and other models (planned)
+- **E2B API**: Secure code execution sandboxes (planned)
+- **Firecrawl API**: Web scraping and site cloning capabilities (planned)
 
 ### Development Tools
 - **Vite**: Frontend build tool
@@ -57,3 +60,30 @@ Preferred communication style: Simple, everyday language.
 - **WebSocket**: Real-time communication
 - **Redis**: Planned for advanced caching and session management
 - **Custom AI Services**: SpaceAgent and MindSphere integration (in development)
+
+## Open-Lovable Integration (January 2025)
+
+### Overview
+Integrating key features from the open-lovable project to enhance Space Child's capabilities:
+- **E2B Sandboxes**: Secure code execution in isolated cloud environments
+- **Firecrawl**: Convert websites to LLM-ready data for cloning and analysis
+- **Groq AI**: Fast inference for real-time AI interactions
+- **Enhanced Chat-to-Code**: Improved code generation from natural language
+
+### Integration Components
+1. **E2B Service** (`server/services/e2b.ts`): Manages sandbox creation, code execution, and file operations
+2. **Firecrawl Service** (`server/services/firecrawl.ts`): Handles web scraping, site analysis, and conversion to structured data
+3. **Groq Provider** (`server/services/aiProviders/groq.ts`): Adds Groq as an AI provider for fast inference
+4. **Enhanced Code Generator** (`server/services/codeGenerator.ts`): Improved natural language to code conversion
+
+### API Endpoints
+- `/api/sandbox/execute`: Execute code in secure E2B sandbox
+- `/api/sandbox/create`: Create persistent sandbox session
+- `/api/scrape/url`: Scrape and analyze a website
+- `/api/scrape/clone`: Clone website structure and content
+- `/api/generate/app`: Generate complete app from description
+
+### Database Schema Updates
+- Added `sandboxSessions` table for E2B session management
+- Added `scrapedData` table for caching Firecrawl results
+- Extended `projects` table with sandbox and scraping metadata
