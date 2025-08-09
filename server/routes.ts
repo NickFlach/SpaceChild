@@ -12,6 +12,7 @@ import projectMemoryRoutes from "./routes/projectMemory";
 import templateRoutes from "./routes/templates";
 import sandboxRoutes from "./routes/sandbox";
 import scrapeRoutes from "./routes/scrape";
+import subscriptionRoutes from "./routes/subscriptions";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -630,6 +631,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register template routes
   app.use('/api', templateRoutes);
+
+  // Register subscription routes
+  app.use('/api/subscriptions', subscriptionRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);

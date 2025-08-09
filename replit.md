@@ -37,6 +37,7 @@ Preferred communication style: Simple, everyday language.
 - **Consciousness Features**: Session-based context retention, learning from user patterns, memory system for insights, confidence scoring for AI suggestions.
 - **Superintelligence Capabilities**: Architecture analysis, performance optimization, code refactoring automation, security auditing.
 - **Deployment Intelligence**: Self-healing deployment, intelligent rollback, predictive scaling, environment-aware optimization, continuous learning from deployment patterns.
+- **Pricing & Subscription System**: Credit-based usage tracking with three tiers (Explorer, Builder, Architect), billing integration, usage monitoring, credit-protected actions, and comprehensive subscription management.
 - **UI/UX Decisions**: Cosmic branding with a cosmic cyan/aqua theme, glowing effects, animated stars, glass morphism cards, and a redesigned landing page and dashboard.
 
 ## External Dependencies
@@ -73,6 +74,45 @@ Integrating key features from the open-lovable project to enhance Space Child's 
 ### Integration Components
 1. **E2B Service** (`server/services/e2b.ts`): Manages sandbox creation, code execution, and file operations
 2. **Firecrawl Service** (`server/services/firecrawl.ts`): Handles web scraping, site analysis, and conversion to structured data
+
+## Pricing System Architecture (January 2025)
+
+### Overview
+Implemented a comprehensive credit-based pricing system similar to Replit's model but streamlined for Space Child's specific needs. The system provides transparent usage tracking and clear upgrade paths.
+
+### Pricing Tiers
+1. **Explorer (Free)**: 100 monthly credits, basic AI providers, up to 3 projects
+2. **Builder ($29/month)**: 1,000 monthly credits, all AI providers, unlimited projects
+3. **Architect ($99/month)**: 5,000 monthly credits, premium AI providers, team features
+
+### Credit System
+- **Credit Actions**: AI queries (1-8 credits), code generation (2 credits), sandbox creation (5 credits)
+- **Usage Tracking**: Real-time credit monitoring, monthly reset cycles, overage alerts
+- **AI Provider Costs**: Basic providers (1x), advanced providers (1.5x), premium providers (2x)
+
+### Technical Implementation
+1. **Backend Services**:
+   - `server/routes/subscriptions.ts`: Subscription and credit management API
+   - `server/services/pricing.ts`: Credit calculation and usage tracking
+   - Database schema extensions for subscription plans and usage tracking
+
+2. **Frontend Components**:
+   - `client/src/pages/pricing.tsx`: Comprehensive pricing page
+   - `client/src/components/Pricing/PricingCard.tsx`: Interactive pricing cards
+   - `client/src/components/Dashboard/CreditDisplay.tsx`: Real-time credit monitoring
+   - `client/src/components/Pricing/CreditProtectedAction.tsx`: Usage enforcement
+
+3. **User Experience**:
+   - Real-time credit usage display in dashboard
+   - Credit-protected actions with upgrade prompts
+   - Transparent pricing with feature comparisons
+   - Seamless upgrade flow integration
+
+### Business Logic
+- Monthly credit allowances with overage tracking
+- Feature gating based on subscription tiers
+- AI provider access control by plan level
+- Usage analytics for optimization insights
 3. **Groq Provider** (`server/services/aiProviders/groq.ts`): Adds Groq as an AI provider for fast inference
 4. **Enhanced Code Generator** (`server/services/codeGenerator.ts`): Improved natural language to code conversion
 

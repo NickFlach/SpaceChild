@@ -34,7 +34,11 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  subscriptionTier: varchar("subscription_tier").default('basic'),
+  subscriptionTier: varchar("subscription_tier").default('free'),
+  monthlyCredits: integer("monthly_credits").default(100),
+  usedCredits: integer("used_credits").default(0),
+  creditResetDate: timestamp("credit_reset_date").defaultNow(),
+  stripeCustomerId: varchar("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -367,6 +371,50 @@ export const insertCodeGenerationSchema = createInsertSchema(codeGenerations).om
   createdAt: true,
 });
 
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default('USD'),
+  billingPeriod: varchar("billing_period", { length: 20 }).default('monthly'), // monthly, yearly
+  monthlyCredits: integer("monthly_credits").notNull(),
+  features: jsonb("features").$type<string[]>().notNull(),
+  aiProviders: jsonb("ai_providers").$type<string[]>().notNull(),
+  maxProjects: integer("max_projects"),
+  maxSandboxes: integer("max_sandboxes"),
+  priority: integer("priority").default(1), // For ordering plans
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User subscriptions table
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  planId: varchar("plan_id").references(() => subscriptionPlans.id).notNull(),
+  status: varchar("status", { length: 20 }).default('active'), // active, canceled, expired
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Credit usage tracking table
+export const creditUsage = pgTable("credit_usage", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  action: varchar("action", { length: 100 }).notNull(), // ai_query, sandbox_execution, code_generation, etc.
+  creditsUsed: integer("credits_used").notNull(),
+  provider: varchar("provider", { length: 50 }),
+  projectId: integer("project_id").references(() => projects.id),
+  metadata: jsonb("metadata").default('{}'),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 // Types for new tables
 export type SandboxSession = typeof sandboxSessions.$inferSelect;
 export type InsertSandboxSession = z.infer<typeof insertSandboxSessionSchema>;
@@ -374,6 +422,29 @@ export type ScrapedData = typeof scrapedData.$inferSelect;
 export type InsertScrapedData = z.infer<typeof insertScrapedDataSchema>;
 export type CodeGeneration = typeof codeGenerations.$inferSelect;
 export type InsertCodeGeneration = z.infer<typeof insertCodeGenerationSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+export type CreditUsage = typeof creditUsage.$inferSelect;
+export type InsertCreditUsage = typeof creditUsage.$inferInsert;
+
+// Insert schemas for subscription tables
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCreditUsageSchema = createInsertSchema(creditUsage).omit({
+  id: true,
+  timestamp: true,
+});
 // export const enhancedMemoryUserProjectIdx = index("enhanced_memory_user_project_idx")
 //   .on(enhancedMemories.userId, enhancedMemories.projectId);
 
