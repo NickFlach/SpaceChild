@@ -476,6 +476,44 @@ class ReplitUserSearchService {
         }
       }
 
+      // If we still haven't found any repls, it's likely that:
+      // 1. The user has no public repls
+      // 2. Replit loads this data dynamically via JavaScript
+      // 3. The profile structure has changed
+      
+      if (publicRepls.length === 0) {
+        console.log(`No repls found for ${username}. This could mean:`);
+        console.log(`- User has no public repls`);
+        console.log(`- Replit loads repl data dynamically via JavaScript`);
+        console.log(`- User profile structure has changed`);
+        
+        // Let's check if this is a valid user by looking for user-specific elements
+        const hasUserContent = html.includes('@' + username) || html.includes(username);
+        console.log(`Profile contains user references: ${hasUserContent}`);
+        
+        // Try to extract any project references from the HTML, even if not in expected format
+        const genericProjectPatterns = [
+          /replit\.com\/[^\/]+\/([^"\s<>?]+)/gi,
+          /"slug":\s*"([^"]+)"/gi,
+          /"title":\s*"([^"]+)"/gi,
+        ];
+        
+        const potentialProjects = new Set<string>();
+        for (const pattern of genericProjectPatterns) {
+          let match;
+          while ((match = pattern.exec(html)) !== null && potentialProjects.size < 5) {
+            const project = match[1];
+            if (project && project.length > 2 && !project.includes('<') && !project.includes('>')) {
+              potentialProjects.add(project);
+            }
+          }
+        }
+        
+        if (potentialProjects.size > 0) {
+          console.log(`Found potential project references:`, Array.from(potentialProjects));
+        }
+      }
+
       console.log(`Found ${publicRepls.length} repls and ${deployments.length} deployments for ${username}`);
       
     } catch (error) {

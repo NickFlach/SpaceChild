@@ -86,6 +86,33 @@ Preferred communication style: Simple, everyday language.
 - **Frontend Integration**: Both GPT-OSS models available in the AI provider selector with proper pricing display
 - **Testing**: Verified GPT-OSS-20B generates code successfully with proper reasoning format
 
+## Replit User Search System (January 2025)
+
+### Current Status
+Successfully implemented a flexible Replit user search system with comprehensive username matching and data extraction capabilities. The system handles various username formats (spaces, hyphens, case variations) and organizations.
+
+### Key Findings
+- **Replit Profile Structure Change**: Replit has modified their public profile pages. Apollo GraphQL state is now empty (`pagePropsKeys: []`), indicating they load project data dynamically via JavaScript after initial page render
+- **Search Functionality**: User profiles can be found and validated, but public repl data is no longer accessible through static HTML scraping
+- **Username Flexibility**: System successfully matches username variations including "Space Child" → "spacechild", case variations, and punctuation handling
+- **Database Integration**: Robust caching system with unique constraints to prevent duplicate searches
+
+### Technical Implementation
+- Enhanced HTML parsing with multiple regex patterns for link detection  
+- Apollo GraphQL state parsing (currently returns empty due to Replit's structure changes)
+- Comprehensive username variation matching system
+- Database caching with proper error handling and unique constraints
+- Detailed logging for debugging data extraction issues
+
+### Limitations Discovered
+Current Replit profile pages don't expose public repl data in the static HTML, likely due to:
+1. Dynamic loading via JavaScript after page render
+2. Changes in Replit's public API structure
+3. Privacy/security updates to profile visibility
+
+### User Search Results
+The system successfully finds users and provides profile information, but indicates when project data isn't accessible due to Replit's current structure.
+
 ## Open-Lovable Integration (January 2025)
 
 ### Overview
