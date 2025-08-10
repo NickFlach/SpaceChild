@@ -7,7 +7,7 @@ const router = Router();
 
 // Schema for search validation
 const searchUserSchema = z.object({
-  username: z.string().min(1).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Invalid username format'),
+  username: z.string().min(1).max(50).regex(/^[a-zA-Z0-9_\-\s\.]+$/, 'Invalid username format'),
 });
 
 // Schema for browse validation
