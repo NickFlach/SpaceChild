@@ -28,7 +28,7 @@ export class ZKPAuthService {
   /**
    * Register a new user with zero-knowledge proof credentials
    */
-  static async register(email: string, username: string, salt: string, verifier: string) {
+  static async register(email: string, username: string, salt: string, verifier: string, subscriptionTier?: string) {
     try {
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -39,6 +39,21 @@ export class ZKPAuthService {
       const existingUsername = await storage.getUserByUsername(username);
       if (existingUsername) {
         throw new Error('Username already taken');
+      }
+
+      // Set credits based on subscription tier
+      const tier = subscriptionTier || 'explorer';
+      let monthlyCredits = 100;
+      
+      switch(tier) {
+        case 'builder':
+          monthlyCredits = 1000;
+          break;
+        case 'architect':
+          monthlyCredits = 5000;
+          break;
+        default:
+          monthlyCredits = 100;
       }
 
       // Create user with SRP credentials (salt and verifier from client)
@@ -52,15 +67,17 @@ export class ZKPAuthService {
         firstName: '',
         lastName: '',
         profileImageUrl: '',
-        subscriptionTier: 'free',
-        monthlyCredits: 100,
+        subscriptionTier: tier,
+        monthlyCredits: monthlyCredits,
         usedCredits: 0,
+        creditResetDate: new Date()
       });
 
       return {
         success: true,
         userId: user.id,
-        message: 'User registered successfully'
+        message: 'User registered successfully',
+        subscriptionTier: tier
       };
     } catch (error: any) {
       console.error('Registration error:', error);

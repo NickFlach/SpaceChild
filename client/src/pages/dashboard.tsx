@@ -168,10 +168,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                logout();
-                window.location.href = "/";
-              }}
+              onClick={() => logout()}
               className="text-sm"
             >
               Logout

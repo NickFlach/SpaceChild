@@ -10,7 +10,7 @@ const router = Router();
  */
 router.post('/register', async (req, res) => {
   try {
-    const { email, username, salt, verifier } = req.body;
+    const { email, username, salt, verifier, subscriptionTier } = req.body;
 
     if (!email || !username || !salt || !verifier) {
       return res.status(400).json({ 
@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    const result = await ZKPAuthService.register(email, username, salt, verifier);
+    const result = await ZKPAuthService.register(email, username, salt, verifier, subscriptionTier);
     res.json(result);
   } catch (error: any) {
     console.error('Registration error:', error);

@@ -63,6 +63,8 @@ export function useAuth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Force reload to go back to landing page
+      window.location.href = '/';
     },
   });
 
