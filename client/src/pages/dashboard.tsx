@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProject } from "@/hooks/useProject";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +19,7 @@ import TerminalComponent from "@/components/ui/terminal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Settings, Moon, Sun, User, Columns, FileCode } from "lucide-react";
+import { Settings, Moon, Sun, User, Columns, FileCode, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
 import ProfileModal from "@/components/Profile/ProfileModal";
@@ -32,6 +32,8 @@ export default function Dashboard() {
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isProjectPanelCollapsed, setIsProjectPanelCollapsed] = useState(false);
+  const projectPanelRef = useRef<any>(null);
   
   const {
     projects,
@@ -178,34 +180,78 @@ export default function Dashboard() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-80 bg-card border-r border-border flex flex-col">
-          <ProjectHeader 
-            projects={projects}
-            currentProject={currentProject || null}
-            onCreateProject={handleCreateProject}
-            onSelectProject={selectProject}
-            isLoading={isLoadingProjects}
-          />
-          
-          <FileExplorer
-            files={files}
-            selectedFile={selectedFile}
-            onSelectFile={setSelectedFile}
-            onCreateFile={createFile}
-            currentProject={currentProject || null}
-          />
-          
-
-        </div>
-
-        {/* Main Content */}
+        {/* Main Content with Resizable Panels */}
         <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel defaultSize={60} minSize={30}>
+          {/* Project Sidebar Panel */}
+          <ResizablePanel 
+            ref={projectPanelRef}
+            defaultSize={20} 
+            minSize={15} 
+            maxSize={35}
+            collapsible={true}
+            onCollapse={() => setIsProjectPanelCollapsed(true)}
+            onExpand={() => setIsProjectPanelCollapsed(false)}
+            className="min-w-[200px]"
+          >
+            <div className="h-full bg-card border-r border-border flex flex-col">
+              <div className="flex items-center justify-between p-2 border-b border-border">
+                <h3 className="text-sm font-medium">Project Explorer</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-6 w-6"
+                  data-testid="collapse-project-panel"
+                  onClick={() => {
+                    if (projectPanelRef.current) {
+                      projectPanelRef.current.collapse();
+                    }
+                  }}
+                >
+                  <PanelLeftClose className="h-3 w-3" />
+                </Button>
+              </div>
+              
+              <ProjectHeader 
+                projects={projects}
+                currentProject={currentProject || null}
+                onCreateProject={handleCreateProject}
+                onSelectProject={selectProject}
+                isLoading={isLoadingProjects}
+              />
+              
+              <FileExplorer
+                files={files}
+                selectedFile={selectedFile}
+                onSelectFile={setSelectedFile}
+                onCreateFile={createFile}
+                currentProject={currentProject || null}
+              />
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
               {/* Editor Tabs */}
               <div className="flex items-center bg-card border-b border-border">
-                <div className="flex">
+                <div className="flex items-center">
+                  {isProjectPanelCollapsed && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-2 mr-2"
+                      data-testid="expand-project-panel"
+                      onClick={() => {
+                        if (projectPanelRef.current) {
+                          projectPanelRef.current.expand();
+                        }
+                      }}
+                      title="Show Project Explorer"
+                    >
+                      <PanelLeft className="h-4 w-4" />
+                    </Button>
+                  )}
                   {selectedFile && (
                     <div className="flex items-center space-x-2 px-4 py-3 bg-background border-r border-border">
                       <FileCode className="h-4 w-4 text-blue-500" />
