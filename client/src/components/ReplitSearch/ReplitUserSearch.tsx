@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,10 +89,10 @@ export default function ReplitUserSearch() {
   });
 
   // Fetch trending languages
-  const { data: trendingLanguages = [] } = useQuery<{ languages: string[] }>({
+  const { data: trendingLanguagesData } = useQuery<{ languages: string[] }>({
     queryKey: ['/api/replit-users/trending-languages'],
-    select: (data) => data.languages,
   });
+  const trendingLanguages = trendingLanguagesData?.languages || [];
 
   // Fetch browse content
   const { data: browseData, isLoading: isBrowseLoading, refetch: refetchBrowse } = useQuery<BrowseResult>({
@@ -104,10 +105,7 @@ export default function ReplitUserSearch() {
         }
       });
       
-      const response = await fetch(`/api/replit-users/browse?${params}`);
-      if (!response.ok) {
-        throw new Error('Failed to browse content');
-      }
+      const response = await apiRequest('GET', `/api/replit-users/browse?${params}`);
       return response.json();
     },
     enabled: activeView === 'browse',
@@ -116,11 +114,7 @@ export default function ReplitUserSearch() {
   // Search mutation
   const searchMutation = useMutation({
     mutationFn: async (username: string) => {
-      const response = await fetch(`/api/replit-users/search/${encodeURIComponent(username)}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to search user');
-      }
+      const response = await apiRequest('GET', `/api/replit-users/search/${encodeURIComponent(username)}`);
       return response.json();
     },
     onSuccess: (data) => {
