@@ -227,6 +227,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GPT-OSS test endpoint (only enabled in development)
+  if (process.env.NODE_ENV === 'development') {
+    app.post('/api/test/gptoss', async (req, res) => {
+      try {
+        const { prompt, model = 'gpt-oss-20b' } = req.body;
+        const result = await aiProviderService.generateCode(prompt, model);
+        res.json(result);
+      } catch (error: any) {
+        console.error("GPT-OSS test error:", error);
+        res.status(500).json({ message: error.message });
+      }
+    });
+  }
+
   app.post('/api/ai/chat', zkpAuthenticated, async (req: any, res) => {
     try {
       const { message, provider = 'anthropic', projectId } = req.body;
