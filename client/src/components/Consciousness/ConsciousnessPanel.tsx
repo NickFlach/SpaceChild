@@ -3,6 +3,7 @@ import { Brain, Sparkles, Activity, TrendingUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConsciousness } from "@/hooks/useConsciousness";
 import { ConsciousnessStatus } from "./ConsciousnessStatus";
@@ -86,51 +87,59 @@ export function ConsciousnessPanel({ projectId, className }: ConsciousnessPanelP
                 />
               </TabsContent>
 
-              <TabsContent value="patterns" className="mt-4 space-y-3">
-                <h3 className="text-sm font-medium text-cyan-400 mb-3">Learned Patterns</h3>
-                {context?.patterns?.length === 0 ? (
-                  <p className="text-gray-400 text-sm">No patterns detected yet.</p>
-                ) : (
-                  context?.patterns?.map((pattern, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="p-3 rounded-lg bg-slate-800/50 border border-cyan-500/20"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-200">{pattern.pattern}</p>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>{pattern.occurrences}x</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
+              <TabsContent value="patterns" className="mt-4">
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-3 pr-4">
+                    <h3 className="text-sm font-medium text-cyan-400 mb-3">Learned Patterns</h3>
+                    {context?.patterns?.length === 0 ? (
+                      <p className="text-gray-400 text-sm">No patterns detected yet.</p>
+                    ) : (
+                      context?.patterns?.map((pattern, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="p-3 rounded-lg bg-slate-800/50 border border-cyan-500/20"
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-200">{pattern.pattern}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <TrendingUp className="w-3 h-3" />
+                              <span>{pattern.occurrences}x</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
               </TabsContent>
 
-              <TabsContent value="insights" className="mt-4 space-y-3">
-                <h3 className="text-sm font-medium text-cyan-400 mb-3">AI Insights</h3>
-                {context?.insights?.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Building insights from your interactions...</p>
-                ) : (
-                  context?.insights?.map((insight, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20"
-                    >
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 text-purple-400 mt-0.5" />
-                        <p className="text-sm text-gray-200">{insight}</p>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
+              <TabsContent value="insights" className="mt-4">
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-3 pr-4">
+                    <h3 className="text-sm font-medium text-cyan-400 mb-3">AI Insights</h3>
+                    {context?.insights?.length === 0 ? (
+                      <p className="text-gray-400 text-sm">Building insights from your interactions...</p>
+                    ) : (
+                      context?.insights?.map((insight, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20"
+                        >
+                          <div className="flex items-start gap-2">
+                            <Sparkles className="w-4 h-4 text-purple-400 mt-0.5" />
+                            <p className="text-sm text-gray-200">{insight}</p>
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
               </TabsContent>
             </Tabs>
 

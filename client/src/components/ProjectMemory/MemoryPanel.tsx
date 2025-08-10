@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Sparkles, Code, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -134,33 +135,35 @@ export default function ProjectMemoryPanel({ projectId }: ProjectMemoryPanelProp
             
             <TabsContent value="memories" className="space-y-4">
               {memories && Array.isArray(memories) && memories.length > 0 ? (
-                <div className="space-y-2">
-                  {memories.map((memory: any) => {
-                    const typeInfo = formatMemoryType(memory.memoryType);
-                    return (
-                      <Card key={memory.id} className="p-3">
-                        <div className="flex items-start gap-2">
-                          {typeInfo.icon}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">{memory.title}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {typeInfo.label}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {memory.content}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <span>Used {memory.usageCount} times</span>
-                              <span>Confidence: {(Number(memory.confidence) * 100).toFixed(0)}%</span>
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-2 pr-4">
+                    {memories.map((memory: any) => {
+                      const typeInfo = formatMemoryType(memory.memoryType);
+                      return (
+                        <Card key={memory.id} className="p-3">
+                          <div className="flex items-start gap-2">
+                            {typeInfo.icon}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{memory.title}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {typeInfo.label}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {memory.content}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                <span>Used {memory.usageCount} times</span>
+                                <span>Confidence: {(Number(memory.confidence) * 100).toFixed(0)}%</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No patterns learned yet. Keep using Space Child and it will learn from your interactions!
@@ -241,35 +244,37 @@ export default function ProjectMemoryPanel({ projectId }: ProjectMemoryPanelProp
               </form>
               
               {searchMutation.data && (
-                <div className="space-y-2 mt-4">
-                  {searchMutation.data.length > 0 ? (
-                    searchMutation.data.map((memory: any) => {
-                      const typeInfo = formatMemoryType(memory.memoryType);
-                      return (
-                        <Card key={memory.id} className="p-3">
-                          <div className="flex items-start gap-2">
-                            {typeInfo.icon}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{memory.title}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {typeInfo.label}
-                                </span>
+                <ScrollArea className="h-[350px] mt-4">
+                  <div className="space-y-2 pr-4">
+                    {searchMutation.data.length > 0 ? (
+                      searchMutation.data.map((memory: any) => {
+                        const typeInfo = formatMemoryType(memory.memoryType);
+                        return (
+                          <Card key={memory.id} className="p-3">
+                            <div className="flex items-start gap-2">
+                              {typeInfo.icon}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">{memory.title}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {typeInfo.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {memory.content}
+                                </p>
                               </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {memory.content}
-                              </p>
                             </div>
-                          </div>
-                        </Card>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center">
-                      No memories found for "{searchQuery}"
-                    </p>
-                  )}
-                </div>
+                          </Card>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center">
+                        No memories found for "{searchQuery}"
+                      </p>
+                    )}
+                  </div>
+                </ScrollArea>
               )}
             </TabsContent>
           </Tabs>

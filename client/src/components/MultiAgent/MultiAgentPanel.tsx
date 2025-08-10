@@ -267,35 +267,37 @@ export default function MultiAgentPanel({ project }: MultiAgentPanelProps) {
               </TabsContent>
 
               <TabsContent value="agents" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(statusData.agentStatuses || {}).map(([agentType, agentStatus]) => (
-                    <Card key={agentType}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <div className={`p-1 rounded ${agentColors[agentType]} text-white`}>
-                            {getAgentIcon(agentType)}
-                          </div>
-                          {agentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Status:</span>
-                            <span className={`text-sm font-medium ${getStatusColor(agentStatus.status)}`}>
-                              {agentStatus.status}
-                            </span>
-                          </div>
-                          {agentStatus.currentTask && (
-                            <div className="mt-2 p-2 bg-muted rounded text-xs">
-                              {agentStatus.currentTask.description}
+                <ScrollArea className="h-[400px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+                    {Object.entries(statusData.agentStatuses || {}).map(([agentType, agentStatus]) => (
+                      <Card key={agentType}>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center gap-2">
+                            <div className={`p-1 rounded ${agentColors[agentType]} text-white`}>
+                              {getAgentIcon(agentType)}
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                            {agentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Status:</span>
+                              <span className={`text-sm font-medium ${getStatusColor(agentStatus.status)}`}>
+                                {agentStatus.status}
+                              </span>
+                            </div>
+                            {agentStatus.currentTask && (
+                              <div className="mt-2 p-2 bg-muted rounded text-xs">
+                                {agentStatus.currentTask.description}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
               </TabsContent>
 
               <TabsContent value="tasks" className="space-y-4">
