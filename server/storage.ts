@@ -374,7 +374,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
-    const [newTemplate] = await db.insert(projectTemplates).values([template]).returning();
+    const [newTemplate] = await db.insert(projectTemplates).values(template).returning();
     return newTemplate;
   }
   
