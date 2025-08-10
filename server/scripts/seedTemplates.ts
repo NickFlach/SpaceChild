@@ -8,8 +8,7 @@ const defaultTemplates: InsertProjectTemplate[] = [
     category: "web-app",
     techStack: ["React", "TypeScript", "Tailwind CSS", "Vite"],
     features: ["Responsive Design", "Dark Mode", "Component Library"],
-    difficulty: "beginner",
-    estimatedTime: "2-4 hours",
+
     popularity: 95,
     config: {
       projectType: "frontend",
@@ -49,7 +48,7 @@ function App() {
 }
 
 export default App;`,
-        purpose: "Main application component"
+        description: "Main application component"
       },
       {
         path: "src/App.css",
@@ -60,7 +59,7 @@ export default App;`,
 .App {
   text-align: center;
 }`,
-        purpose: "Main stylesheet"
+        description: "Main stylesheet"
       }
     ]
   },
@@ -70,8 +69,6 @@ export default App;`,
     category: "api",
     techStack: ["Node.js", "Express.js", "TypeScript", "PostgreSQL"],
     features: ["REST API", "Authentication", "Database Integration", "Middleware"],
-    difficulty: "intermediate",
-    estimatedTime: "4-6 hours",
     popularity: 78,
     config: {
       projectType: "backend",
@@ -112,7 +109,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 app.listen(PORT, () => {
   console.log(\`Server running on port \${PORT}\`);
 });`,
-        purpose: "Main server file"
+        description: "Main server file"
       }
     ]
   },
@@ -122,8 +119,6 @@ app.listen(PORT, () => {
     category: "fullstack",
     techStack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
     features: ["SSR", "API Routes", "Database ORM", "Authentication", "Deployment Ready"],
-    difficulty: "advanced",
-    estimatedTime: "8-12 hours",
     popularity: 89,
     config: {
       projectType: "fullstack",
@@ -160,7 +155,7 @@ export default function Home() {
     </div>
   );
 }`,
-        purpose: "Home page component"
+        description: "Home page component"
       }
     ]
   },
@@ -170,8 +165,6 @@ export default function Home() {
     category: "api",
     techStack: ["Python", "FastAPI", "Pydantic", "PostgreSQL", "SQLAlchemy"],
     features: ["Async Support", "Auto Documentation", "Type Validation", "ORM Integration"],
-    difficulty: "intermediate",
-    estimatedTime: "4-6 hours",
     popularity: 67,
     config: {
       projectType: "backend",
@@ -220,7 +213,7 @@ async def get_user(user_id: int):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)`,
-        purpose: "Main FastAPI application"
+        description: "Main FastAPI application"
       }
     ]
   },
@@ -230,8 +223,6 @@ if __name__ == "__main__":
     category: "ml-model",
     techStack: ["Python", "Scikit-learn", "Pandas", "NumPy", "Jupyter"],
     features: ["Data Processing", "Model Training", "Visualization", "Export/Import"],
-    difficulty: "advanced",
-    estimatedTime: "6-10 hours",
     popularity: 54,
     config: {
       projectType: "ml",
@@ -305,7 +296,7 @@ if __name__ == "__main__":
     # model.prepare_data('target')
     # model.train()
     print("ML Model template ready!")`,
-        purpose: "Main ML model class"
+        description: "Main ML model class"
       }
     ]
   }
