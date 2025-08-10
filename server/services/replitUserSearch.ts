@@ -236,69 +236,103 @@ class ReplitUserSearchService {
           const nextData = JSON.parse(nextDataMatch[1]);
           console.log(`Found Next.js data for ${username}`);
           
-          // Debug: Log some keys to understand the structure
-          const apolloState = nextData.props?.pageProps?.initialApolloState;
+          // Handle Replit's GraphQL Apollo state structure
+          const apolloState = nextData.props?.pageProps?.apolloState;
           if (apolloState) {
-            const keys = Object.keys(apolloState);
-            console.log(`Apollo state has ${keys.length} keys. Sample keys:`, keys.slice(0, 10));
+            console.log(`Processing Apollo state with ${Object.keys(apolloState).length} keys`);
             
-            // Look for any keys that might contain repl data
-            const replKeys = keys.filter(key => 
-              key.includes('Repl') || 
-              key.includes('repl') || 
-              key.includes('Project') ||
-              key.includes('project')
-            );
-            console.log(`Found potential repl keys:`, replKeys);
+            // Find the user object
+            const userKey = Object.keys(apolloState).find(key => key.startsWith('User:'));
+            if (userKey) {
+              const user = apolloState[userKey];
+              console.log(`Found user object: ${userKey}`);
+              
+              // Look for publicRepls in the user object
+              const publicReplsKey = Object.keys(user).find(key => key.includes('publicRepls'));
+              if (publicReplsKey && user[publicReplsKey]?.items) {
+                console.log(`Found public repls field: ${publicReplsKey} with ${user[publicReplsKey].items.length} items`);
+                
+                // Follow the references to get actual repl data
+                user[publicReplsKey].items.forEach((replRef: any) => {
+                  if (replRef.__ref) {
+                    const replData = apolloState[replRef.__ref];
+                    if (replData) {
+                      console.log(`Processing repl ${replRef.__ref}:`, {
+                        id: replData.id,
+                        hasTitle: !!replData.title,
+                        hasSlug: !!replData.slug,
+                        hasLanguage: !!replData.language,
+                        isPublic: replData.isPublic,
+                        keys: Object.keys(replData).slice(0, 15)
+                      });
 
-            Object.keys(apolloState).forEach(key => {
-              const item = apolloState[key];
-              
-              // More flexible repl detection
-              if ((key.includes('Repl') || key.includes('repl')) && item && typeof item === 'object') {
-                console.log(`Examining repl key ${key}:`, {
-                  hasSlug: !!item.slug,
-                  hasTitle: !!item.title,
-                  isPublic: item.isPublic,
-                  keys: Object.keys(item).slice(0, 10)
+                      // Only add repls that have enough data to be useful
+                      if (replData.id) {
+                        publicRepls.push({
+                          id: replData.id,
+                          title: replData.title || replData.slug || replData.id,
+                          description: replData.description || '',
+                          language: replData.language?.displayName || replData.language?.key || 'Unknown',
+                          url: replData.slug ? `https://replit.com/@${username}/${replData.slug}` : `https://replit.com/@${username}`,
+                          isPublic: replData.isPublic !== false,
+                          forkCount: replData.publicForkCount || replData.forkCount || 0,
+                          likeCount: replData.likeCount || 0,
+                          viewCount: replData.runCount || replData.viewCount || 0,
+                          lastUpdated: replData.timeUpdated || replData.updatedAt || new Date().toISOString(),
+                          owner: username,
+                        });
+                      }
+                    }
+                  }
                 });
-                
-                if (item.slug && item.title) {
-                  const isPublic = item.isPublic !== false; // Default to public if not specified
-                  publicRepls.push({
-                    id: item.id || key.split(':')[1],
-                    title: item.title,
-                    description: item.description || '',
-                    language: item.language?.displayName || item.language?.key || 'Unknown',
-                    url: `https://replit.com/@${username}/${item.slug}`,
-                    isPublic: isPublic,
-                    forkCount: item.publicForkCount || 0,
-                    likeCount: item.likeCount || 0,
-                    viewCount: item.runCount || 0,
-                    lastUpdated: item.timeUpdated || new Date().toISOString(),
-                    owner: username,
-                  });
-                }
               }
-              
-              // More flexible deployment detection
-              if ((key.includes('Deployment') || key.includes('deployment')) && item && typeof item === 'object' && item.url) {
-                console.log(`Found deployment key ${key}:`, {
-                  hasUrl: !!item.url,
-                  state: item.state,
-                  keys: Object.keys(item).slice(0, 10)
+
+              // Look for deployments in a similar way
+              const deploymentsKey = Object.keys(user).find(key => key.includes('deployments') || key.includes('Deployments'));
+              if (deploymentsKey && user[deploymentsKey]?.items) {
+                user[deploymentsKey].items.forEach((deployRef: any) => {
+                  if (deployRef.__ref) {
+                    const deployData = apolloState[deployRef.__ref];
+                    if (deployData && deployData.url) {
+                      deployments.push({
+                        id: deployData.id || deployRef.__ref.split(':')[1],
+                        title: deployData.title || deployData.repl?.title || 'Deployed App',
+                        description: deployData.description || deployData.repl?.description || '',
+                        url: deployData.url,
+                        status: deployData.state === 'SLEEPING' ? 'inactive' : (deployData.state === 'LIVE' ? 'active' : 'error'),
+                        lastDeployed: deployData.timeCreated || deployData.createdAt || new Date().toISOString(),
+                        replId: deployData.repl?.id || '',
+                        owner: username,
+                      });
+                    }
+                  }
                 });
-                
-                deployments.push({
-                  id: item.id || key.split(':')[1],
-                  title: item.repl?.title || item.title || 'Deployed App',
-                  description: item.repl?.description || item.description || '',
-                  url: item.url,
-                  status: item.state === 'SLEEPING' ? 'inactive' : (item.state === 'LIVE' ? 'active' : 'error'),
-                  lastDeployed: item.timeCreated || new Date().toISOString(),
-                  replId: item.repl?.id || '',
-                  owner: username,
-                });
+              }
+            }
+
+            // Also check root level for any direct Repl objects with full data
+            Object.keys(apolloState).forEach(key => {
+              if (key.startsWith('Repl:')) {
+                const replData = apolloState[key];
+                if (replData && replData.slug && replData.title && replData.isPublic) {
+                  // Check if we already added this repl
+                  const alreadyExists = publicRepls.some(r => r.id === replData.id);
+                  if (!alreadyExists) {
+                    publicRepls.push({
+                      id: replData.id,
+                      title: replData.title,
+                      description: replData.description || '',
+                      language: replData.language?.displayName || replData.language?.key || 'Unknown',
+                      url: `https://replit.com/@${username}/${replData.slug}`,
+                      isPublic: replData.isPublic,
+                      forkCount: replData.publicForkCount || replData.forkCount || 0,
+                      likeCount: replData.likeCount || 0,
+                      viewCount: replData.runCount || replData.viewCount || 0,
+                      lastUpdated: replData.timeUpdated || replData.updatedAt || new Date().toISOString(),
+                      owner: username,
+                    });
+                  }
+                }
               }
             });
           }
