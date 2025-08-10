@@ -236,22 +236,42 @@ class ReplitUserSearchService {
           const nextData = JSON.parse(nextDataMatch[1]);
           console.log(`Found Next.js data for ${username}`);
           
-          // Navigate through the Apollo state to find repls
+          // Debug: Log some keys to understand the structure
           const apolloState = nextData.props?.pageProps?.initialApolloState;
           if (apolloState) {
+            const keys = Object.keys(apolloState);
+            console.log(`Apollo state has ${keys.length} keys. Sample keys:`, keys.slice(0, 10));
+            
+            // Look for any keys that might contain repl data
+            const replKeys = keys.filter(key => 
+              key.includes('Repl') || 
+              key.includes('repl') || 
+              key.includes('Project') ||
+              key.includes('project')
+            );
+            console.log(`Found potential repl keys:`, replKeys);
+
             Object.keys(apolloState).forEach(key => {
               const item = apolloState[key];
               
-              // Look for repls
-              if (key.includes('Repl:') && item) {
-                if (item.isPublic && item.slug && item.title) {
+              // More flexible repl detection
+              if ((key.includes('Repl') || key.includes('repl')) && item && typeof item === 'object') {
+                console.log(`Examining repl key ${key}:`, {
+                  hasSlug: !!item.slug,
+                  hasTitle: !!item.title,
+                  isPublic: item.isPublic,
+                  keys: Object.keys(item).slice(0, 10)
+                });
+                
+                if (item.slug && item.title) {
+                  const isPublic = item.isPublic !== false; // Default to public if not specified
                   publicRepls.push({
                     id: item.id || key.split(':')[1],
                     title: item.title,
                     description: item.description || '',
                     language: item.language?.displayName || item.language?.key || 'Unknown',
                     url: `https://replit.com/@${username}/${item.slug}`,
-                    isPublic: item.isPublic,
+                    isPublic: isPublic,
                     forkCount: item.publicForkCount || 0,
                     likeCount: item.likeCount || 0,
                     viewCount: item.runCount || 0,
@@ -261,12 +281,18 @@ class ReplitUserSearchService {
                 }
               }
               
-              // Look for deployments
-              if (key.includes('Deployment:') && item && item.url) {
+              // More flexible deployment detection
+              if ((key.includes('Deployment') || key.includes('deployment')) && item && typeof item === 'object' && item.url) {
+                console.log(`Found deployment key ${key}:`, {
+                  hasUrl: !!item.url,
+                  state: item.state,
+                  keys: Object.keys(item).slice(0, 10)
+                });
+                
                 deployments.push({
                   id: item.id || key.split(':')[1],
-                  title: item.repl?.title || 'Deployed App',
-                  description: item.repl?.description || '',
+                  title: item.repl?.title || item.title || 'Deployed App',
+                  description: item.repl?.description || item.description || '',
                   url: item.url,
                   status: item.state === 'SLEEPING' ? 'inactive' : (item.state === 'LIVE' ? 'active' : 'error'),
                   lastDeployed: item.timeCreated || new Date().toISOString(),
