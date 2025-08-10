@@ -1,4 +1,4 @@
-import * as srp from 'secure-remote-password/server';
+import * as srp from 'secure-remote-password/server.js';
 import * as argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ZKPAuthService, zkpAuthenticated } from '../services/zkpAuth';
-import * as srpClient from 'secure-remote-password/client';
+import * as srpClient from 'secure-remote-password/client.js';
 
 const router = Router();
 
