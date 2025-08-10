@@ -15,6 +15,7 @@ import templateRoutes from "./routes/templates";
 import sandboxRoutes from "./routes/sandbox";
 import scrapeRoutes from "./routes/scrape";
 import subscriptionRoutes from "./routes/subscriptions";
+import replitUserSearchRoutes from "./routes/replitUserSearch";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - Comment out Replit auth for now
@@ -757,6 +758,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register subscription routes
   app.use('/api/subscriptions', subscriptionRoutes);
+  
+  // Register Replit user search routes
+  app.use('/api/replit-users', replitUserSearchRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);

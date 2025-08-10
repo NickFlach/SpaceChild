@@ -616,6 +616,21 @@ export const complexityPatterns = pgTable("complexity_patterns", {
 
 export type ComplexityAnalysis = typeof complexityAnalyses.$inferSelect;
 export type InsertComplexityAnalysis = typeof complexityAnalyses.$inferInsert;
+
+// Replit User Search table - for caching searched user data
+export const replitUserSearches = pgTable("replit_user_searches", {
+  id: serial("id").primaryKey(),
+  searchedUserId: varchar("searched_user_id").references(() => users.id).notNull(),
+  replitUsername: varchar("replit_username", { length: 255 }).notNull(),
+  userData: jsonb("user_data"), // Profile info, avatar, etc.
+  publicRepls: jsonb("public_repls").default('[]'), // Array of public repls
+  deployments: jsonb("deployments").default('[]'), // Array of deployments
+  searchedAt: timestamp("searched_at").defaultNow(),
+  cacheExpiry: timestamp("cache_expiry").notNull(),
+});
+
+export type ReplitUserSearch = typeof replitUserSearches.$inferSelect;
+export type InsertReplitUserSearch = typeof replitUserSearches.$inferInsert;
 export type ComplexityPattern = typeof complexityPatterns.$inferSelect;
 export type InsertComplexityPattern = typeof complexityPatterns.$inferInsert;
 
