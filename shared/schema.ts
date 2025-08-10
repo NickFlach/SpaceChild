@@ -11,6 +11,7 @@ import {
   decimal,
   serial,
   real,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -627,7 +628,10 @@ export const replitUserSearches = pgTable("replit_user_searches", {
   deployments: jsonb("deployments").default('[]'), // Array of deployments
   searchedAt: timestamp("searched_at").defaultNow(),
   cacheExpiry: timestamp("cache_expiry").notNull(),
-});
+}, (table) => ({
+  // Unique constraint for user + replit username combination
+  userReplitUsernameUnique: unique("user_replit_username_unique").on(table.searchedUserId, table.replitUsername),
+}));
 
 export type ReplitUserSearch = typeof replitUserSearches.$inferSelect;
 export type InsertReplitUserSearch = typeof replitUserSearches.$inferInsert;
