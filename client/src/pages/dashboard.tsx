@@ -22,14 +22,16 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Settings, Moon, Sun, User, Columns, FileCode } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
+import ProfileModal from "@/components/Profile/ProfileModal";
 import type { ProjectFile, Project } from "@shared/schema";
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
+  const [showProfileModal, setShowProfileModal] = useState(false);
   
   const {
     projects,
@@ -151,15 +153,25 @@ export default function Dashboard() {
           
           {/* User Menu */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {user?.firstName?.[0] || user?.email?.[0] || "U"}
-              </span>
-            </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => setShowProfileModal(true)}
+              className="p-0"
+            >
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user?.firstName?.[0] || user?.username?.[0] || user?.email?.[0] || "U"}
+                </span>
+              </div>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                logout();
+                window.location.href = "/";
+              }}
               className="text-sm"
             >
               Logout
@@ -343,6 +355,13 @@ export default function Dashboard() {
           <span>{user?.subscriptionTier || "Basic"} Plan</span>
         </div>
       </div>
+
+      {/* Profile Modal */}
+      <ProfileModal 
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user}
+      />
     </div>
   );
 }

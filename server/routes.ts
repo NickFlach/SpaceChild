@@ -35,6 +35,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Legacy logout route for compatibility
+  app.get('/api/logout', (req, res) => {
+    // Clear any cookies if they exist
+    res.clearCookie('token');
+    res.clearCookie('session');
+    res.json({ success: true, message: 'Logged out successfully' });
+  });
+
+  // Profile management routes
+  app.get('/api/profile', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Return profile data without sensitive info
+      const profile = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        createdAt: user.createdAt,
+        plan: user.subscriptionTier || 'explorer',
+        monthlyCredits: user.monthlyCredits,
+        usedCredits: user.usedCredits,
+        creditResetDate: user.creditResetDate
+      };
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.put('/api/profile', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName } = req.body;
+      
+      // Get the user first
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user profile using db directly
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      const [updatedUser] = await db.update(users)
+        .set({ 
+          firstName,
+          lastName,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      res.json({
+        success: true,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          username: updatedUser.username,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName
+        }
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.delete('/api/profile', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Delete all user's projects first
+      const projects = await storage.getProjectsByUserId(userId);
+      for (const project of projects) {
+        await storage.deleteProject(project.id);
+      }
+      
+      // Delete user account using db directly
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      await db.delete(users).where(eq(users.id, userId));
+      
+      res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
+  });
+
   // Project Management Routes
   app.get('/api/projects', zkpAuthenticated, async (req: any, res) => {
     try {
