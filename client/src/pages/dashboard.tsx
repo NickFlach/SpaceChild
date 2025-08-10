@@ -258,84 +258,66 @@ export default function Dashboard() {
                   </div>
                 </TabsList>
                 
-                <TabsContent value="chat" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <ChatInterface project={currentProject || null} />
-                  </div>
+                <TabsContent value="chat" className="flex-1 mt-0 overflow-hidden">
+                  <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
-                <TabsContent value="consciousness" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    <ConsciousnessPanel 
-                      projectId={currentProject?.id || null}
-                    />
-                  </div>
+                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-2">
+                  <ConsciousnessPanel 
+                    projectId={currentProject?.id || null}
+                  />
                 </TabsContent>
 
-                <TabsContent value="complexity" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    {currentProject && (
-                      <ComplexityPanel projectId={currentProject.id} />
-                    )}
-                  </div>
+                <TabsContent value="complexity" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <ComplexityPanel projectId={currentProject.id} />
+                  )}
                 </TabsContent>
                 
-                <TabsContent value="memory" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    {currentProject && (
-                      <ProjectMemoryPanel projectId={currentProject.id} />
-                    )}
-                  </div>
+                <TabsContent value="memory" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <ProjectMemoryPanel projectId={currentProject.id} />
+                  )}
                 </TabsContent>
                 
-                <TabsContent value="templates" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    <TemplateGallery 
-                      onProjectCreated={async (project) => {
-                        await selectProject(project.id);
-                        setActiveTab("chat");
-                      }}
+                <TabsContent value="templates" className="flex-1 mt-0 overflow-auto p-2">
+                  <TemplateGallery 
+                    onProjectCreated={async (project) => {
+                      await selectProject(project.id);
+                      setActiveTab("chat");
+                    }}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <SuperintelligencePanel 
+                      project={currentProject}
                     />
-                  </div>
+                  )}
                 </TabsContent>
                 
-                <TabsContent value="analysis" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    {currentProject && (
-                      <SuperintelligencePanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="agents" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    {currentProject && (
-                      <MultiAgentPanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="terminal" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    <TerminalComponent 
-                      projectId={currentProject?.id}
-                      className="h-full"
+                <TabsContent value="agents" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <MultiAgentPanel 
+                      project={currentProject}
                     />
-                  </div>
+                  )}
                 </TabsContent>
                 
-                <TabsContent value="deployment" className="flex-1 mt-0 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-auto p-2">
-                    {currentProject && (
-                      <DeploymentPanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
+                <TabsContent value="terminal" className="flex-1 mt-0 overflow-auto p-2">
+                  <TerminalComponent 
+                    projectId={currentProject?.id}
+                    className="h-full"
+                  />
+                </TabsContent>
+                
+                <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-2">
+                  {currentProject && (
+                    <DeploymentPanel 
+                      project={currentProject}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
