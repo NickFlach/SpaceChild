@@ -138,7 +138,7 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Chat Messages */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-4 min-h-full flex flex-col">
             {messages.length === 0 ? (

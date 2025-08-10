@@ -239,12 +239,15 @@ export default function Landing() {
                       Join developers who are creating the next generation of intelligent applications. 
                       Experience development that evolves with you.
                     </p>
-                    <a href="/api/login" className="inline-block">
-                      <Button size="lg" className="cosmic-button space-child-glow text-lg px-8 py-6 font-semibold">
-                        <Brain className="mr-2" />
-                        Get Started Free
-                      </Button>
-                    </a>
+                    <Button 
+                      size="lg" 
+                      className="cosmic-button space-child-glow text-lg px-8 py-6 font-semibold"
+                      onClick={() => setShowLogin(true)}
+                      data-testid="button-get-started-free"
+                    >
+                      <Brain className="mr-2" />
+                      Get Started Free
+                    </Button>
                   </div>
                   <div className="relative glass-card rounded-xl p-1">
                     <img 
