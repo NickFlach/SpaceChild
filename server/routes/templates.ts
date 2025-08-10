@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { zkpAuthenticated } from "../services/zkpAuth";
 import { projectTemplateService } from "../services/projectTemplates";
 import { smartTemplateService } from "../services/smartTemplates";
 
 const router = Router();
 
 // Get all templates
-router.get('/templates', isAuthenticated, async (req, res) => {
+router.get('/api/templates', zkpAuthenticated, async (req: any, res) => {
   try {
     const { category } = req.query;
     const templates = await projectTemplateService.getTemplates(category as string);
@@ -18,7 +18,7 @@ router.get('/templates', isAuthenticated, async (req, res) => {
 });
 
 // Get popular templates
-router.get('/templates/popular', isAuthenticated, async (req, res) => {
+router.get('/templates/popular', zkpAuthenticated, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     const templates = await projectTemplateService.getPopularTemplates(limit);
@@ -30,7 +30,7 @@ router.get('/templates/popular', isAuthenticated, async (req, res) => {
 });
 
 // Search templates
-router.get('/templates/search', isAuthenticated, async (req, res) => {
+router.get('/templates/search', zkpAuthenticated, async (req, res) => {
   try {
     const { query } = req.query;
     if (!query) {
@@ -46,7 +46,7 @@ router.get('/templates/search', isAuthenticated, async (req, res) => {
 });
 
 // Get templates by tech stack
-router.get('/templates/by-tech/:tech', isAuthenticated, async (req, res) => {
+router.get('/templates/by-tech/:tech', zkpAuthenticated, async (req, res) => {
   try {
     const { tech } = req.params;
     const templates = await projectTemplateService.getTemplatesByTechStack(tech);
@@ -58,7 +58,7 @@ router.get('/templates/by-tech/:tech', isAuthenticated, async (req, res) => {
 });
 
 // Get specific template
-router.get('/templates/:id', isAuthenticated, async (req, res) => {
+router.get('/templates/:id', zkpAuthenticated, async (req, res) => {
   try {
     const templateId = parseInt(req.params.id);
     const template = await projectTemplateService.getTemplate(templateId);
@@ -75,7 +75,7 @@ router.get('/templates/:id', isAuthenticated, async (req, res) => {
 });
 
 // Create project from template
-router.post('/templates/:id/create-project', isAuthenticated, async (req: any, res) => {
+router.post('/templates/:id/create-project', zkpAuthenticated, async (req: any, res) => {
   try {
     const templateId = parseInt(req.params.id);
     const { name, ...customSettings } = req.body;
@@ -100,7 +100,7 @@ router.post('/templates/:id/create-project', isAuthenticated, async (req: any, r
 });
 
 // Smart Template Routes
-router.post('/templates/smart/analyze', isAuthenticated, async (req: any, res) => {
+router.post('/templates/smart/analyze', zkpAuthenticated, async (req: any, res) => {
   try {
     const { config } = req.body;
     const userId = req.user.claims.sub;
@@ -117,7 +117,7 @@ router.post('/templates/smart/analyze', isAuthenticated, async (req: any, res) =
   }
 });
 
-router.post('/templates/smart/create', isAuthenticated, async (req: any, res) => {
+router.post('/templates/smart/create', zkpAuthenticated, async (req: any, res) => {
   try {
     const { projectName, config } = req.body;
     const userId = req.user.claims.sub;

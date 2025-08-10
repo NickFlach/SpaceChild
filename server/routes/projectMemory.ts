@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { isAuthenticated } from "../replitAuth";
+import { zkpAuthenticated } from "../services/zkpAuth";
 import { storage } from "../storage";
 import { projectMemoryService } from "../services/projectMemory";
 
 const router = Router();
 
 // Get project memories
-router.get('/api/projects/:projectId/memories', isAuthenticated, async (req: any, res) => {
+router.get('/api/projects/:projectId/memories', zkpAuthenticated, async (req: any, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     const { type } = req.query;
@@ -27,7 +27,7 @@ router.get('/api/projects/:projectId/memories', isAuthenticated, async (req: any
 });
 
 // Search project memories
-router.get('/api/projects/:projectId/memories/search', isAuthenticated, async (req: any, res) => {
+router.get('/api/projects/:projectId/memories/search', zkpAuthenticated, async (req: any, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     const { query } = req.query;
@@ -52,7 +52,7 @@ router.get('/api/projects/:projectId/memories/search', isAuthenticated, async (r
 });
 
 // Get coding preferences
-router.get('/api/projects/:projectId/preferences', isAuthenticated, async (req: any, res) => {
+router.get('/api/projects/:projectId/preferences', zkpAuthenticated, async (req: any, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     const userId = req.user.claims.sub;
@@ -72,7 +72,7 @@ router.get('/api/projects/:projectId/preferences', isAuthenticated, async (req: 
 });
 
 // Save a user preference
-router.post('/api/projects/:projectId/preferences', isAuthenticated, async (req: any, res) => {
+router.post('/api/projects/:projectId/preferences', zkpAuthenticated, async (req: any, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     const { preference, preferenceType } = req.body;
