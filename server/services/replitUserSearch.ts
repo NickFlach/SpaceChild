@@ -44,6 +44,21 @@ export interface ReplitSearchResult {
   deployments: ReplitDeployment[];
 }
 
+export interface BrowseOptions {
+  category?: 'trending' | 'new' | 'featured';
+  language?: string;
+  type?: 'repls' | 'deployments' | 'both';
+  limit?: number;
+  offset?: number;
+}
+
+export interface BrowseResult {
+  repls: ReplitRepl[];
+  deployments: ReplitDeployment[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 class ReplitUserSearchService {
   private readonly CACHE_DURATION_HOURS = 2; // Cache results for 2 hours
 
@@ -254,6 +269,115 @@ class ReplitUserSearchService {
           eq(replitUserSearches.searchedUserId, userId)
         )
       );
+  }
+
+  /**
+   * Browse public repls and deployments
+   */
+  async browsePublicContent(options: BrowseOptions = {}): Promise<BrowseResult> {
+    try {
+      const {
+        category = 'trending',
+        language,
+        type = 'both',
+        limit = 20,
+        offset = 0
+      } = options;
+
+      // In a real implementation, this would make API calls to Replit's endpoints
+      // For now, we'll simulate browsing with sample data structure
+      const mockRepls: ReplitRepl[] = this.generateMockRepls(language, limit);
+      const mockDeployments: ReplitDeployment[] = this.generateMockDeployments(limit);
+
+      let repls: ReplitRepl[] = [];
+      let deployments: ReplitDeployment[] = [];
+
+      if (type === 'repls' || type === 'both') {
+        repls = mockRepls.slice(offset, offset + limit);
+      }
+
+      if (type === 'deployments' || type === 'both') {
+        deployments = mockDeployments.slice(offset, offset + limit);
+      }
+
+      return {
+        repls,
+        deployments,
+        totalCount: mockRepls.length + mockDeployments.length,
+        hasMore: offset + limit < (mockRepls.length + mockDeployments.length),
+      };
+    } catch (error) {
+      console.error('Error browsing public content:', error);
+      return {
+        repls: [],
+        deployments: [],
+        totalCount: 0,
+        hasMore: false,
+      };
+    }
+  }
+
+  private generateMockRepls(language?: string, count: number = 20): ReplitRepl[] {
+    const languages = ['JavaScript', 'Python', 'Java', 'C++', 'React', 'Node.js', 'HTML/CSS', 'TypeScript'];
+    const projects = [
+      'Web Portfolio', 'API Server', 'Discord Bot', 'Game Engine', 'Chat App',
+      'Weather App', 'Todo List', 'Calculator', 'Music Player', 'Social Media Dashboard',
+      'E-commerce Site', 'Blog Platform', 'Task Manager', 'Image Editor', 'Code Editor',
+      'Data Visualization', 'Machine Learning Model', 'Cryptocurrency Tracker', 'Recipe App', 'Fitness Tracker'
+    ];
+
+    return Array.from({ length: count }, (_, i) => {
+      const selectedLanguage = language || languages[Math.floor(Math.random() * languages.length)];
+      const projectName = projects[Math.floor(Math.random() * projects.length)];
+      const username = `user${Math.floor(Math.random() * 1000)}`;
+      
+      return {
+        id: `repl-${Date.now()}-${i}`,
+        title: `${projectName} - ${selectedLanguage}`,
+        description: `A ${selectedLanguage} project showcasing ${projectName.toLowerCase()} functionality with modern best practices.`,
+        language: selectedLanguage,
+        url: `https://replit.com/@${username}/${projectName.replace(/\s+/g, '-').toLowerCase()}`,
+        isPublic: true,
+        forkCount: Math.floor(Math.random() * 50),
+        likeCount: Math.floor(Math.random() * 100),
+        viewCount: Math.floor(Math.random() * 500),
+        lastUpdated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        owner: username,
+      };
+    });
+  }
+
+  private generateMockDeployments(count: number = 10): ReplitDeployment[] {
+    const deploymentTypes = [
+      'Portfolio Website', 'API Service', 'Web Dashboard', 'Landing Page', 'Documentation Site',
+      'Blog', 'E-commerce Store', 'Chat Application', 'Game Server', 'Analytics Dashboard'
+    ];
+
+    return Array.from({ length: count }, (_, i) => {
+      const deploymentType = deploymentTypes[Math.floor(Math.random() * deploymentTypes.length)];
+      const username = `user${Math.floor(Math.random() * 1000)}`;
+      const subdomain = `${deploymentType.replace(/\s+/g, '-').toLowerCase()}-${username}`;
+      
+      return {
+        id: `deployment-${Date.now()}-${i}`,
+        title: deploymentType,
+        description: `Live ${deploymentType.toLowerCase()} deployed on Replit with custom domain support.`,
+        url: `https://${subdomain}.${username}.repl.co`,
+        domain: `${subdomain}.${username}.repl.co`,
+        status: ['active', 'inactive'][Math.floor(Math.random() * 2)] as 'active' | 'inactive',
+        lastDeployed: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        owner: username,
+        replId: `repl-${Date.now()}-${i}`,
+      };
+    });
+  }
+
+  /**
+   * Get trending languages
+   */
+  async getTrendingLanguages(): Promise<string[]> {
+    // In a real implementation, this would analyze recent repls
+    return ['JavaScript', 'Python', 'Java', 'TypeScript', 'React', 'Node.js', 'C++', 'HTML/CSS'];
   }
 }
 
