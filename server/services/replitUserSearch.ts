@@ -349,36 +349,107 @@ class ReplitUserSearchService {
         }
       }
 
-      // Method 2: Look for repl links in HTML if no Next.js data found
+      // Method 2: Comprehensive HTML parsing with multiple strategies
       if (publicRepls.length === 0) {
-        console.log(`Trying HTML parsing for ${username}`);
-        const replLinkRegex = new RegExp(`/@${username}/([^"\\s?]+)`, 'gi');
-        let match;
-        const seenSlugs = new Set();
+        console.log(`Trying comprehensive HTML parsing for ${username}`);
         
-        while ((match = replLinkRegex.exec(html)) !== null) {
-          const slug = match[1];
-          if (!seenSlugs.has(slug) && !slug.includes('?') && slug.length > 0) {
-            seenSlugs.add(slug);
-            
-            // Try to find the title near this link
-            const linkContext = html.substring(Math.max(0, match.index - 200), match.index + 200);
-            const titleMatch = linkContext.match(/>([^<]+)</);
-            const title = titleMatch?.[1]?.trim() || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            
-            publicRepls.push({
-              id: slug,
-              title: title,
-              description: '',
-              language: 'Unknown',
-              url: `https://replit.com/@${username}/${slug}`,
-              isPublic: true,
-              forkCount: 0,
-              likeCount: 0,
-              viewCount: 0,
-              lastUpdated: new Date().toISOString(),
-              owner: username,
-            });
+        // Strategy 1: Look for repl links in various formats
+        const linkPatterns = [
+          new RegExp(`/@${username.toLowerCase()}/([^"\\s?/>]+)`, 'gi'),
+          new RegExp(`/@${username}/([^"\\s?/>]+)`, 'gi'),
+          /href="[^"]*@[^"\/]+\/([^"\/\s?]+)"/gi,
+          /"url":"[^"]*@[^"\/]+\/([^"\/\s?]+)"/gi
+        ];
+        
+        const seenSlugs = new Set<string>();
+        
+        for (const pattern of linkPatterns) {
+          let match;
+          while ((match = pattern.exec(html)) !== null) {
+            const slug = match[1];
+            if (slug && slug.length > 0 && !slug.includes('?') && !slug.includes('<') && !seenSlugs.has(slug)) {
+              seenSlugs.add(slug);
+              
+              // Extract context around the link for better title detection
+              const start = Math.max(0, match.index - 300);
+              const end = Math.min(html.length, match.index + 300);
+              const context = html.substring(start, end);
+              
+              // Try multiple title extraction methods
+              let title = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              
+              const titlePatterns = [
+                /"title":\s*"([^"]+)"/,
+                /"name":\s*"([^"]+)"/,
+                /<title[^>]*>([^<]+)<\/title>/i,
+                /<h[1-6][^>]*>([^<]+)<\/h[1-6]>/,
+                /alt="([^"]+)"/,
+                /aria-label="([^"]+)"/
+              ];
+              
+              for (const titlePattern of titlePatterns) {
+                const titleMatch = context.match(titlePattern);
+                if (titleMatch && titleMatch[1] && titleMatch[1].trim().length > 0) {
+                  title = titleMatch[1].trim();
+                  break;
+                }
+              }
+              
+              // Look for language information
+              let language = 'Unknown';
+              const langMatch = context.match(/"language":\s*"([^"]+)"|language:\s*"([^"]+)"/);
+              if (langMatch) {
+                language = langMatch[1] || langMatch[2];
+              }
+              
+              console.log(`Found repl: ${slug} -> ${title} (${language})`);
+              
+              publicRepls.push({
+                id: slug,
+                title: title,
+                description: '',
+                language: language,
+                url: `https://replit.com/@${username}/${slug}`,
+                isPublic: true,
+                forkCount: 0,
+                likeCount: 0,
+                viewCount: 0,
+                lastUpdated: new Date().toISOString(),
+                owner: username,
+              });
+            }
+          }
+        }
+        
+        // Strategy 2: Look for JSON data in script tags that might contain repl info
+        const scriptMatches = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+        for (const script of scriptMatches) {
+          // Look for JSON-like structures that might contain repl data
+          const jsonMatches = script.match(/\{[^{}]*"(slug|title|id|name)"[^{}]*\}/g) || [];
+          for (const jsonStr of jsonMatches) {
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.slug && data.title && !seenSlugs.has(data.slug)) {
+                seenSlugs.add(data.slug);
+                console.log(`Found repl in script: ${data.slug} -> ${data.title}`);
+                
+                publicRepls.push({
+                  id: data.id || data.slug,
+                  title: data.title,
+                  description: data.description || '',
+                  language: data.language?.displayName || data.language || 'Unknown',
+                  url: `https://replit.com/@${username}/${data.slug}`,
+                  isPublic: data.isPublic !== false,
+                  forkCount: data.publicForkCount || data.forkCount || 0,
+                  likeCount: data.likeCount || 0,
+                  viewCount: data.runCount || data.viewCount || 0,
+                  lastUpdated: data.timeUpdated || new Date().toISOString(),
+                  owner: username,
+                });
+              }
+            } catch (e) {
+              // Ignore invalid JSON
+            }
           }
         }
       }
