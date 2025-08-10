@@ -38,8 +38,6 @@ export default function LoginModal({ onSuccess, onClose }: LoginModalProps) {
 
     try {
       // Step 1: Generate client ephemeral
-      const salt = srpClient.generateSalt();
-      const privateKey = srpClient.derivePrivateKey(salt, loginUsername, loginPassword);
       const clientEphemeral = srpClient.generateEphemeral();
 
       // Step 2: Start authentication
@@ -59,14 +57,14 @@ export default function LoginModal({ onSuccess, onClose }: LoginModalProps) {
 
       const startData = await startResponse.json();
 
-      // Step 3: Derive session and complete authentication
-      const privateKeyActual = srpClient.derivePrivateKey(startData.salt, loginUsername, loginPassword);
+      // Step 3: Derive session and complete authentication using server's salt
+      const privateKey = srpClient.derivePrivateKey(startData.salt, loginUsername, loginPassword);
       const clientSession = srpClient.deriveSession(
         clientEphemeral.secret,
         startData.serverEphemeralPublic,
         startData.salt,
         loginUsername,
-        privateKeyActual
+        privateKey
       );
 
       const completeResponse = await fetch('/api/zkp/auth/complete', {
@@ -123,13 +121,19 @@ export default function LoginModal({ onSuccess, onClose }: LoginModalProps) {
     setIsLoading(true);
 
     try {
+      // Generate salt and verifier on client side for true ZKP
+      const salt = srpClient.generateSalt();
+      const privateKey = srpClient.derivePrivateKey(salt, signupUsername, signupPassword);
+      const verifier = srpClient.deriveVerifier(privateKey);
+
       const response = await fetch('/api/zkp/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: signupEmail,
           username: signupUsername,
-          password: signupPassword
+          salt: salt,
+          verifier: verifier
         })
       });
 

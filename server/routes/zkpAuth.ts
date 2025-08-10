@@ -10,21 +10,15 @@ const router = Router();
  */
 router.post('/register', async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, salt, verifier } = req.body;
 
-    if (!email || !username || !password) {
+    if (!email || !username || !salt || !verifier) {
       return res.status(400).json({ 
-        message: 'Email, username, and password are required' 
+        message: 'Email, username, salt, and verifier are required' 
       });
     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ 
-        message: 'Password must be at least 8 characters long' 
-      });
-    }
-
-    const result = await ZKPAuthService.register(email, username, password);
+    const result = await ZKPAuthService.register(email, username, salt, verifier);
     res.json(result);
   } catch (error: any) {
     console.error('Registration error:', error);

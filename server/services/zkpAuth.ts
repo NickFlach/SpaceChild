@@ -28,7 +28,7 @@ export class ZKPAuthService {
   /**
    * Register a new user with zero-knowledge proof credentials
    */
-  static async register(email: string, username: string, password: string) {
+  static async register(email: string, username: string, salt: string, verifier: string) {
     try {
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -41,16 +41,7 @@ export class ZKPAuthService {
         throw new Error('Username already taken');
       }
 
-      // For SRP, we need to use client-side library to generate these
-      // In a real implementation, this would be done on the client
-      // Here we'll generate a simple salt and verifier
-      const srpClientModule = await import('secure-remote-password/client');
-      const srpClient = srpClientModule.default || srpClientModule;
-      const salt = srpClient.generateSalt();
-      const privateKey = srpClient.derivePrivateKey(salt, username, password);
-      const verifier = srpClient.deriveVerifier(privateKey);
-
-      // Create user with SRP credentials
+      // Create user with SRP credentials (salt and verifier from client)
       const userId = uuidv4();
       const user = await storage.createUser({
         id: userId,
@@ -135,7 +126,7 @@ export class ZKPAuthService {
 
       // Get user
       const user = await storage.getUser(session.userId!);
-      if (!user || !user.srpVerifier) {
+      if (!user || !user.srpVerifier || !user.srpSalt || !user.username) {
         throw new Error('Invalid credentials');
       }
 
