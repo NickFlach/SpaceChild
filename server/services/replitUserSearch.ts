@@ -68,29 +68,73 @@ class ReplitUserSearchService {
    */
   async searchUser(username: string, searcherUserId: string): Promise<ReplitSearchResult | null> {
     try {
-      // Check cache first
-      const cached = await this.getCachedResult(username, searcherUserId);
-      if (cached) {
-        return {
-          user: cached.userData as ReplitUser,
-          publicRepls: cached.publicRepls as ReplitRepl[],
-          deployments: cached.deployments as ReplitDeployment[],
-        };
-      }
-
-      // Fetch fresh data
-      const result = await this.fetchReplitUserData(username);
+      // Try multiple variations of the username
+      const variations = this.generateUsernameVariations(username);
       
-      if (result) {
-        // Cache the result
-        await this.cacheResult(username, searcherUserId, result);
+      for (const variation of variations) {
+        // Check cache first
+        const cached = await this.getCachedResult(variation, searcherUserId);
+        if (cached) {
+          return {
+            user: cached.userData as ReplitUser,
+            publicRepls: cached.publicRepls as ReplitRepl[],
+            deployments: cached.deployments as ReplitDeployment[],
+          };
+        }
+
+        // Fetch fresh data
+        const result = await this.fetchReplitUserData(variation);
+        if (result) {
+          // Cache the result using the original search term
+          await this.cacheResult(username, searcherUserId, result);
+          return result;
+        }
       }
 
-      return result;
+      return null;
     } catch (error) {
       console.error('Error searching Replit user:', error);
       return null;
     }
+  }
+
+  private generateUsernameVariations(username: string): string[] {
+    const variations = [username]; // Start with original
+    
+    // Add lowercase version
+    if (username !== username.toLowerCase()) {
+      variations.push(username.toLowerCase());
+    }
+    
+    // Add version without spaces
+    const noSpaces = username.replace(/\s+/g, '');
+    if (!variations.includes(noSpaces)) {
+      variations.push(noSpaces);
+    }
+    
+    // Add version with spaces replaced by hyphens
+    const withHyphens = username.replace(/\s+/g, '-');
+    if (!variations.includes(withHyphens)) {
+      variations.push(withHyphens);
+    }
+    
+    // Add version with spaces replaced by underscores
+    const withUnderscores = username.replace(/\s+/g, '_');
+    if (!variations.includes(withUnderscores)) {
+      variations.push(withUnderscores);
+    }
+    
+    // Add camelCase version if it contains spaces
+    if (username.includes(' ')) {
+      const camelCase = username.split(' ').map((word, index) => 
+        index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join('');
+      if (!variations.includes(camelCase)) {
+        variations.push(camelCase);
+      }
+    }
+    
+    return variations;
   }
 
   private async getCachedResult(username: string, searcherUserId: string) {
@@ -144,26 +188,30 @@ class ReplitUserSearchService {
       // Fetch user profile page
       const response = await fetch(userUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate',
+          'Accept-Encoding': 'gzip, deflate, br',
           'DNT': '1',
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Cache-Control': 'no-cache',
         }
       });
 
       if (!response.ok) {
+        console.log(`HTTP ${response.status} for user ${username}`);
         return null;
       }
 
       const html = await response.text();
       
-      // Parse user data from HTML (this would need to be adapted based on Replit's actual HTML structure)
+      // Parse user data from HTML and extract repls/deployments from the same page
       const user = this.parseUserFromHTML(html, username);
-      const publicRepls = await this.fetchUserRepls(username);
-      const deployments = await this.fetchUserDeployments(username);
+      const { publicRepls, deployments } = this.parseProjectsFromHTML(html, username);
 
       return {
         user,
@@ -174,6 +222,131 @@ class ReplitUserSearchService {
       console.error(`Error fetching data for user ${username}:`, error);
       return null;
     }
+  }
+
+  private parseProjectsFromHTML(html: string, username: string): { publicRepls: ReplitRepl[], deployments: ReplitDeployment[] } {
+    const publicRepls: ReplitRepl[] = [];
+    const deployments: ReplitDeployment[] = [];
+
+    try {
+      // Method 1: Try to extract from Next.js __NEXT_DATA__
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>(.+?)<\/script>/);
+      if (nextDataMatch) {
+        try {
+          const nextData = JSON.parse(nextDataMatch[1]);
+          console.log(`Found Next.js data for ${username}`);
+          
+          // Navigate through the Apollo state to find repls
+          const apolloState = nextData.props?.pageProps?.initialApolloState;
+          if (apolloState) {
+            Object.keys(apolloState).forEach(key => {
+              const item = apolloState[key];
+              
+              // Look for repls
+              if (key.includes('Repl:') && item) {
+                if (item.isPublic && item.slug && item.title) {
+                  publicRepls.push({
+                    id: item.id || key.split(':')[1],
+                    title: item.title,
+                    description: item.description || '',
+                    language: item.language?.displayName || item.language?.key || 'Unknown',
+                    url: `https://replit.com/@${username}/${item.slug}`,
+                    isPublic: item.isPublic,
+                    forkCount: item.publicForkCount || 0,
+                    likeCount: item.likeCount || 0,
+                    viewCount: item.runCount || 0,
+                    lastUpdated: item.timeUpdated || new Date().toISOString(),
+                    owner: username,
+                  });
+                }
+              }
+              
+              // Look for deployments
+              if (key.includes('Deployment:') && item && item.url) {
+                deployments.push({
+                  id: item.id || key.split(':')[1],
+                  title: item.repl?.title || 'Deployed App',
+                  description: item.repl?.description || '',
+                  url: item.url,
+                  status: item.state === 'SLEEPING' ? 'inactive' : (item.state === 'LIVE' ? 'active' : 'error'),
+                  lastDeployed: item.timeCreated || new Date().toISOString(),
+                  replId: item.repl?.id || '',
+                  owner: username,
+                });
+              }
+            });
+          }
+        } catch (jsonError) {
+          console.log(`Could not parse Next.js data for ${username}:`, jsonError instanceof Error ? jsonError.message : 'Unknown error');
+        }
+      }
+
+      // Method 2: Look for repl links in HTML if no Next.js data found
+      if (publicRepls.length === 0) {
+        console.log(`Trying HTML parsing for ${username}`);
+        const replLinkRegex = new RegExp(`/@${username}/([^"\\s?]+)`, 'gi');
+        let match;
+        const seenSlugs = new Set();
+        
+        while ((match = replLinkRegex.exec(html)) !== null) {
+          const slug = match[1];
+          if (!seenSlugs.has(slug) && !slug.includes('?') && slug.length > 0) {
+            seenSlugs.add(slug);
+            
+            // Try to find the title near this link
+            const linkContext = html.substring(Math.max(0, match.index - 200), match.index + 200);
+            const titleMatch = linkContext.match(/>([^<]+)</);
+            const title = titleMatch?.[1]?.trim() || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            publicRepls.push({
+              id: slug,
+              title: title,
+              description: '',
+              language: 'Unknown',
+              url: `https://replit.com/@${username}/${slug}`,
+              isPublic: true,
+              forkCount: 0,
+              likeCount: 0,
+              viewCount: 0,
+              lastUpdated: new Date().toISOString(),
+              owner: username,
+            });
+          }
+        }
+      }
+
+      // Method 3: Look for deployment URLs in HTML
+      const deploymentRegex = /https?:\/\/([^.\s]+)\.replit\.app/gi;
+      let deployMatch;
+      const seenUrls = new Set();
+      
+      while ((deployMatch = deploymentRegex.exec(html)) !== null) {
+        const [fullUrl, subdomain] = deployMatch;
+        if (!seenUrls.has(fullUrl)) {
+          seenUrls.add(fullUrl);
+          
+          deployments.push({
+            id: subdomain,
+            title: subdomain.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            description: 'Deployed application',
+            url: fullUrl,
+            status: 'active',
+            lastDeployed: new Date().toISOString(),
+            owner: username,
+          });
+        }
+      }
+
+      console.log(`Found ${publicRepls.length} repls and ${deployments.length} deployments for ${username}`);
+      
+    } catch (error) {
+      console.error(`Error parsing projects for ${username}:`, error);
+    }
+
+    return { 
+      publicRepls: publicRepls.slice(0, 10), 
+      deployments: deployments.slice(0, 5) 
+    };
   }
 
   private parseUserFromHTML(html: string, username: string): ReplitUser {
@@ -209,181 +382,9 @@ class ReplitUserSearchService {
     return user;
   }
 
-  private async fetchUserRepls(username: string): Promise<ReplitRepl[]> {
-    try {
-      // Fetch the user's public repls from their profile page
-      const userUrl = `https://replit.com/@${username}`;
-      const response = await fetch(userUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        }
-      });
 
-      if (!response.ok) {
-        return [];
-      }
 
-      const html = await response.text();
-      const repls: ReplitRepl[] = [];
 
-      // Look for repl data in script tags (Replit often uses __NEXT_DATA__ or similar)
-      const scriptMatches = html.match(/<script[^>]*>.*?window\.__NEXT_DATA__\s*=\s*({.+?})\s*<\/script>/);
-      if (scriptMatches) {
-        try {
-          const nextData = JSON.parse(scriptMatches[1]);
-          
-          // Extract repls from the Next.js data structure
-          if (nextData.props?.pageProps?.initialApolloState) {
-            const apolloState = nextData.props.pageProps.initialApolloState;
-            
-            // Look for repls in Apollo cache
-            Object.keys(apolloState).forEach(key => {
-              if (key.includes('Repl:') && apolloState[key]) {
-                const repl = apolloState[key];
-                if (repl.isPublic && repl.slug && repl.title) {
-                  repls.push({
-                    id: repl.id || key.split(':')[1],
-                    title: repl.title,
-                    description: repl.description || '',
-                    language: repl.language?.displayName || repl.language?.key || 'Unknown',
-                    url: `https://replit.com/@${username}/${repl.slug}`,
-                    isPublic: repl.isPublic,
-                    forkCount: repl.publicForkCount || 0,
-                    likeCount: repl.likeCount || 0,
-                    viewCount: repl.runCount || 0,
-                    lastUpdated: repl.timeUpdated || new Date().toISOString(),
-                    owner: username,
-                  });
-                }
-              }
-            });
-          }
-        } catch (jsonError) {
-          console.warn('Could not parse Next.js data for repls');
-        }
-      }
-
-      // Fallback: Try to extract repl links from HTML
-      if (repls.length === 0) {
-        const replLinkRegex = /href="\/[@]([^/]+)\/([^"?]+)"/g;
-        let match;
-        const seenSlugs = new Set();
-        
-        while ((match = replLinkRegex.exec(html)) !== null) {
-          const [, owner, slug] = match;
-          if (owner === username && !seenSlugs.has(slug) && !slug.includes('?')) {
-            seenSlugs.add(slug);
-            
-            // Try to extract title from nearby HTML
-            const titleRegex = new RegExp(`${slug}[^>]*>([^<]+)`, 'i');
-            const titleMatch = html.match(titleRegex);
-            
-            repls.push({
-              id: slug,
-              title: titleMatch?.[1]?.trim() || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-              description: '',
-              language: 'Unknown',
-              url: `https://replit.com/@${username}/${slug}`,
-              isPublic: true,
-              forkCount: 0,
-              likeCount: 0,
-              viewCount: 0,
-              lastUpdated: new Date().toISOString(),
-              owner: username,
-            });
-          }
-        }
-      }
-
-      return repls.slice(0, 10); // Limit to 10 repls for performance
-    } catch (error) {
-      console.error(`Error fetching repls for ${username}:`, error);
-      return [];
-    }
-  }
-
-  private async fetchUserDeployments(username: string): Promise<ReplitDeployment[]> {
-    try {
-      // Try to find deployments by checking common deployment patterns
-      const userUrl = `https://replit.com/@${username}`;
-      const response = await fetch(userUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        }
-      });
-
-      if (!response.ok) {
-        return [];
-      }
-
-      const html = await response.text();
-      const deployments: ReplitDeployment[] = [];
-
-      // Look for deployment data in Next.js data
-      const scriptMatches = html.match(/<script[^>]*>.*?window\.__NEXT_DATA__\s*=\s*({.+?})\s*<\/script>/);
-      if (scriptMatches) {
-        try {
-          const nextData = JSON.parse(scriptMatches[1]);
-          
-          if (nextData.props?.pageProps?.initialApolloState) {
-            const apolloState = nextData.props.pageProps.initialApolloState;
-            
-            // Look for deployments in Apollo cache
-            Object.keys(apolloState).forEach(key => {
-              if (key.includes('Deployment:') && apolloState[key]) {
-                const deployment = apolloState[key];
-                if (deployment.url && deployment.repl) {
-                  deployments.push({
-                    id: deployment.id || key.split(':')[1],
-                    title: deployment.repl?.title || 'Deployed App',
-                    description: deployment.repl?.description || '',
-                    url: deployment.url,
-                    status: deployment.state === 'SLEEPING' ? 'inactive' : (deployment.state === 'LIVE' ? 'active' : 'error'),
-                    lastDeployed: deployment.timeCreated || new Date().toISOString(),
-                    replId: deployment.repl?.id || '',
-                    owner: username,
-                  });
-                }
-              }
-            });
-          }
-        } catch (jsonError) {
-          console.warn('Could not parse Next.js data for deployments');
-        }
-      }
-
-      // Fallback: Look for .replit.app domains in the HTML
-      if (deployments.length === 0) {
-        const deploymentUrlRegex = /https?:\/\/([^.\s]+)\.replit\.app/g;
-        let match;
-        const seenUrls = new Set();
-        
-        while ((match = deploymentUrlRegex.exec(html)) !== null) {
-          const [fullUrl, subdomain] = match;
-          if (!seenUrls.has(fullUrl)) {
-            seenUrls.add(fullUrl);
-            
-            deployments.push({
-              id: subdomain,
-              title: subdomain.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-              description: 'Deployed application',
-              url: fullUrl,
-              status: 'active',
-              lastDeployed: new Date().toISOString(),
-              owner: username,
-            });
-          }
-        }
-      }
-
-      return deployments.slice(0, 5); // Limit to 5 deployments for performance
-    } catch (error) {
-      console.error(`Error fetching deployments for ${username}:`, error);
-      return [];
-    }
-  }
 
   /**
    * Get recent searches by a user
