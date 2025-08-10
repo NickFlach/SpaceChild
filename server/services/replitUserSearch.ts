@@ -235,11 +235,19 @@ class ReplitUserSearchService {
         try {
           const nextData = JSON.parse(nextDataMatch[1]);
           console.log(`Found Next.js data for ${username}`);
+          console.log(`Next data structure:`, {
+            hasProps: !!nextData.props,
+            hasPageProps: !!nextData.props?.pageProps,
+            hasApolloState: !!nextData.props?.pageProps?.apolloState,
+            hasInitialApolloState: !!nextData.props?.pageProps?.initialApolloState,
+            pagePropsKeys: nextData.props?.pageProps ? Object.keys(nextData.props.pageProps) : []
+          });
           
           // Handle Replit's GraphQL Apollo state structure
-          const apolloState = nextData.props?.pageProps?.apolloState;
+          let apolloState = nextData.props?.pageProps?.apolloState || nextData.props?.pageProps?.initialApolloState;
           if (apolloState) {
-            console.log(`Processing Apollo state with ${Object.keys(apolloState).length} keys`);
+            const keys = Object.keys(apolloState);
+            console.log(`Processing Apollo state with ${keys.length} keys:`, keys.slice(0, 20));
             
             // Find the user object
             const userKey = Object.keys(apolloState).find(key => key.startsWith('User:'));
