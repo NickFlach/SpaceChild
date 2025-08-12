@@ -595,19 +595,19 @@ export default function DivModLab() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
             Cryptographic Innovation Toolkit
           </h2>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
             Production-ready cryptographic utilities with side-channel resistance
           </p>
         </div>
-        <Badge variant="outline" className="px-3 py-1">
-          <Shield className="w-4 h-4 mr-2" />
+        <Badge variant="outline" className="px-2 py-1 text-xs sm:text-sm self-start sm:self-auto">
+          <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           Security Suite v1.0
         </Badge>
       </div>
@@ -621,30 +621,34 @@ export default function DivModLab() {
       )}
 
       <Tabs defaultValue="keys" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="keys">
-            <Key className="w-4 h-4 mr-2" />
-            Keys
+        <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full gap-1">
+          <TabsTrigger value="keys" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Key className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Keys</span>
+            <span className="sm:hidden">Key</span>
           </TabsTrigger>
-          <TabsTrigger value="hash">
-            <Hash className="w-4 h-4 mr-2" />
+          <TabsTrigger value="hash" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Hash className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             Hash
           </TabsTrigger>
-          <TabsTrigger value="encrypt">
-            <Lock className="w-4 h-4 mr-2" />
-            Encrypt
+          <TabsTrigger value="encrypt" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Encrypt</span>
+            <span className="sm:hidden">Lock</span>
           </TabsTrigger>
-          <TabsTrigger value="sign">
-            <FileSignature className="w-4 h-4 mr-2" />
+          <TabsTrigger value="sign" className="text-xs sm:text-sm px-1 sm:px-2">
+            <FileSignature className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             Sign
           </TabsTrigger>
-          <TabsTrigger value="random">
-            <Dice5 className="w-4 h-4 mr-2" />
-            Random
+          <TabsTrigger value="random" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Dice5 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Random</span>
+            <span className="sm:hidden">Rand</span>
           </TabsTrigger>
-          <TabsTrigger value="divmod">
-            <Cpu className="w-4 h-4 mr-2" />
-            DivMod
+          <TabsTrigger value="divmod" className="text-xs sm:text-sm px-1 sm:px-2">
+            <Cpu className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">DivMod</span>
+            <span className="sm:hidden">Div</span>
           </TabsTrigger>
         </TabsList>
 
@@ -658,45 +662,47 @@ export default function DivModLab() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={() => handleGenerateKey('symmetric', 'AES-256')}
                   disabled={isComputing}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-10 sm:h-11"
                   data-testid="button-gen-symmetric"
                 >
-                  <Key className="w-4 h-4 mr-2" />
-                  Generate AES-256 Key
+                  <Key className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Generate AES-256 Key</span>
+                  <span className="sm:hidden">AES-256 Key</span>
                 </Button>
                 <Button 
                   onClick={() => handleGenerateKey('asymmetric', 'RSA-2048')}
                   disabled={isComputing}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-10 sm:h-11"
                   variant="secondary"
                   data-testid="button-gen-asymmetric"
                 >
-                  <Key className="w-4 h-4 mr-2" />
-                  Generate RSA-2048 Keypair
+                  <Key className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Generate RSA-2048 Keypair</span>
+                  <span className="sm:hidden">RSA-2048 Keys</span>
                 </Button>
               </div>
 
               {generatedKeys.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Generated Keys</h3>
-                  <ScrollArea className="h-[300px] rounded-md border">
-                    <div className="p-4 space-y-3">
+                  <h3 className="text-xs sm:text-sm font-semibold">Generated Keys</h3>
+                  <ScrollArea className="h-[200px] sm:h-[300px] rounded-md border">
+                    <div className="p-2 sm:p-4 space-y-3">
                       {generatedKeys.map((key) => (
                         <Card key={key.id}>
-                          <CardContent className="pt-4">
-                            <div className="flex items-start justify-between">
+                          <CardContent className="pt-3 sm:pt-4 px-2 sm:px-4">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                               <div className="space-y-1 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant={key.type === 'symmetric' ? 'default' : 'secondary'}>
+                                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                  <Badge variant={key.type === 'symmetric' ? 'default' : 'secondary'} className="text-xs">
                                     {key.algorithm}
                                   </Badge>
-                                  <Badge variant="outline">{key.strength} bits</Badge>
+                                  <Badge variant="outline" className="text-xs">{key.strength} bits</Badge>
                                 </div>
-                                <p className="text-xs text-muted-foreground">ID: {key.id}</p>
+                                <p className="text-xs text-muted-foreground break-all">ID: {key.id}</p>
                                 <p className="text-xs text-muted-foreground">
                                   Created: {new Date(key.createdAt).toLocaleString()}
                                 </p>
@@ -716,10 +722,11 @@ export default function DivModLab() {
                                   </div>
                                 )}
                               </div>
-                              <div className="flex gap-1">
+                              <div className="flex gap-1 self-end sm:self-auto">
                                 <Button 
                                   size="sm" 
                                   variant="ghost"
+                                  className="h-7 w-7 p-0"
                                   onClick={() => copyToClipboard(JSON.stringify(key))}
                                 >
                                   <Copy className="h-3 w-3" />
@@ -727,6 +734,7 @@ export default function DivModLab() {
                                 <Button 
                                   size="sm" 
                                   variant="ghost"
+                                  className="h-7 w-7 p-0"
                                   onClick={() => exportKey(key)}
                                 >
                                   <Download className="h-3 w-3" />
@@ -755,13 +763,14 @@ export default function DivModLab() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password to Hash</Label>
+                <Label htmlFor="password" className="text-xs sm:text-sm">Password to Hash</Label>
                 <Input
                   id="password"
                   type="password"
                   value={passwordToHash}
                   onChange={(e) => setPasswordToHash(e.target.value)}
                   placeholder="Enter password"
+                  className="text-sm h-9 sm:h-10"
                   data-testid="input-password"
                 />
               </div>
@@ -769,10 +778,10 @@ export default function DivModLab() {
               <Button 
                 onClick={handleHashPassword}
                 disabled={isComputing || !passwordToHash}
-                className="w-full"
+                className="w-full text-xs sm:text-sm h-10 sm:h-11"
                 data-testid="button-hash"
               >
-                <Hash className="w-4 h-4 mr-2" />
+                <Hash className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Generate Secure Hash
               </Button>
 
@@ -829,9 +838,9 @@ export default function DivModLab() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="key-select">Select Encryption Key</Label>
+                <Label htmlFor="key-select" className="text-xs sm:text-sm">Select Encryption Key</Label>
                 <Select value={selectedKeyId} onValueChange={setSelectedKeyId}>
-                  <SelectTrigger id="key-select">
+                  <SelectTrigger id="key-select" className="text-xs sm:text-sm h-9 sm:h-10">
                     <SelectValue placeholder="Choose a symmetric key" />
                   </SelectTrigger>
                   <SelectContent>
@@ -847,35 +856,36 @@ export default function DivModLab() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="plaintext">Text to Encrypt</Label>
+                <Label htmlFor="plaintext" className="text-xs sm:text-sm">Text to Encrypt</Label>
                 <Textarea
                   id="plaintext"
                   value={encryptionInput}
                   onChange={(e) => setEncryptionInput(e.target.value)}
                   placeholder="Enter text to encrypt"
-                  rows={4}
+                  rows={3}
+                  className="text-sm min-h-[80px] sm:min-h-[100px]"
                   data-testid="textarea-plaintext"
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button 
                   onClick={handleEncrypt}
                   disabled={isComputing || !encryptionInput || !selectedKeyId}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-10 sm:h-11"
                   data-testid="button-encrypt"
                 >
-                  <Lock className="w-4 h-4 mr-2" />
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Encrypt
                 </Button>
                 <Button 
                   onClick={handleDecrypt}
                   disabled={isComputing || !encryptedData || !selectedKeyId}
                   variant="secondary"
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-10 sm:h-11"
                   data-testid="button-decrypt"
                 >
-                  <Lock className="w-4 h-4 mr-2" />
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Decrypt
                 </Button>
               </div>
@@ -990,11 +1000,12 @@ export default function DivModLab() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1 sm:gap-2">
                 <Button 
                   onClick={() => handleGenerateRandom(16)}
                   disabled={isComputing}
                   variant="outline"
+                  className="text-xs sm:text-sm h-9 sm:h-10"
                   data-testid="button-random-16"
                 >
                   16 bytes
@@ -1003,6 +1014,7 @@ export default function DivModLab() {
                   onClick={() => handleGenerateRandom(32)}
                   disabled={isComputing}
                   variant="outline"
+                  className="text-xs sm:text-sm h-9 sm:h-10"
                   data-testid="button-random-32"
                 >
                   32 bytes
@@ -1011,6 +1023,7 @@ export default function DivModLab() {
                   onClick={() => handleGenerateRandom(64)}
                   disabled={isComputing}
                   variant="outline"
+                  className="text-xs sm:text-sm h-9 sm:h-10"
                   data-testid="button-random-64"
                 >
                   64 bytes
@@ -1057,26 +1070,28 @@ export default function DivModLab() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dividend">Dividend</Label>
+                  <Label htmlFor="dividend" className="text-xs sm:text-sm">Dividend</Label>
                   <Input
                     id="dividend"
                     type="number"
                     value={dividend}
                     onChange={(e) => setDividend(e.target.value)}
                     placeholder="Enter dividend"
+                    className="text-sm h-9 sm:h-10"
                     data-testid="input-dividend"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="divisor">Divisor</Label>
+                  <Label htmlFor="divisor" className="text-xs sm:text-sm">Divisor</Label>
                   <Input
                     id="divisor"
                     type="number"
                     value={divisor}
                     onChange={(e) => setDivisor(e.target.value)}
                     placeholder="Enter divisor"
+                    className="text-sm h-9 sm:h-10"
                     data-testid="input-divisor"
                   />
                 </div>
@@ -1085,39 +1100,39 @@ export default function DivModLab() {
               <Button 
                 onClick={handleCompute} 
                 disabled={isComputing}
-                className="w-full"
+                className="w-full text-xs sm:text-sm h-10 sm:h-11"
                 data-testid="button-compute"
               >
                 {isComputing ? (
                   <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
                     Computing...
                   </>
                 ) : (
                   <>
-                    <Cpu className="w-4 h-4 mr-2" />
+                    <Cpu className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Calculate Division
                   </>
                 )}
               </Button>
 
               {result && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
                     <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-2xl font-bold text-cyan-400">
+                      <CardContent className="pt-4 sm:pt-6 px-3 sm:px-4">
+                        <div className="text-lg sm:text-2xl font-bold text-cyan-400">
                           {result.quotient.toString()}
                         </div>
-                        <p className="text-sm text-muted-foreground">Quotient</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Quotient</p>
                       </CardContent>
                     </Card>
                     <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-2xl font-bold text-blue-400">
+                      <CardContent className="pt-4 sm:pt-6 px-3 sm:px-4">
+                        <div className="text-lg sm:text-2xl font-bold text-blue-400">
                           {result.remainder.toString()}
                         </div>
-                        <p className="text-sm text-muted-foreground">Remainder</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Remainder</p>
                       </CardContent>
                     </Card>
                   </div>

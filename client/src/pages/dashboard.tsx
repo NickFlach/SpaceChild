@@ -292,21 +292,54 @@ export default function Dashboard() {
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsList className="w-full overflow-x-auto flex-shrink-0">
-                  <div className="flex min-w-full px-1">
-                    <TabsTrigger value="chat" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Chat</TabsTrigger>
-                    <TabsTrigger value="consciousness" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">AI Mind</TabsTrigger>
-                    <TabsTrigger value="complexity" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Complex</TabsTrigger>
-                    <TabsTrigger value="memory" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Memory</TabsTrigger>
-                    <TabsTrigger value="templates" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Templates</TabsTrigger>
-                    <TabsTrigger value="analysis" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Analysis</TabsTrigger>
-                    <TabsTrigger value="agents" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Agents</TabsTrigger>
-                    <TabsTrigger value="crypto" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Crypto</TabsTrigger>
-                    <TabsTrigger value="replit-search" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Replit Search</TabsTrigger>
-                    <TabsTrigger value="terminal" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Terminal</TabsTrigger>
-                    <TabsTrigger value="deployment" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Deploy</TabsTrigger>
-                  </div>
-                </TabsList>
+                <div className="w-full overflow-x-auto flex-shrink-0 bg-background border-b">
+                  <TabsList className="w-max flex h-12 sm:h-10 bg-transparent">
+                    <TabsTrigger value="chat" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Chat</span>
+                      <span className="sm:hidden">💬</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="consciousness" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">AI Mind</span>
+                      <span className="sm:hidden">🧠</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="complexity" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Complex</span>
+                      <span className="sm:hidden">⚙️</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="memory" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Memory</span>
+                      <span className="sm:hidden">💾</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="templates" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Templates</span>
+                      <span className="sm:hidden">📋</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="analysis" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Analysis</span>
+                      <span className="sm:hidden">📊</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="agents" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Agents</span>
+                      <span className="sm:hidden">🤖</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="crypto" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Crypto</span>
+                      <span className="sm:hidden">🔐</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="replit-search" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Replit Search</span>
+                      <span className="sm:hidden">🔍</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="terminal" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Terminal</span>
+                      <span className="sm:hidden">⌨️</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="deployment" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Deploy</span>
+                      <span className="sm:hidden">🚀</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 
                 <TabsContent value="chat" className="flex-1 mt-0 overflow-hidden">
                   <ChatInterface project={currentProject || null} />
