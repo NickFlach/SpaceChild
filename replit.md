@@ -64,6 +64,17 @@ Preferred communication style: Simple, everyday language.
 - **Redis**: Planned for advanced caching and session management
 - **Custom AI Services**: SpaceAgent and MindSphere integration (in development)
 
+## Recent Changes (February 2025)
+
+### Post-Quantum Cryptography Lab Added (Feb 3, 2025)
+- **Quantum-Resistant Algorithms**: Implemented CRYSTALS-Kyber (lattice-based) and SPHINCS+ (hash-based) key generation
+- **RSA Breaker Simulator**: Demonstrates how quantum computers would instantly break RSA encryption using Shor's Algorithm
+- **Quantum Factorization**: Simulates quantum prime factorization that would solve any RSA-sized number instantly
+- **Quantum Key Distribution**: BB84 protocol simulation for perfectly secure key exchange using quantum entanglement
+- **Revolutionary Tools**: Features that take advantage of a post-prime factorization world
+- **Mobile Optimized**: Fully responsive design with touch-friendly interfaces for all quantum features
+- **Integration**: Added as new "Quantum" tab in the dashboard alongside existing crypto tools
+
 ## Recent Changes (January 2025)
 
 ### Zero-Knowledge Proof Authentication System (Completed Jan 30, 2025)

@@ -18,6 +18,7 @@ import DeploymentPanel from "@/components/Deployment/DeploymentPanel";
 import TerminalComponent from "@/components/ui/terminal";
 import ReplitUserSearch from "@/components/ReplitSearch/ReplitUserSearch";
 import DivModLab from "@/components/CryptoTools/DivModLab";
+import PostQuantumLab from "@/components/CryptoTools/PostQuantumLab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -326,6 +327,10 @@ export default function Dashboard() {
                       <span className="hidden sm:inline">Crypto</span>
                       <span className="sm:hidden">🔐</span>
                     </TabsTrigger>
+                    <TabsTrigger value="quantum" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
+                      <span className="hidden sm:inline">Quantum</span>
+                      <span className="sm:hidden">⚛️</span>
+                    </TabsTrigger>
                     <TabsTrigger value="replit-search" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
                       <span className="hidden sm:inline">Replit Search</span>
                       <span className="sm:hidden">🔍</span>
@@ -390,6 +395,10 @@ export default function Dashboard() {
 
                 <TabsContent value="crypto" className="flex-1 mt-0 overflow-auto p-2">
                   <DivModLab />
+                </TabsContent>
+
+                <TabsContent value="quantum" className="flex-1 mt-0 overflow-auto p-2">
+                  <PostQuantumLab />
                 </TabsContent>
 
                 <TabsContent value="replit-search" className="flex-1 mt-0 overflow-auto p-2">
