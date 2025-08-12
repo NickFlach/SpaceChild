@@ -17,6 +17,7 @@ import MultiAgentPanel from "@/components/MultiAgent/MultiAgentPanel";
 import DeploymentPanel from "@/components/Deployment/DeploymentPanel";
 import TerminalComponent from "@/components/ui/terminal";
 import ReplitUserSearch from "@/components/ReplitSearch/ReplitUserSearch";
+import DivModLab from "@/components/CryptoTools/DivModLab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -300,6 +301,7 @@ export default function Dashboard() {
                     <TabsTrigger value="templates" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Templates</TabsTrigger>
                     <TabsTrigger value="analysis" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Analysis</TabsTrigger>
                     <TabsTrigger value="agents" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Agents</TabsTrigger>
+                    <TabsTrigger value="crypto" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Crypto</TabsTrigger>
                     <TabsTrigger value="replit-search" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Replit Search</TabsTrigger>
                     <TabsTrigger value="terminal" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Terminal</TabsTrigger>
                     <TabsTrigger value="deployment" className="whitespace-nowrap px-2 sm:px-3 text-xs sm:text-sm">Deploy</TabsTrigger>
@@ -351,6 +353,10 @@ export default function Dashboard() {
                       project={currentProject}
                     />
                   )}
+                </TabsContent>
+
+                <TabsContent value="crypto" className="flex-1 mt-0 overflow-auto p-2">
+                  <DivModLab />
                 </TabsContent>
 
                 <TabsContent value="replit-search" className="flex-1 mt-0 overflow-auto p-2">

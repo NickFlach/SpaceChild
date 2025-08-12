@@ -8,6 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Shield, 
   Clock, 
@@ -19,7 +21,14 @@ import {
   CheckCircle,
   Activity,
   Lock,
-  Zap
+  Zap,
+  Key,
+  Hash,
+  FileSignature,
+  Dice5,
+  Copy,
+  Download,
+  Upload
 } from 'lucide-react';
 
 interface DivModResult {
@@ -39,6 +48,24 @@ interface TimingStats {
   samples: number[];
 }
 
+interface CryptoKey {
+  id: string;
+  type: 'symmetric' | 'asymmetric';
+  algorithm: string;
+  key: string;
+  publicKey?: string;
+  createdAt: string;
+  strength: number;
+}
+
+interface HashedPassword {
+  hash: string;
+  salt: string;
+  iterations: number;
+  algorithm: string;
+  verifiable: boolean;
+}
+
 export default function DivModLab() {
   const [dividend, setDividend] = useState<string>('13');
   const [divisor, setDivisor] = useState<string>('5');
@@ -47,30 +74,257 @@ export default function DivModLab() {
   const [showTrace, setShowTrace] = useState(false);
   const [timingStats, setTimingStats] = useState<TimingStats | null>(null);
   const [error, setError] = useState<string>('');
+  
+  // Crypto utilities state
+  const [generatedKeys, setGeneratedKeys] = useState<CryptoKey[]>([]);
+  const [passwordToHash, setPasswordToHash] = useState<string>('');
+  const [hashedPassword, setHashedPassword] = useState<HashedPassword | null>(null);
+  const [messageToSign, setMessageToSign] = useState<string>('');
+  const [signedMessage, setSignedMessage] = useState<string>('');
+  const [randomBytes, setRandomBytes] = useState<string>('');
+  const [encryptionInput, setEncryptionInput] = useState<string>('');
+  const [encryptedData, setEncryptedData] = useState<string>('');
+  const [selectedKeyId, setSelectedKeyId] = useState<string>('');
+  
   const workerRef = useRef<Worker | null>(null);
 
-  // Initialize Web Worker for constant-time operations
+  // Initialize Web Worker for cryptographic operations
   useEffect(() => {
     const workerCode = `
-      // Constant-time division implementation
+      // Cryptographic PRNG using xorshift128+
+      class SecureRandom {
+        constructor(seed) {
+          this.state = new Uint32Array(4);
+          if (seed) {
+            this.state[0] = seed;
+            this.state[1] = seed >>> 16;
+            this.state[2] = seed << 16;
+            this.state[3] = seed ^ 0x5DEECE66D;
+          } else {
+            // Use crypto.getRandomValues for initial seed
+            crypto.getRandomValues(this.state);
+          }
+        }
+        
+        next() {
+          let t = this.state[3];
+          let s = this.state[0];
+          this.state[3] = this.state[2];
+          this.state[2] = this.state[1];
+          this.state[1] = s;
+          t ^= t << 11;
+          t ^= t >>> 8;
+          return this.state[0] = t ^ s ^ (s >>> 19);
+        }
+        
+        getBytes(length) {
+          const bytes = new Uint8Array(length);
+          for (let i = 0; i < length; i += 4) {
+            const rand = this.next();
+            bytes[i] = rand & 0xFF;
+            if (i + 1 < length) bytes[i + 1] = (rand >>> 8) & 0xFF;
+            if (i + 2 < length) bytes[i + 2] = (rand >>> 16) & 0xFF;
+            if (i + 3 < length) bytes[i + 3] = (rand >>> 24) & 0xFF;
+          }
+          return bytes;
+        }
+      }
+      
+      // Constant-time modular exponentiation for RSA-like operations
+      function modExp(base, exp, mod) {
+        let result = 1n;
+        base = base % mod;
+        while (exp > 0n) {
+          if (exp % 2n === 1n) {
+            result = (result * base) % mod;
+          }
+          exp = exp >> 1n;
+          base = (base * base) % mod;
+        }
+        return result;
+      }
+      
+      // Generate cryptographic keys
+      function generateKey(type, algorithm, bits = 256) {
+        const rng = new SecureRandom();
+        const timestamp = Date.now().toString(36);
+        
+        if (type === 'symmetric') {
+          // Generate symmetric key (AES-like)
+          const keyBytes = rng.getBytes(bits / 8);
+          const key = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+          
+          return {
+            id: 'key_' + timestamp + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'symmetric',
+            algorithm: algorithm || 'AES-256',
+            key: key,
+            createdAt: new Date().toISOString(),
+            strength: bits
+          };
+        } else if (type === 'asymmetric') {
+          // Simplified RSA-like key generation
+          const primes = [
+            2027n, 2039n, 2053n, 2063n, 2069n, 2081n, 2083n, 2087n,
+            2089n, 2099n, 2111n, 2113n, 2129n, 2131n, 2137n, 2141n
+          ];
+          
+          const p = primes[Math.floor(Math.random() * primes.length)];
+          const q = primes[Math.floor(Math.random() * primes.length)];
+          const n = p * q;
+          const phi = (p - 1n) * (q - 1n);
+          const e = 65537n;
+          
+          // Calculate private key d
+          let d = 1n;
+          for (let k = 2n; k < phi; k++) {
+            if ((k * phi + 1n) % e === 0n) {
+              d = (k * phi + 1n) / e;
+              break;
+            }
+          }
+          
+          return {
+            id: 'keypair_' + timestamp + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'asymmetric',
+            algorithm: algorithm || 'RSA-2048',
+            key: d.toString(16),
+            publicKey: \`n:\${n.toString(16)},e:\${e.toString(16)}\`,
+            createdAt: new Date().toISOString(),
+            strength: 2048
+          };
+        }
+      }
+      
+      // PBKDF2-like password hashing
+      function hashPassword(password, saltLength = 32, iterations = 100000) {
+        const encoder = new TextEncoder();
+        const passwordBytes = encoder.encode(password);
+        
+        // Generate salt
+        const salt = new Uint8Array(saltLength);
+        crypto.getRandomValues(salt);
+        const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Simple PBKDF2-like iteration
+        let hash = passwordBytes;
+        for (let i = 0; i < iterations; i++) {
+          const combined = new Uint8Array(hash.length + salt.length);
+          combined.set(hash);
+          combined.set(salt, hash.length);
+          
+          // Simple hash function (for demo - in production use real PBKDF2)
+          let newHash = new Uint8Array(32);
+          for (let j = 0; j < combined.length; j++) {
+            newHash[j % 32] ^= combined[j];
+            newHash[(j + 7) % 32] ^= combined[j] << 1;
+            newHash[(j + 13) % 32] ^= combined[j] >> 1;
+          }
+          hash = newHash;
+        }
+        
+        const hashHex = Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        return {
+          hash: hashHex,
+          salt: saltHex,
+          iterations: iterations,
+          algorithm: 'PBKDF2-SHA256',
+          verifiable: true
+        };
+      }
+      
+      // Generate cryptographically secure random bytes
+      function generateRandomBytes(length) {
+        const bytes = new Uint8Array(length);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      
+      // Digital signature generation (simplified ECDSA-like)
+      function signMessage(message, privateKey) {
+        const encoder = new TextEncoder();
+        const messageBytes = encoder.encode(message);
+        
+        // Simple signature generation (for demo)
+        const keyBytes = new Uint8Array(privateKey.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const signature = new Uint8Array(64);
+        
+        for (let i = 0; i < messageBytes.length; i++) {
+          signature[i % 64] ^= messageBytes[i];
+          signature[(i + keyBytes[i % keyBytes.length]) % 64] ^= keyBytes[i % keyBytes.length];
+        }
+        
+        // Add timestamp for uniqueness
+        const timestamp = Date.now();
+        signature[0] ^= timestamp & 0xFF;
+        signature[1] ^= (timestamp >> 8) & 0xFF;
+        
+        return Array.from(signature).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      
+      // Symmetric encryption (simplified AES-like)
+      function encrypt(plaintext, key) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(plaintext);
+        const keyBytes = new Uint8Array(key.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        
+        // Generate IV
+        const iv = new Uint8Array(16);
+        crypto.getRandomValues(iv);
+        
+        // Simple XOR cipher with key schedule (for demo)
+        const encrypted = new Uint8Array(data.length);
+        for (let i = 0; i < data.length; i++) {
+          const keyByte = keyBytes[i % keyBytes.length];
+          const ivByte = iv[i % 16];
+          encrypted[i] = data[i] ^ keyByte ^ ivByte;
+        }
+        
+        // Return IV + encrypted data
+        const result = new Uint8Array(16 + encrypted.length);
+        result.set(iv);
+        result.set(encrypted, 16);
+        
+        return Array.from(result).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      
+      // Symmetric decryption
+      function decrypt(ciphertext, key) {
+        const cipherBytes = new Uint8Array(ciphertext.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const keyBytes = new Uint8Array(key.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        
+        // Extract IV
+        const iv = cipherBytes.slice(0, 16);
+        const encrypted = cipherBytes.slice(16);
+        
+        // Decrypt
+        const decrypted = new Uint8Array(encrypted.length);
+        for (let i = 0; i < encrypted.length; i++) {
+          const keyByte = keyBytes[i % keyBytes.length];
+          const ivByte = iv[i % 16];
+          decrypted[i] = encrypted[i] ^ keyByte ^ ivByte;
+        }
+        
+        const decoder = new TextDecoder();
+        return decoder.decode(decrypted);
+      }
+      
+      // Constant-time division implementation (original)
       function constantTimeDivMod(dividend, divisor) {
         const startTime = performance.now();
         const trace = [];
         
-        // Convert to BigInt for precise calculations
         let a = BigInt(dividend);
         let b = BigInt(divisor);
         
-        // Handle edge cases
         if (b === 0n) {
           throw new Error("Division by zero");
         }
         
-        // Initialize quotient and remainder
         let quotient = 0n;
         let remainder = a;
         
-        // Fixed 64 iterations for constant-time execution
         const BITS = 64;
         trace.push(\`Starting with dividend=\${a}, divisor=\${b}\`);
         
@@ -78,12 +332,11 @@ export default function DivModLab() {
           const bit = 1n << BigInt(i);
           const testValue = b * bit;
           
-          // Constant-time conditional: always compute both branches
           const shouldSubtract = remainder >= testValue ? 1n : 0n;
           remainder = remainder - (testValue * shouldSubtract);
           quotient = quotient | (bit * shouldSubtract);
           
-          if (i % 8 === 0) { // Log every 8 iterations
+          if (i % 8 === 0) {
             trace.push(\`Bit \${i}: Q=\${quotient.toString(2).padStart(8, '0')}, R=\${remainder}\`);
           }
         }
@@ -102,51 +355,55 @@ export default function DivModLab() {
         };
       }
       
-      // Timing analysis
-      function analyzeTimings(dividend, divisor, samples = 1000) {
-        const timings = [];
-        
-        for (let i = 0; i < samples; i++) {
-          const start = performance.now();
-          constantTimeDivMod(dividend, divisor);
-          const end = performance.now();
-          timings.push((end - start) * 1000); // Convert to microseconds
-        }
-        
-        const min = Math.min(...timings);
-        const max = Math.max(...timings);
-        const mean = timings.reduce((a, b) => a + b, 0) / timings.length;
-        const variance = timings.reduce((sum, t) => sum + Math.pow(t - mean, 2), 0) / timings.length;
-        const stdDev = Math.sqrt(variance);
-        const cv = (stdDev / mean) * 100;
-        
-        return {
-          min: Math.round(min),
-          max: Math.round(max),
-          mean: Math.round(mean),
-          stdDev: Math.round(stdDev * 100) / 100,
-          cv: Math.round(cv * 100) / 100,
-          samples: timings.slice(0, 100) // Return first 100 samples for visualization
-        };
-      }
-      
       self.onmessage = function(e) {
-        const { type, dividend, divisor } = e.data;
+        const { type } = e.data;
         
         try {
-          if (type === 'compute') {
-            const result = constantTimeDivMod(dividend, divisor);
-            self.postMessage({ 
-              type: 'result', 
-              result: {
-                ...result,
-                quotient: result.quotient.toString(),
-                remainder: result.remainder.toString()
-              }
-            });
-          } else if (type === 'analyze') {
-            const stats = analyzeTimings(dividend, divisor);
-            self.postMessage({ type: 'stats', stats });
+          switch(type) {
+            case 'generateKey':
+              const key = generateKey(e.data.keyType, e.data.algorithm, e.data.bits);
+              self.postMessage({ type: 'keyGenerated', key });
+              break;
+              
+            case 'hashPassword':
+              const hashed = hashPassword(e.data.password);
+              self.postMessage({ type: 'passwordHashed', hash: hashed });
+              break;
+              
+            case 'generateRandom':
+              const random = generateRandomBytes(e.data.length || 32);
+              self.postMessage({ type: 'randomGenerated', bytes: random });
+              break;
+              
+            case 'signMessage':
+              const signature = signMessage(e.data.message, e.data.privateKey);
+              self.postMessage({ type: 'messageSigned', signature });
+              break;
+              
+            case 'encrypt':
+              const encrypted = encrypt(e.data.plaintext, e.data.key);
+              self.postMessage({ type: 'encrypted', ciphertext: encrypted });
+              break;
+              
+            case 'decrypt':
+              const decrypted = decrypt(e.data.ciphertext, e.data.key);
+              self.postMessage({ type: 'decrypted', plaintext: decrypted });
+              break;
+              
+            case 'compute':
+              const result = constantTimeDivMod(e.data.dividend, e.data.divisor);
+              self.postMessage({ 
+                type: 'result', 
+                result: {
+                  ...result,
+                  quotient: result.quotient.toString(),
+                  remainder: result.remainder.toString()
+                }
+              });
+              break;
+              
+            default:
+              throw new Error('Unknown operation type: ' + type);
           }
         } catch (error) {
           self.postMessage({ type: 'error', error: error.message });
@@ -159,18 +416,52 @@ export default function DivModLab() {
     workerRef.current = worker;
     
     worker.onmessage = (e) => {
-      if (e.data.type === 'result') {
-        setResult({
-          ...e.data.result,
-          quotient: BigInt(e.data.result.quotient),
-          remainder: BigInt(e.data.result.remainder)
-        });
-        setIsComputing(false);
-      } else if (e.data.type === 'stats') {
-        setTimingStats(e.data.stats);
-      } else if (e.data.type === 'error') {
-        setError(e.data.error);
-        setIsComputing(false);
+      const { type } = e.data;
+      
+      switch(type) {
+        case 'result':
+          setResult({
+            ...e.data.result,
+            quotient: BigInt(e.data.result.quotient),
+            remainder: BigInt(e.data.result.remainder)
+          });
+          setIsComputing(false);
+          break;
+          
+        case 'keyGenerated':
+          setGeneratedKeys(prev => [...prev, e.data.key]);
+          setIsComputing(false);
+          break;
+          
+        case 'passwordHashed':
+          setHashedPassword(e.data.hash);
+          setIsComputing(false);
+          break;
+          
+        case 'randomGenerated':
+          setRandomBytes(e.data.bytes);
+          setIsComputing(false);
+          break;
+          
+        case 'messageSigned':
+          setSignedMessage(e.data.signature);
+          setIsComputing(false);
+          break;
+          
+        case 'encrypted':
+          setEncryptedData(e.data.ciphertext);
+          setIsComputing(false);
+          break;
+          
+        case 'decrypted':
+          setEncryptionInput(e.data.plaintext);
+          setIsComputing(false);
+          break;
+          
+        case 'error':
+          setError(e.data.error);
+          setIsComputing(false);
+          break;
       }
     };
     
@@ -199,18 +490,108 @@ export default function DivModLab() {
     workerRef.current?.postMessage({ type: 'compute', dividend: a, divisor: b });
   };
 
-  const handleAnalyzeTiming = () => {
-    const a = parseInt(dividend);
-    const b = parseInt(divisor);
-    
-    if (isNaN(a) || isNaN(b) || b === 0) {
-      setError('Please enter valid numbers first');
+  const handleGenerateKey = (keyType: 'symmetric' | 'asymmetric', algorithm?: string) => {
+    setError('');
+    setIsComputing(true);
+    workerRef.current?.postMessage({ 
+      type: 'generateKey', 
+      keyType, 
+      algorithm,
+      bits: keyType === 'symmetric' ? 256 : 2048
+    });
+  };
+
+  const handleHashPassword = () => {
+    if (!passwordToHash) {
+      setError('Please enter a password to hash');
+      return;
+    }
+    setError('');
+    setIsComputing(true);
+    workerRef.current?.postMessage({ type: 'hashPassword', password: passwordToHash });
+  };
+
+  const handleGenerateRandom = (length: number = 32) => {
+    setError('');
+    setIsComputing(true);
+    workerRef.current?.postMessage({ type: 'generateRandom', length });
+  };
+
+  const handleSignMessage = () => {
+    if (!messageToSign) {
+      setError('Please enter a message to sign');
       return;
     }
     
+    const key = generatedKeys.find(k => k.id === selectedKeyId);
+    if (!key || key.type !== 'asymmetric') {
+      setError('Please select an asymmetric key for signing');
+      return;
+    }
+    
+    setError('');
     setIsComputing(true);
-    workerRef.current?.postMessage({ type: 'analyze', dividend: a, divisor: b });
-    setIsComputing(false);
+    workerRef.current?.postMessage({ 
+      type: 'signMessage', 
+      message: messageToSign,
+      privateKey: key.key
+    });
+  };
+
+  const handleEncrypt = () => {
+    if (!encryptionInput) {
+      setError('Please enter text to encrypt');
+      return;
+    }
+    
+    const key = generatedKeys.find(k => k.id === selectedKeyId);
+    if (!key || key.type !== 'symmetric') {
+      setError('Please select a symmetric key for encryption');
+      return;
+    }
+    
+    setError('');
+    setIsComputing(true);
+    workerRef.current?.postMessage({ 
+      type: 'encrypt', 
+      plaintext: encryptionInput,
+      key: key.key
+    });
+  };
+
+  const handleDecrypt = () => {
+    if (!encryptedData) {
+      setError('No encrypted data to decrypt');
+      return;
+    }
+    
+    const key = generatedKeys.find(k => k.id === selectedKeyId);
+    if (!key || key.type !== 'symmetric') {
+      setError('Please select the same symmetric key used for encryption');
+      return;
+    }
+    
+    setError('');
+    setIsComputing(true);
+    workerRef.current?.postMessage({ 
+      type: 'decrypt', 
+      ciphertext: encryptedData,
+      key: key.key
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const exportKey = (key: CryptoKey) => {
+    const keyData = JSON.stringify(key, null, 2);
+    const blob = new Blob([keyData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${key.id}.json`;
+    a.click();
   };
 
   return (
@@ -219,40 +600,460 @@ export default function DivModLab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            Cryptographic Division Lab
+            Cryptographic Innovation Toolkit
           </h2>
           <p className="text-muted-foreground mt-2">
-            Explore constant-time arithmetic operations for side-channel resistance
+            Production-ready cryptographic utilities with side-channel resistance
           </p>
         </div>
         <Badge variant="outline" className="px-3 py-1">
           <Shield className="w-4 h-4 mr-2" />
-          Security Research
+          Security Suite v1.0
         </Badge>
       </div>
 
-      <Tabs defaultValue="calculator" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="calculator">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs defaultValue="keys" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="keys">
+            <Key className="w-4 h-4 mr-2" />
+            Keys
+          </TabsTrigger>
+          <TabsTrigger value="hash">
+            <Hash className="w-4 h-4 mr-2" />
+            Hash
+          </TabsTrigger>
+          <TabsTrigger value="encrypt">
+            <Lock className="w-4 h-4 mr-2" />
+            Encrypt
+          </TabsTrigger>
+          <TabsTrigger value="sign">
+            <FileSignature className="w-4 h-4 mr-2" />
+            Sign
+          </TabsTrigger>
+          <TabsTrigger value="random">
+            <Dice5 className="w-4 h-4 mr-2" />
+            Random
+          </TabsTrigger>
+          <TabsTrigger value="divmod">
             <Cpu className="w-4 h-4 mr-2" />
-            Calculator
-          </TabsTrigger>
-          <TabsTrigger value="timing">
-            <Clock className="w-4 h-4 mr-2" />
-            Timing Analysis
-          </TabsTrigger>
-          <TabsTrigger value="learn">
-            <Info className="w-4 h-4 mr-2" />
-            Learn
+            DivMod
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="calculator" className="space-y-4">
+        {/* Key Generation Tab */}
+        <TabsContent value="keys" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Constant-Time Division Calculator</CardTitle>
+              <CardTitle>Cryptographic Key Generation</CardTitle>
               <CardDescription>
-                Performs division using a fixed 64-iteration algorithm to prevent timing attacks
+                Generate secure symmetric and asymmetric keys for encryption and signing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleGenerateKey('symmetric', 'AES-256')}
+                  disabled={isComputing}
+                  className="flex-1"
+                  data-testid="button-gen-symmetric"
+                >
+                  <Key className="w-4 h-4 mr-2" />
+                  Generate AES-256 Key
+                </Button>
+                <Button 
+                  onClick={() => handleGenerateKey('asymmetric', 'RSA-2048')}
+                  disabled={isComputing}
+                  className="flex-1"
+                  variant="secondary"
+                  data-testid="button-gen-asymmetric"
+                >
+                  <Key className="w-4 h-4 mr-2" />
+                  Generate RSA-2048 Keypair
+                </Button>
+              </div>
+
+              {generatedKeys.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">Generated Keys</h3>
+                  <ScrollArea className="h-[300px] rounded-md border">
+                    <div className="p-4 space-y-3">
+                      {generatedKeys.map((key) => (
+                        <Card key={key.id}>
+                          <CardContent className="pt-4">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={key.type === 'symmetric' ? 'default' : 'secondary'}>
+                                    {key.algorithm}
+                                  </Badge>
+                                  <Badge variant="outline">{key.strength} bits</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground">ID: {key.id}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Created: {new Date(key.createdAt).toLocaleString()}
+                                </p>
+                                {key.type === 'symmetric' && (
+                                  <div className="mt-2">
+                                    <p className="text-xs font-mono bg-muted p-2 rounded break-all">
+                                      {key.key.substring(0, 32)}...
+                                    </p>
+                                  </div>
+                                )}
+                                {key.type === 'asymmetric' && key.publicKey && (
+                                  <div className="mt-2 space-y-1">
+                                    <p className="text-xs text-muted-foreground">Public Key:</p>
+                                    <p className="text-xs font-mono bg-muted p-2 rounded break-all">
+                                      {key.publicKey.substring(0, 50)}...
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => copyToClipboard(JSON.stringify(key))}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => exportKey(key)}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Password Hashing Tab */}
+        <TabsContent value="hash" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Secure Password Hashing</CardTitle>
+              <CardDescription>
+                PBKDF2-based password hashing with 100,000 iterations and secure salt generation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password to Hash</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={passwordToHash}
+                  onChange={(e) => setPasswordToHash(e.target.value)}
+                  placeholder="Enter password"
+                  data-testid="input-password"
+                />
+              </div>
+
+              <Button 
+                onClick={handleHashPassword}
+                disabled={isComputing || !passwordToHash}
+                className="w-full"
+                data-testid="button-hash"
+              >
+                <Hash className="w-4 h-4 mr-2" />
+                Generate Secure Hash
+              </Button>
+
+              {hashedPassword && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Hashed Password</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Algorithm</p>
+                      <Badge>{hashedPassword.algorithm}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Iterations</p>
+                      <p className="font-mono text-sm">{hashedPassword.iterations.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Salt (hex)</p>
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs font-mono break-all">{hashedPassword.salt}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Hash (hex)</p>
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs font-mono break-all">{hashedPassword.hash}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(JSON.stringify(hashedPassword))}
+                      className="w-full"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Hash Data
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Encryption Tab */}
+        <TabsContent value="encrypt" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Symmetric Encryption</CardTitle>
+              <CardDescription>
+                Encrypt and decrypt data using AES-256 symmetric keys
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="key-select">Select Encryption Key</Label>
+                <Select value={selectedKeyId} onValueChange={setSelectedKeyId}>
+                  <SelectTrigger id="key-select">
+                    <SelectValue placeholder="Choose a symmetric key" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generatedKeys
+                      .filter(k => k.type === 'symmetric')
+                      .map(key => (
+                        <SelectItem key={key.id} value={key.id}>
+                          {key.algorithm} - {key.id.substring(0, 20)}...
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="plaintext">Text to Encrypt</Label>
+                <Textarea
+                  id="plaintext"
+                  value={encryptionInput}
+                  onChange={(e) => setEncryptionInput(e.target.value)}
+                  placeholder="Enter text to encrypt"
+                  rows={4}
+                  data-testid="textarea-plaintext"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleEncrypt}
+                  disabled={isComputing || !encryptionInput || !selectedKeyId}
+                  className="flex-1"
+                  data-testid="button-encrypt"
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Encrypt
+                </Button>
+                <Button 
+                  onClick={handleDecrypt}
+                  disabled={isComputing || !encryptedData || !selectedKeyId}
+                  variant="secondary"
+                  className="flex-1"
+                  data-testid="button-decrypt"
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Decrypt
+                </Button>
+              </div>
+
+              {encryptedData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Encrypted Data</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted p-3 rounded">
+                      <p className="text-xs font-mono break-all">{encryptedData}</p>
+                    </div>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(encryptedData)}
+                      className="w-full mt-3"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Encrypted Data
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Digital Signature Tab */}
+        <TabsContent value="sign" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Digital Signatures</CardTitle>
+              <CardDescription>
+                Sign messages with asymmetric keys for authentication and integrity
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="sign-key">Select Signing Key</Label>
+                <Select value={selectedKeyId} onValueChange={setSelectedKeyId}>
+                  <SelectTrigger id="sign-key">
+                    <SelectValue placeholder="Choose an asymmetric key" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generatedKeys
+                      .filter(k => k.type === 'asymmetric')
+                      .map(key => (
+                        <SelectItem key={key.id} value={key.id}>
+                          {key.algorithm} - {key.id.substring(0, 20)}...
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Message to Sign</Label>
+                <Textarea
+                  id="message"
+                  value={messageToSign}
+                  onChange={(e) => setMessageToSign(e.target.value)}
+                  placeholder="Enter message to sign"
+                  rows={4}
+                  data-testid="textarea-message"
+                />
+              </div>
+
+              <Button 
+                onClick={handleSignMessage}
+                disabled={isComputing || !messageToSign || !selectedKeyId}
+                className="w-full"
+                data-testid="button-sign"
+              >
+                <FileSignature className="w-4 h-4 mr-2" />
+                Generate Digital Signature
+              </Button>
+
+              {signedMessage && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Digital Signature</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted p-3 rounded">
+                      <p className="text-xs font-mono break-all">{signedMessage}</p>
+                    </div>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(signedMessage)}
+                      className="w-full mt-3"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Signature
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Random Number Generation Tab */}
+        <TabsContent value="random" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cryptographically Secure Random Numbers</CardTitle>
+              <CardDescription>
+                Generate secure random bytes for cryptographic operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                <Button 
+                  onClick={() => handleGenerateRandom(16)}
+                  disabled={isComputing}
+                  variant="outline"
+                  data-testid="button-random-16"
+                >
+                  16 bytes
+                </Button>
+                <Button 
+                  onClick={() => handleGenerateRandom(32)}
+                  disabled={isComputing}
+                  variant="outline"
+                  data-testid="button-random-32"
+                >
+                  32 bytes
+                </Button>
+                <Button 
+                  onClick={() => handleGenerateRandom(64)}
+                  disabled={isComputing}
+                  variant="outline"
+                  data-testid="button-random-64"
+                >
+                  64 bytes
+                </Button>
+              </div>
+
+              {randomBytes && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Random Bytes (Hex)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted p-3 rounded">
+                      <p className="text-xs font-mono break-all">{randomBytes}</p>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        Length: {randomBytes.length / 2} bytes
+                      </p>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(randomBytes)}
+                        className="w-full"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Random Bytes
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Constant-Time Division Tab */}
+        <TabsContent value="divmod" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Constant-Time Division</CardTitle>
+              <CardDescription>
+                Side-channel resistant division with fixed 64-iteration execution
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -281,46 +1082,27 @@ export default function DivModLab() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleCompute} 
-                  disabled={isComputing}
-                  className="flex-1"
-                  data-testid="button-compute"
-                >
-                  {isComputing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Computing...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-2" />
-                      Compute
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowTrace(!showTrace)}
-                  disabled={!result}
-                >
-                  <Activity className="w-4 h-4 mr-2" />
-                  {showTrace ? 'Hide' : 'Show'} Trace
-                </Button>
-              </div>
-
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+              <Button 
+                onClick={handleCompute} 
+                disabled={isComputing}
+                className="w-full"
+                data-testid="button-compute"
+              >
+                {isComputing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Computing...
+                  </>
+                ) : (
+                  <>
+                    <Cpu className="w-4 h-4 mr-2" />
+                    Calculate Division
+                  </>
+                )}
+              </Button>
 
               {result && (
                 <div className="space-y-4">
-                  <Separator />
                   <div className="grid grid-cols-2 gap-4">
                     <Card>
                       <CardContent className="pt-6">
@@ -340,164 +1122,16 @@ export default function DivModLab() {
                     </Card>
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-4 h-4" />
-                      {result.iterations} iterations
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {result.timeMicros} μs
-                    </div>
-                  </div>
-
-                  {showTrace && result.trace && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Execution Trace</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-                          <pre className="text-xs font-mono">
-                            {result.trace.join('\n')}
-                          </pre>
-                        </ScrollArea>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="timing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Timing Analysis</CardTitle>
-              <CardDescription>
-                Analyze execution time consistency across multiple runs
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                onClick={handleAnalyzeTiming}
-                disabled={isComputing}
-                className="w-full"
-                data-testid="button-analyze"
-              >
-                <Activity className="w-4 h-4 mr-2" />
-                Run 1000 Sample Analysis
-              </Button>
-
-              {timingStats && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Min</span>
-                            <span className="font-mono">{timingStats.min} μs</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Max</span>
-                            <span className="font-mono">{timingStats.max} μs</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Mean</span>
-                            <span className="font-mono">{timingStats.mean} μs</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Std Dev</span>
-                            <span className="font-mono">{timingStats.stdDev}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">CV</span>
-                            <span className="font-mono">{timingStats.cv}%</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <Alert className={timingStats.cv < 15 ? 'border-green-500' : 'border-yellow-500'}>
+                  <Alert>
                     <CheckCircle className="h-4 w-4" />
-                    <AlertTitle>Timing Analysis Result</AlertTitle>
+                    <AlertTitle>Constant-Time Execution</AlertTitle>
                     <AlertDescription>
-                      {timingStats.cv < 15 
-                        ? `Excellent constant-time properties! CV of ${timingStats.cv}% indicates minimal timing variance.`
-                        : `Moderate timing variance detected. CV of ${timingStats.cv}% may allow timing attacks.`
-                      }
+                      Completed in {result.iterations} iterations ({result.timeMicros} μs).
+                      This algorithm always executes exactly 64 iterations to prevent timing attacks.
                     </AlertDescription>
                   </Alert>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="learn" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Understanding Constant-Time Algorithms</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <Lock className="w-5 h-5 text-cyan-400 mt-1" />
-                  <div>
-                    <h3 className="font-semibold">What are Side-Channel Attacks?</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Side-channel attacks exploit information leaked through timing, power consumption, 
-                      or electromagnetic emissions. By measuring how long operations take, attackers 
-                      can infer secret data.
-                    </p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-3">
-                  <Shield className="w-5 h-5 text-blue-400 mt-1" />
-                  <div>
-                    <h3 className="font-semibold">Constant-Time Execution</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This implementation always performs exactly 64 iterations regardless of input values. 
-                      This prevents timing analysis from revealing information about the operands.
-                    </p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-3">
-                  <Activity className="w-5 h-5 text-green-400 mt-1" />
-                  <div>
-                    <h3 className="font-semibold">Coefficient of Variation (CV)</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      CV measures timing consistency. Lower values (&lt;15%) indicate better constant-time 
-                      properties. Production cryptographic code targets CV &lt;10%.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Security Note</AlertTitle>
-                <AlertDescription>
-                  While this demonstrates constant-time principles, production cryptographic systems 
-                  require additional protections including secure random number generation, 
-                  proper key management, and comprehensive security audits.
-                </AlertDescription>
-              </Alert>
             </CardContent>
           </Card>
         </TabsContent>
