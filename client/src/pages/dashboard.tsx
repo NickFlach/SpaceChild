@@ -234,7 +234,7 @@ export default function Dashboard() {
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={50} minSize={30}>
+          <ResizablePanel defaultSize={45} minSize={30}>
             <div className="h-full flex flex-col">
               {/* Editor Tabs */}
               <div className="flex items-center bg-card border-b border-border">
@@ -290,7 +290,7 @@ export default function Dashboard() {
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={40} minSize={25}>
+          <ResizablePanel defaultSize={35} minSize={25}>
             <div className="h-full flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
                 <div className="w-full overflow-x-auto flex-shrink-0 bg-background border-b">
