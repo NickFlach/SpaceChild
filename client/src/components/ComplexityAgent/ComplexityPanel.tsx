@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,7 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
   const queryClient = useQueryClient();
   
   // Subscribe to editor context changes
-  const editorContext = useEditorContextSubscription((ctx) => {
+  const contextCallback = useCallback((ctx) => {
     if (ctx.file) {
       const insights: string[] = [];
       
@@ -88,8 +88,12 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
       }
       
       setContextualInsights(insights);
+    } else {
+      setContextualInsights([]);
     }
-  });
+  }, []);
+  
+  const editorContext = useEditorContextSubscription(contextCallback);
 
   const complexityMutation = useMutation({
     mutationFn: async (requestText: string) => {
