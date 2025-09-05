@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Save, Play, Download, Upload } from "lucide-react";
+import { Save, Play, Download, Upload, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, X } from "lucide-react";
+import { useEditorContext } from "@/contexts/EditorContext";
+import { useContextualAI } from "@/hooks/useContextualAI";
 import type { ProjectFile, Project } from "@shared/schema";
 
 interface CodeEditorProps {
@@ -12,50 +14,93 @@ interface CodeEditorProps {
 
 export default function CodeEditor({ file, onFileChange, project }: CodeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [content, setContent] = useState("");
-  const [isDirty, setIsDirty] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use editor context for state management
+  const {
+    currentFile,
+    currentProject,
+    fileContent,
+    isDirty,
+    cursorPosition,
+    setCurrentFile,
+    setCurrentProject,
+    updateFileContent,
+    setCursorPosition,
+    setDirty,
+    getFileLanguage,
+    getCurrentLine,
+    getFileContext
+  } = useEditorContext();
+  
+  // Use contextual AI for real-time suggestions
+  const {
+    suggestions,
+    isAnalyzing,
+    dismissSuggestion,
+    applySuggestionFix,
+    hasHighSeverity,
+    suggestionCount
+  } = useContextualAI();
 
+  // Sync props with context when they change
   useEffect(() => {
-    if (file) {
-      setContent(file.content || "");
-      setIsDirty(false);
-    }
-  }, [file]);
+    setCurrentFile(file);
+  }, [file, setCurrentFile]);
+  
+  useEffect(() => {
+    setCurrentProject(project);
+  }, [project, setCurrentProject]);
 
   const handleContentChange = (newContent: string) => {
-    setContent(newContent);
-    setIsDirty(file?.content !== newContent);
+    updateFileContent(newContent);
+    
+    // Update cursor position based on textarea
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      const text = textarea.value;
+      const selectionStart = textarea.selectionStart;
+      
+      // Calculate line and column from cursor position
+      const lines = text.substring(0, selectionStart).split('\n');
+      const line = lines.length;
+      const column = lines[lines.length - 1].length + 1;
+      
+      setCursorPosition({ line, column });
+    }
+  };
+  
+  const handleCursorChange = () => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      const text = textarea.value;
+      const selectionStart = textarea.selectionStart;
+      
+      // Calculate line and column from cursor position
+      const lines = text.substring(0, selectionStart).split('\n');
+      const line = lines.length;
+      const column = lines[lines.length - 1].length + 1;
+      
+      setCursorPosition({ line, column });
+    }
   };
 
   const handleSave = async () => {
-    if (!file || !isDirty) return;
+    if (!currentFile || !isDirty) return;
     
     setIsLoading(true);
     try {
-      await onFileChange(file.id, content);
-      setIsDirty(false);
+      await onFileChange(currentFile.id, fileContent);
+      setDirty(false);
     } catch (error) {
       console.error("Failed to save file:", error);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
-  const getLanguageFromFile = (filePath: string) => {
-    const ext = filePath.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'tsx': return 'typescript';
-      case 'ts': return 'typescript';
-      case 'jsx': return 'javascript';
-      case 'js': return 'javascript';
-      case 'css': return 'css';
-      case 'scss': return 'scss';
-      case 'json': return 'json';
-      case 'md': return 'markdown';
-      default: return 'text';
-    }
-  };
 
   const renderCodeWithSyntaxHighlighting = (code: string, language: string) => {
     // Simple syntax highlighting for demo purposes
@@ -91,7 +136,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
     });
   };
 
-  if (!file) {
+  if (!currentFile) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center text-muted-foreground">
@@ -107,7 +152,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
     );
   }
 
-  const language = getLanguageFromFile(file.filePath);
+  const language = getFileLanguage();
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -117,9 +162,9 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
           <Badge variant="outline" className="text-xs">
             {language.toUpperCase()}
           </Badge>
-          {file.version > 1 && (
+          {currentFile.version && currentFile.version > 1 && (
             <Badge variant="secondary" className="text-xs">
-              v{file.version}
+              v{currentFile.version}
             </Badge>
           )}
           {isDirty && (
@@ -130,6 +175,20 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* AI Analysis Indicator */}
+          {isAnalyzing && (
+            <Badge variant="outline" className="text-xs animate-pulse">
+              <Brain className="h-3 w-3 mr-1" />
+              Analyzing...
+            </Badge>
+          )}
+          {suggestionCount > 0 && (
+            <Badge variant={hasHighSeverity ? "destructive" : "secondary"} className="text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              {suggestionCount} suggestions
+            </Badge>
+          )}
+          
           <Button
             size="sm"
             variant="ghost"
@@ -159,26 +218,114 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
           {/* Mock Monaco Editor */}
           <div ref={editorRef} className="font-mono text-sm">
             <textarea
-              value={content}
+              ref={textareaRef}
+              value={fileContent}
               onChange={(e) => handleContentChange(e.target.value)}
+              onSelect={handleCursorChange}
+              onKeyUp={handleCursorChange}
+              onClick={handleCursorChange}
               className="w-full h-96 bg-transparent border-none outline-none resize-none font-mono text-sm"
               placeholder="Start typing your code..."
               spellCheck={false}
             />
           </div>
           
-          {/* AI Suggestions Panel */}
-          {project?.consciousnessEnabled && (
-            <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                  AI Consciousness Suggestion
-                </span>
+          {/* Advanced AI Suggestions Panel */}
+          {suggestions.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground flex items-center space-x-2">
+                  <Brain className="w-4 h-4" />
+                  <span>AI Code Analysis</span>
+                </h4>
+                <Badge variant="outline" className="text-xs">
+                  {suggestionCount} suggestions
+                </Badge>
               </div>
-              <p className="text-sm text-purple-600 dark:text-purple-400">
-                Consider using React.memo() for this component to optimize re-renders based on your project patterns.
-              </p>
+              
+              {suggestions.map((suggestion) => (
+                <div key={suggestion.id} className={`p-3 rounded-lg border ${
+                  suggestion.severity === 'high' 
+                    ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                    : suggestion.severity === 'medium'
+                    ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
+                    : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                }`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        {suggestion.severity === 'high' && <XCircle className="w-4 h-4 text-red-500" />}
+                        {suggestion.severity === 'medium' && <AlertTriangle className="w-4 h-4 text-yellow-500" />}
+                        {suggestion.severity === 'low' && <CheckCircle className="w-4 h-4 text-blue-500" />}
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {suggestion.type}
+                        </Badge>
+                        {suggestion.line && (
+                          <Badge variant="outline" className="text-xs">
+                            Line {suggestion.line}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className={`text-sm ${
+                        suggestion.severity === 'high' 
+                          ? 'text-red-700 dark:text-red-300'
+                          : suggestion.severity === 'medium'
+                          ? 'text-yellow-700 dark:text-yellow-300'
+                          : 'text-blue-700 dark:text-blue-300'
+                      }`}>
+                        {suggestion.message}
+                      </p>
+                      {suggestion.fix && (
+                        <div className="mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => applySuggestionFix(suggestion)}
+                            className="text-xs"
+                          >
+                            Apply Fix
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => dismissSuggestion(suggestion.id)}
+                      className="p-1 h-auto text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Context Indicator */}
+          {currentProject?.consciousnessEnabled && (
+            <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center space-x-2 mb-2">
+                <Brain className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                  Context Awareness Active
+                </span>
+                {isAnalyzing && (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1 h-1 bg-purple-500 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                )}
+              </div>
+              <div className="text-xs text-purple-600 dark:text-purple-400 space-y-1">
+                <div>Language: {language}</div>
+                <div>Line: {cursorPosition.line}, Column: {cursorPosition.column}</div>
+                <div>Current Line: {getCurrentLine().trim() || '(empty)'}</div>
+                {suggestionCount > 0 && (
+                  <div>AI Suggestions: {suggestionCount} active</div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -187,8 +334,9 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
       {/* Status Bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-card border-t border-border text-xs text-muted-foreground">
         <div className="flex items-center space-x-4">
-          <span>Ln {content.split('\n').length}, Col 1</span>
-          <span>{content.length} characters</span>
+          <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
+          <span>{fileContent.length} characters</span>
+          {isAnalyzing && <span className="text-blue-500">• Analyzing...</span>}
           <span>{language}</span>
         </div>
         <div className="flex items-center space-x-4">

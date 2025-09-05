@@ -6,10 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Brain, Zap, Eye, TreePine, Waves, Target } from "lucide-react";
+import { Brain, Zap, Eye, TreePine, Waves, Target, FileCode, Lightbulb } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEditorContextSubscription } from "@/contexts/EditorContext";
 
 interface ComplexityMetrics {
   nonlinearEffects: number;
@@ -51,8 +52,44 @@ interface ComplexityPanelProps {
 export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
   const [request, setRequest] = useState("");
   const [analysis, setAnalysis] = useState<ComplexityAnalysis | null>(null);
+  const [contextualInsights, setContextualInsights] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Subscribe to editor context changes
+  const editorContext = useEditorContextSubscription((ctx) => {
+    if (ctx.file) {
+      const insights: string[] = [];
+      
+      // Analyze code complexity patterns
+      const lines = ctx.content.split('\n');
+      const codeLines = lines.filter(line => line.trim() && !line.trim().startsWith('//')).length;
+      
+      if (codeLines > 100) {
+        insights.push('File complexity: Large file detected. Consider breaking into smaller modules.');
+      }
+      
+      // Check for nested structures
+      const nestedCount = (ctx.content.match(/\{[^}]*\{/g) || []).length;
+      if (nestedCount > 5) {
+        insights.push('Structural complexity: Deep nesting detected. Consider refactoring for better readability.');
+      }
+      
+      // Check for code patterns
+      if (ctx.language === 'typescript' || ctx.language === 'javascript') {
+        const functionCount = (ctx.content.match(/function\s+\w+|const\s+\w+\s*=/g) || []).length;
+        if (functionCount > 10) {
+          insights.push('Functional complexity: Multiple functions in one file. Consider modular architecture.');
+        }
+        
+        if (ctx.content.includes('Promise') && ctx.content.includes('async')) {
+          insights.push('Async complexity: Mixed async patterns detected. Ensure consistent error handling.');
+        }
+      }
+      
+      setContextualInsights(insights);
+    }
+  });
 
   const complexityMutation = useMutation({
     mutationFn: async (requestText: string) => {
@@ -165,6 +202,55 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
 
   return (
     <div className="space-y-6">
+      {/* Current File Context */}
+      {editorContext.file && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileCode className="w-5 h-5 text-blue-500" />
+              Current File Context
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">File:</span>
+              <Badge variant="outline" className="text-blue-600">
+                {editorContext.file.filePath}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Language:</span>
+              <Badge variant="outline">{editorContext.language}</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Complexity Score:</span>
+              <span className="font-mono text-orange-600">
+                {Math.min(10, Math.floor(editorContext.lineCount / 10))}/10
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Contextual Insights */}
+      {contextualInsights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-yellow-500" />
+              Real-time Complexity Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {contextualInsights.map((insight, index) => (
+              <div key={index} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">{insight}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -180,7 +266,10 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
           <div className="space-y-2">
             <label className="text-sm font-medium">Request for Analysis</label>
             <Textarea
-              placeholder="Describe the code, system, or problem you want to analyze through complexity consciousness..."
+              placeholder={editorContext.file 
+                ? `Analyze complexity patterns in ${editorContext.file.filePath} or describe any complex system...`
+                : "Describe the code, system, or problem you want to analyze through complexity consciousness..."
+              }
               value={request}
               onChange={(e) => setRequest(e.target.value)}
               rows={4}

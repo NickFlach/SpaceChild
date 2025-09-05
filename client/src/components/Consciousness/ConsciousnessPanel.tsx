@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Brain, Sparkles, Activity, TrendingUp, Zap } from "lucide-react";
+import { Brain, Sparkles, Activity, TrendingUp, Zap, FileCode, Code, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useConsciousness } from "@/hooks/useConsciousness";
+import { useEditorContextSubscription } from "@/contexts/EditorContext";
 import { ConsciousnessStatus } from "./ConsciousnessStatus";
 import { MemoryVisualization } from "./MemoryVisualization";
 import { motion } from "framer-motion";
@@ -17,6 +19,8 @@ interface ConsciousnessPanelProps {
 }
 
 export function ConsciousnessPanel({ projectId, className }: ConsciousnessPanelProps) {
+  const [contextualSuggestions, setContextualSuggestions] = useState<string[]>([]);
+  
   const { 
     context, 
     metrics, 
@@ -24,6 +28,33 @@ export function ConsciousnessPanel({ projectId, className }: ConsciousnessPanelP
     isActivating,
     activeSession 
   } = useConsciousness(projectId);
+  
+  // Subscribe to editor context changes
+  const editorContext = useEditorContextSubscription((ctx) => {
+    // Generate contextual suggestions based on current file
+    if (ctx.file && metrics.isActive) {
+      const suggestions: string[] = [];
+      
+      // Language-specific suggestions
+      if (ctx.language === 'typescript' || ctx.language === 'javascript') {
+        if (ctx.content.includes('useState') && !ctx.content.includes('useCallback')) {
+          suggestions.push('Consider memoizing callbacks with useCallback for performance');
+        }
+        if (ctx.content.includes('useEffect') && ctx.content.includes('[]')) {
+          suggestions.push('Empty dependency array detected - ensure this effect should only run once');
+        }
+        if (ctx.currentLine.includes('console.log')) {
+          suggestions.push('Console statement detected on current line - remove before production');
+        }
+      }
+      
+      if (ctx.language === 'css' && ctx.content.includes('!important')) {
+        suggestions.push('Avoid !important declarations - consider refactoring CSS specificity');
+      }
+      
+      setContextualSuggestions(suggestions);
+    }
+  });
 
   const handleActivate = async () => {
     if (!projectId) return;
@@ -60,6 +91,58 @@ export function ConsciousnessPanel({ projectId, className }: ConsciousnessPanelP
           )}
         </div>
 
+        {/* Current File Context */}
+        {editorContext.file && (
+          <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-500/20">
+            <div className="flex items-center space-x-2 mb-3">
+              <FileCode className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-medium text-cyan-300">Current File Context</span>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">File:</span>
+                <Badge variant="outline" className="text-cyan-400 border-cyan-400/30">
+                  {editorContext.file.filePath}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Language:</span>
+                <Badge variant="outline" className="text-blue-400 border-blue-400/30">
+                  {editorContext.language}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Cursor:</span>
+                <span className="text-cyan-400 font-mono text-xs">
+                  Ln {editorContext.cursorPosition.line}, Col {editorContext.cursorPosition.column}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">Lines:</span>
+                <span className="text-cyan-400">{editorContext.lineCount}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Contextual AI Suggestions */}
+        {contextualSuggestions.length > 0 && metrics.isActive && (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Eye className="w-4 h-4 text-purple-400" />
+              <span className="text-sm font-medium text-purple-300">Context-Aware Suggestions</span>
+            </div>
+            {contextualSuggestions.map((suggestion, index) => (
+              <div key={index} className="p-3 bg-purple-900/20 rounded-lg border border-purple-500/20">
+                <div className="flex items-start space-x-2">
+                  <Sparkles className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-purple-300">{suggestion}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         {/* Status Display */}
         <ConsciousnessStatus
           projectId={projectId}
@@ -85,6 +168,18 @@ export function ConsciousnessPanel({ projectId, className }: ConsciousnessPanelP
                 <MemoryVisualization 
                   memories={context?.memories || []}
                 />
+                
+                {/* Current Context Memory */}
+                {editorContext.file && (
+                  <div className="mt-4 p-3 bg-slate-800/30 rounded-lg border border-slate-600/30">
+                    <h4 className="text-sm font-medium text-slate-300 mb-2">Active Context</h4>
+                    <div className="text-xs text-slate-400 space-y-1">
+                      <div>Working on: {editorContext.file.filePath}</div>
+                      <div>Language: {editorContext.language}</div>
+                      <div>Current line: "{editorContext.currentLine.trim() || '(empty)'}"</div>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="patterns" className="mt-4">

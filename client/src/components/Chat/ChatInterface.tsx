@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Bot, User, Paperclip, Mic, Send, Loader2 } from "lucide-react";
+import { Bot, User, Paperclip, Mic, Send, Loader2, FileCode, Eye } from "lucide-react";
+import { useEditorContextSubscription } from "@/contexts/EditorContext";
 import type { Project } from "@shared/schema";
 
 interface Message {
@@ -27,15 +28,29 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [provider, setProvider] = useState("anthropic");
+  const [includeFileContext, setIncludeFileContext] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Subscribe to editor context changes
+  const editorContext = useEditorContextSubscription((ctx) => {
+    // Could add automatic context updates here if needed
+  });
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
+      // Add file context to the message if enabled and file is open
+      let contextualMessage = message;
+      if (includeFileContext && editorContext.file) {
+        contextualMessage = `File Context: Currently working on ${editorContext.file.filePath} (${editorContext.language}). Current line ${editorContext.cursorPosition.line}: "${editorContext.currentLine.trim()}". 
+
+User Message: ${message}`;
+      }
+      
       const response = await apiRequest("POST", "/api/ai/chat", {
-        message,
+        message: contextualMessage,
         provider,
         projectId: project?.id,
       });
@@ -137,6 +152,40 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Current File Context */}
+      {editorContext.file && (
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="p-3">
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <FileCode className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Context: {editorContext.file.filePath}</span>
+                </div>
+                <button
+                  onClick={() => setIncludeFileContext(!includeFileContext)}
+                  className={`text-xs px-2 py-1 rounded ${
+                    includeFileContext 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {includeFileContext ? 'Context On' : 'Context Off'}
+                </button>
+              </div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                <div>Language: {editorContext.language} • Line: {editorContext.cursorPosition.line} • {editorContext.lineCount} lines total</div>
+                {editorContext.currentLine.trim() && (
+                  <div className="font-mono bg-blue-100 dark:bg-blue-900/30 p-1 rounded">
+                    Current: "{editorContext.currentLine.trim()}"
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Chat Messages */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full w-full">
@@ -233,7 +282,9 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={
-                  project?.consciousnessEnabled 
+                  editorContext.file && includeFileContext
+                    ? `Ask about ${editorContext.file.filePath} or any coding question...`
+                    : project?.consciousnessEnabled 
                     ? "Ask AI with full project context awareness..."
                     : "Ask AI to help with your code..."
                 }

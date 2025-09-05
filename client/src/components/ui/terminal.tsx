@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, Play, Square, RefreshCw, FileText, Zap } from 'lucide-react';
+import { Terminal, Play, Square, RefreshCw, FileText, Zap, FileCode, Code } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import { ScrollArea } from './scroll-area';
 import { AIProviderService } from '@/services/aiProviders';
+import { useEditorContextSubscription } from '@/contexts/EditorContext';
 
 interface TerminalProps {
   projectId?: number;
@@ -42,6 +43,13 @@ export function TerminalComponent({ projectId, className }: TerminalProps) {
     }
   ]);
   
+  // Subscribe to editor context changes
+  const editorContext = useEditorContextSubscription((ctx) => {
+    if (ctx.file) {
+      addLine('info', `📁 Context updated: Working on ${ctx.file.filePath} (${ctx.language})`);
+    }
+  });
+  
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,8 +79,14 @@ export function TerminalComponent({ projectId, className }: TerminalProps) {
     setIsRunning(true);
     addLine('command', `$ ${cmd}`);
     
+    // Add context information to the command if file is open
+    let contextualCommand = cmd;
+    if (editorContext.file) {
+      contextualCommand = `Context: Working on ${editorContext.file.filePath} (${editorContext.language}, ${editorContext.lineCount} lines). Command: ${cmd}`;
+    }
+    
     try {
-      const response = await AIProviderService.chat(cmd, 'terminal-jarvis', projectId);
+      const response = await AIProviderService.chat(contextualCommand, 'terminal-jarvis', projectId);
       addLine('output', response.response);
     } catch (error: any) {
       addLine('error', `Error: ${error.message}`);
@@ -104,6 +118,8 @@ export function TerminalComponent({ projectId, className }: TerminalProps) {
   const quickCommands = [
     { label: 'List Tools', command: 'list all available AI tools', icon: FileText },
     { label: 'Install Claude', command: 'install claude for code assistance', icon: Play },
+    { label: 'Analyze Current File', command: editorContext.file ? `analyze file ${editorContext.file.filePath}` : 'no file selected', icon: FileCode },
+    { label: 'Code Review', command: editorContext.file ? `review code in ${editorContext.file.filePath}` : 'no file selected', icon: Code },
     { label: 'Install Gemini', command: 'install gemini CLI tool', icon: Play },
     { label: 'Tool Status', command: 'show status of all installed tools', icon: RefreshCw },
     { label: 'Claude Help', command: 'get information about claude capabilities', icon: Zap },
