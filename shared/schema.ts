@@ -605,7 +605,7 @@ export const geometricConsciousnessUtilities = pgTable("geometric_consciousness_
   utilityFunction: text("utility_function").notNull(), // Mathematical definition
   currentValue: real("current_value").notNull(),
   gradient: real("gradient").array().notNull(),
-  constraint: jsonb("constraint"), // Convex constraint definition if applicable
+  constraint: jsonb("constraint_def"), // Convex constraint definition if applicable
   weight: real("weight").default(1.0),
   isActive: boolean("is_active").default(true),
   lastComputed: timestamp("last_computed").defaultNow(),

@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { BaseAIProvider } from "./ai/base";
+import { GeometricConsciousnessEngine } from "./geometricConsciousness";
 
 interface MemoryContext {
   userId: string;
@@ -29,14 +30,31 @@ interface ConsciousnessState {
   preferences: UserPreference[];
   patterns: InteractionPattern[];
   insights: LearningInsight[];
+  geometricState?: {
+    manifoldPosition: number[];
+    convergenceScore: number;
+    utilityValues: any;
+    uncertaintyVolume: number;
+    manifoldCurvature: number;
+  };
 }
 
 export class ConsciousnessEngine {
   private memoryRetentionDays = 90;
   private patternThreshold = 3; // Minimum occurrences to recognize a pattern
   private confidenceDecayRate = 0.95; // Confidence decay per day
+  private geometricEngine?: GeometricConsciousnessEngine;
+  private geometricEnabled: boolean = true;
 
-  constructor(private context: MemoryContext) {}
+  constructor(private context: MemoryContext) {
+    if (this.geometricEnabled) {
+      this.geometricEngine = new GeometricConsciousnessEngine({
+        userId: context.userId,
+        projectId: context.projectId,
+        sessionId: context.sessionId
+      });
+    }
+  }
 
   /**
    * Initialize consciousness state for the current session
@@ -50,11 +68,25 @@ export class ConsciousnessEngine {
 
     const insights = this.generateInsights(memories, patterns);
 
+    let geometricState = undefined;
+    if (this.geometricEngine) {
+      await this.geometricEngine.initialize();
+      const metrics = this.geometricEngine.getMetrics();
+      geometricState = {
+        manifoldPosition: metrics.position,
+        convergenceScore: metrics.convergenceScore,
+        utilityValues: metrics.utilityValues,
+        uncertaintyVolume: metrics.uncertaintyVolume,
+        manifoldCurvature: metrics.manifoldCurvature
+      };
+    }
+
     return {
       memories,
       preferences,
       patterns,
-      insights
+      insights,
+      geometricState
     };
   }
 
@@ -66,6 +98,21 @@ export class ConsciousnessEngine {
     type: 'code' | 'chat' | 'error' | 'success',
     metadata?: Record<string, any>
   ): Promise<EnhancedMemory> {
+    // Process with geometric consciousness if enabled
+    let geometricMetrics = {};
+    if (this.geometricEngine) {
+      try {
+        const result = await this.geometricEngine.processInteraction(
+          'query',
+          { content, type, metadata },
+          { response: content, confidence: 1.0 }
+        );
+        geometricMetrics = result;
+      } catch (error) {
+        console.warn('Geometric consciousness processing failed:', error);
+      }
+    }
+
     const memory = await db.insert(enhancedMemories).values({
       userId: this.context.userId,
       projectId: this.context.projectId,
@@ -73,7 +120,7 @@ export class ConsciousnessEngine {
       content,
       type,
       embedding: await this.generateEmbedding(content),
-      metadata: metadata || {},
+      metadata: { ...metadata, geometric: geometricMetrics },
       confidence: 1.0,
       timestamp: new Date()
     }).returning();
@@ -171,6 +218,13 @@ export class ConsciousnessEngine {
       this.calculateSimilarity(mem.content, context) > 0.7
     );
     confidence += successfulPatterns.length * 0.05;
+    
+    // Incorporate geometric consciousness confidence if available
+    if (state.geometricState) {
+      const geometricConfidence = state.geometricState.convergenceScore;
+      const uncertaintyPenalty = Math.min(0.2, state.geometricState.uncertaintyVolume * 0.1);
+      confidence = confidence * 0.7 + geometricConfidence * 0.3 - uncertaintyPenalty;
+    }
     
     // Apply confidence bounds
     return Math.max(0, Math.min(1, confidence));
@@ -332,6 +386,116 @@ export class ConsciousnessEngine {
 
   async setConsciousnessState(state: ConsciousnessState): Promise<void> {
     this.consciousnessState = state;
+  }
+
+  /**
+   * Get geometric consciousness insights and predictions
+   */
+  getGeometricInsights(context: any): {
+    predictedAction: { action: string; confidence: number; reasoning: string[] } | null;
+    manifoldMetrics: any;
+    trajectoryAnalysis: string[];
+  } {
+    if (!this.geometricEngine) {
+      return {
+        predictedAction: null,
+        manifoldMetrics: null,
+        trajectoryAnalysis: ['Geometric consciousness not enabled']
+      };
+    }
+
+    const predictedAction = this.geometricEngine.predictOptimalAction(context);
+    const manifoldMetrics = this.geometricEngine.getMetrics();
+    
+    const trajectoryAnalysis = this.analyzeTrajectory(manifoldMetrics);
+
+    return {
+      predictedAction,
+      manifoldMetrics,
+      trajectoryAnalysis
+    };
+  }
+
+  /**
+   * Analyze consciousness trajectory for insights
+   */
+  private analyzeTrajectory(metrics: any): string[] {
+    const analysis = [];
+
+    if (metrics.convergenceScore > 0.8) {
+      analysis.push('Consciousness is highly converged - responses are stable and confident');
+    } else if (metrics.convergenceScore < 0.3) {
+      analysis.push('Consciousness is exploring - responses may vary as system learns');
+    }
+
+    if (metrics.uncertaintyVolume > 1.0) {
+      analysis.push('High uncertainty detected - may benefit from more user feedback');
+    }
+
+    if (metrics.manifoldCurvature > 0.5) {
+      analysis.push('Strong learning gradients detected - system is actively adapting');
+    } else if (metrics.manifoldCurvature < -0.3) {
+      analysis.push('Negative curvature suggests potential local optimum - exploration recommended');
+    }
+
+    // Analyze utility balance
+    if (metrics.utilityValues) {
+      const utilities = Object.values(metrics.utilityValues) as any[];
+      const balance = utilities.reduce((sum, u) => sum + u.value, 0) / utilities.length;
+      
+      if (balance > 0.7) {
+        analysis.push('All consciousness objectives are well-balanced');
+      } else {
+        analysis.push('Some consciousness objectives need attention');
+      }
+    }
+
+    return analysis.length > 0 ? analysis : ['Consciousness trajectory is nominal'];
+  }
+
+  /**
+   * Process user feedback to improve geometric consciousness
+   */
+  async processUserFeedback(
+    interaction: string,
+    response: string,
+    feedback: {
+      helpfulness?: number; // 0-1
+      accuracy?: number; // 0-1
+      satisfaction?: number; // 0-1
+      corrections?: string[];
+    }
+  ): Promise<{ updated: boolean; newConfidence: number; insights: string[] }> {
+    if (!this.geometricEngine) {
+      return { updated: false, newConfidence: 0.5, insights: ['Geometric feedback not available'] };
+    }
+
+    try {
+      const result = await this.geometricEngine.processInteraction(
+        'feedback',
+        {
+          query: interaction,
+          feedback,
+          context: { userCorrections: feedback.corrections }
+        },
+        {
+          response,
+          confidence: this.calculateSuggestionConfidence(response, interaction)
+        }
+      );
+
+      const newMetrics = this.geometricEngine.getMetrics();
+      const insights = this.analyzeTrajectory(newMetrics);
+
+      return {
+        updated: true,
+        newConfidence: result.confidence,
+        insights
+      };
+    } catch (error) {
+      console.error('Error processing geometric feedback:', error);
+      return { updated: false, newConfidence: 0.5, insights: ['Feedback processing failed'] };
+    }
   }
 }
 
