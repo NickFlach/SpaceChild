@@ -16,6 +16,7 @@ import sandboxRoutes from "./routes/sandbox";
 import scrapeRoutes from "./routes/scrape";
 import subscriptionRoutes from "./routes/subscriptions";
 import replitUserSearchRoutes from "./routes/replitUserSearch";
+import consciousnessRoutes from "./routes/consciousness";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - Comment out Replit auth for now
@@ -761,6 +762,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Replit user search routes
   app.use('/api/replit-users', replitUserSearchRoutes);
+  
+  // Register consciousness routes
+  app.use('/api/consciousness', consciousnessRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);
