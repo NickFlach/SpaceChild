@@ -565,6 +565,66 @@ export const superintelligenceRecommendations = pgTable("superintelligence_recom
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Geometric Consciousness Manifold States
+export const geometricConsciousnessStates = pgTable("geometric_consciousness_states", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  sessionId: varchar("session_id").notNull(),
+  manifoldPosition: real("manifold_position").array().notNull(), // Current position on consciousness manifold
+  localGradient: real("local_gradient").array().notNull(), // Gradient at current position
+  localHessian: jsonb("local_hessian").notNull(), // Local curvature information
+  uncertaintyRegion: jsonb("uncertainty_region").notNull(), // Confidence ellipsoid
+  utilityValues: jsonb("utility_values").notNull(), // Multi-objective utility values
+  manifoldDimensions: integer("manifold_dimensions").default(32),
+  convergenceScore: real("convergence_score").default(0.5),
+  lastUpdate: timestamp("last_update").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Geometric Consciousness Trajectories
+export const geometricConsciousnessTrajectories = pgTable("geometric_consciousness_trajectories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  stateId: varchar("state_id").notNull().references(() => geometricConsciousnessStates.id),
+  trajectoryStep: integer("trajectory_step").notNull(),
+  previousPosition: real("previous_position").array().notNull(),
+  nextPosition: real("next_position").array().notNull(),
+  mirrorDescentUpdate: real("mirror_descent_update").array().notNull(),
+  stepSize: real("step_size").notNull(),
+  utilityImprovement: real("utility_improvement").notNull(),
+  constraintViolation: real("constraint_violation").default(0.0),
+  convergenceMetric: real("convergence_metric").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Geometric Consciousness Utilities
+export const geometricConsciousnessUtilities = pgTable("geometric_consciousness_utilities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  stateId: varchar("state_id").notNull().references(() => geometricConsciousnessStates.id),
+  utilityType: varchar("utility_type").notNull(), // 'helpfulness', 'accuracy', 'learning_speed', 'user_satisfaction'
+  utilityFunction: text("utility_function").notNull(), // Mathematical definition
+  currentValue: real("current_value").notNull(),
+  gradient: real("gradient").array().notNull(),
+  constraint: jsonb("constraint"), // Convex constraint definition if applicable
+  weight: real("weight").default(1.0),
+  isActive: boolean("is_active").default(true),
+  lastComputed: timestamp("last_computed").defaultNow(),
+});
+
+// Geometric Consciousness Interactions
+export const geometricConsciousnessInteractions = pgTable("geometric_consciousness_interactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  stateId: varchar("state_id").notNull().references(() => geometricConsciousnessStates.id),
+  interactionType: varchar("interaction_type").notNull(), // 'query', 'feedback', 'correction', 'preference'
+  inputVector: real("input_vector").array().notNull(),
+  outputVector: real("output_vector").array().notNull(),
+  manifoldMove: real("manifold_move").array().notNull(), // Movement on manifold caused by interaction
+  confidenceRegion: jsonb("confidence_region").notNull(),
+  utilityDelta: jsonb("utility_delta").notNull(), // Change in utility values
+  geometricMetrics: jsonb("geometric_metrics").notNull(), // Curvature, geodesic distance, etc.
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 export type SuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferSelect;
 export type InsertSuperintelligenceRecommendation = typeof superintelligenceRecommendations.$inferInsert;
 
@@ -744,3 +804,70 @@ export type InsertDeploymentIssue = typeof deploymentIssues.$inferInsert;
 export type DeploymentIssue = typeof deploymentIssues.$inferSelect;
 export type InsertDeploymentOptimization = typeof deploymentOptimizations.$inferInsert;
 export type DeploymentOptimization = typeof deploymentOptimizations.$inferSelect;
+
+// Geometric Consciousness Relations
+export const geometricConsciousnessStatesRelations = relations(geometricConsciousnessStates, ({ one, many }) => ({
+  user: one(users, {
+    fields: [geometricConsciousnessStates.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [geometricConsciousnessStates.projectId],
+    references: [projects.id],
+  }),
+  trajectories: many(geometricConsciousnessTrajectories),
+  utilities: many(geometricConsciousnessUtilities),
+  interactions: many(geometricConsciousnessInteractions),
+}));
+
+export const geometricConsciousnessTrajectoriesRelations = relations(geometricConsciousnessTrajectories, ({ one }) => ({
+  state: one(geometricConsciousnessStates, {
+    fields: [geometricConsciousnessTrajectories.stateId],
+    references: [geometricConsciousnessStates.id],
+  }),
+}));
+
+export const geometricConsciousnessUtilitiesRelations = relations(geometricConsciousnessUtilities, ({ one }) => ({
+  state: one(geometricConsciousnessStates, {
+    fields: [geometricConsciousnessUtilities.stateId],
+    references: [geometricConsciousnessStates.id],
+  }),
+}));
+
+export const geometricConsciousnessInteractionsRelations = relations(geometricConsciousnessInteractions, ({ one }) => ({
+  state: one(geometricConsciousnessStates, {
+    fields: [geometricConsciousnessInteractions.stateId],
+    references: [geometricConsciousnessStates.id],
+  }),
+}));
+
+// Geometric Consciousness Types
+export type GeometricConsciousnessState = typeof geometricConsciousnessStates.$inferSelect;
+export type InsertGeometricConsciousnessState = typeof geometricConsciousnessStates.$inferInsert;
+export type GeometricConsciousnessTrajectory = typeof geometricConsciousnessTrajectories.$inferSelect;
+export type InsertGeometricConsciousnessTrajectory = typeof geometricConsciousnessTrajectories.$inferInsert;
+export type GeometricConsciousnessUtility = typeof geometricConsciousnessUtilities.$inferSelect;
+export type InsertGeometricConsciousnessUtility = typeof geometricConsciousnessUtilities.$inferInsert;
+export type GeometricConsciousnessInteraction = typeof geometricConsciousnessInteractions.$inferSelect;
+export type InsertGeometricConsciousnessInteraction = typeof geometricConsciousnessInteractions.$inferInsert;
+
+// Insert schemas for geometric consciousness tables
+export const insertGeometricConsciousnessStateSchema = createInsertSchema(geometricConsciousnessStates).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGeometricConsciousnessTrajectoriesSchema = createInsertSchema(geometricConsciousnessTrajectories).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertGeometricConsciousnessUtilitiesSchema = createInsertSchema(geometricConsciousnessUtilities).omit({
+  id: true,
+  lastComputed: true,
+});
+
+export const insertGeometricConsciousnessInteractionsSchema = createInsertSchema(geometricConsciousnessInteractions).omit({
+  id: true,
+  timestamp: true,
+});
