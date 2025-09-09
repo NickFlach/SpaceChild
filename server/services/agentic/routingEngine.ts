@@ -3,11 +3,13 @@ import { storage } from "../../storage";
 
 export interface TaskCharacteristics {
   complexity: 'low' | 'medium' | 'high' | 'extreme';
-  domain: 'general' | 'code' | 'analysis' | 'creative' | 'math' | 'reasoning' | 'debugging';
+  domain: 'general' | 'code' | 'analysis' | 'creative' | 'math' | 'reasoning' | 'debugging' | 'web_research';
   outputLength: 'short' | 'medium' | 'long' | 'very_long';
   latencyRequirement: 'low' | 'medium' | 'high';
   accuracyRequirement: 'low' | 'medium' | 'high' | 'critical';
   context: 'minimal' | 'moderate' | 'extensive';
+  requiresRealTimeInfo?: boolean;
+  webSearchEnabled?: boolean;
 }
 
 export interface ProviderCapabilities {
@@ -144,6 +146,21 @@ class RoutingEngineService {
       supportedDomains: ['code', 'analysis', 'reasoning']
     });
 
+    // Add Tavily web search capabilities
+    this.providerCapabilities.set('tavily', {
+      id: 'tavily',
+      name: 'Tavily Web Search',
+      strengths: ['real-time information', 'web research', 'current events', 'fact checking'],
+      weaknesses: ['complex reasoning', 'code generation'],
+      maxTokens: 4096,
+      avgLatencyMs: 2000,
+      costPerToken: 0.001,
+      reliabilityScore: 9.0,
+      complexityRating: 6,
+      qualityScore: 8.5,
+      supportedDomains: ['web_research', 'general', 'analysis']
+    });
+
     this.providerCapabilities.set('mindsphere', {
       id: 'mindsphere',
       name: 'MindSphere',
@@ -271,6 +288,29 @@ class RoutingEngineService {
         preferredProviders: ['anthropic', 'spaceagent'],
         fallbackProviders: ['gpt-oss-20b', 'openai'],
         rationale: 'Debugging requires careful analysis and reasoning'
+      },
+      {
+        id: 'web-research',
+        name: 'Web Research and Real-Time Information',
+        priority: 1,
+        conditions: {
+          domain: ['web_research'],
+          taskType: ['research', 'current_events', 'fact_check', 'web_search']
+        },
+        preferredProviders: ['tavily'],
+        fallbackProviders: ['anthropic', 'openai'],
+        rationale: 'Web research tasks require access to real-time information'
+      },
+      {
+        id: 'real-time-info',
+        name: 'Tasks Requiring Real-Time Information',
+        priority: 2,
+        conditions: {
+          complexity: ['low', 'medium', 'high']
+        },
+        preferredProviders: ['tavily'],
+        fallbackProviders: ['anthropic'],
+        rationale: 'Tasks needing current information should use web search'
       }
     ];
   }

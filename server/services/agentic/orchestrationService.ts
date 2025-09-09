@@ -3,6 +3,7 @@ import { routingEngineService } from "./routingEngine";
 import { reflectionSystemService } from "./reflectionSystem";
 import { planningSystemService } from "./planningSystem";
 import { aiProviderService } from "../aiProviders";
+import { tavilyService } from "../tavily";
 import { storage } from "../../storage";
 
 export interface AgenticRequest {
@@ -262,12 +263,18 @@ class AgenticOrchestrationService {
 
     const complexityIndicators = {
       advanced: ['architecture', 'system design', 'enterprise', 'scalability', 'optimization'],
-      complex: ['integration', 'database', 'api', 'security', 'performance', 'algorithm'],
-      moderate: ['component', 'feature', 'functionality', 'interface'],
-      simple: ['fix', 'update', 'change', 'simple', 'quick']
+      complex: ['integration', 'database', 'api', 'security', 'performance', 'algorithm', 'research'],
+      moderate: ['component', 'feature', 'functionality', 'interface', 'search', 'information'],
+      simple: ['fix', 'update', 'change', 'simple', 'quick', 'find', 'what is']
     };
 
     const lowerRequest = request.toLowerCase();
+    
+    // Check for web search indicators
+    const webSearchIndicators = ['current', 'latest', 'recent', 'news', 'today', 'happening', 'trends', 'real-time'];
+    if (webSearchIndicators.some(indicator => lowerRequest.includes(indicator))) {
+      return 'moderate'; // Web search tasks are typically moderate complexity
+    }
     
     for (const [level, indicators] of Object.entries(complexityIndicators)) {
       if (indicators.some(indicator => lowerRequest.includes(indicator))) {
@@ -280,6 +287,7 @@ class AgenticOrchestrationService {
 
   private inferDomain(request: string): string {
     const domainKeywords = {
+      'web_research': ['search', 'find', 'research', 'information', 'current', 'latest', 'news', 'trends', 'real-time', 'what is happening', 'recent developments'],
       'code': ['code', 'function', 'class', 'api', 'database', 'algorithm', 'programming'],
       'analysis': ['analyze', 'review', 'evaluate', 'assess', 'examine'],
       'creative': ['design', 'ui', 'ux', 'creative', 'visual', 'artistic'],

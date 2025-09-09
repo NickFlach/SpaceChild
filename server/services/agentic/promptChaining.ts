@@ -1,4 +1,5 @@
 import { aiProviderService } from "../aiProviders";
+import { tavilyService } from "../tavily";
 import { storage } from "../../storage";
 
 export interface ChainStep {
@@ -321,6 +322,234 @@ Focus on algorithmic efficiency.`,
         }
       ]
     });
+
+    // Web Research Chain
+    this.registerChain({
+      id: 'web-research-chain',
+      name: 'Comprehensive Web Research',
+      description: 'Multi-step web research with search, extract, and analysis',
+      version: '1.0',
+      contextStrategy: 'accumulate',
+      maxContextTokens: 12000,
+      steps: [
+        {
+          id: 'initial-search',
+          name: 'Initial Web Search',
+          description: 'Perform initial web search to gather current information',
+          provider: 'tavily',
+          prompt: '',
+          promptTemplate: `Research topic: {{topic}}
+Specific focus areas: {{focusAreas}}
+Research depth: {{researchDepth}}
+
+Search for comprehensive, current information about this topic.`,
+          inputFields: ['topic', 'focusAreas', 'researchDepth'],
+          outputType: 'json'
+        },
+        {
+          id: 'analyze-sources',
+          name: 'Analyze Sources',
+          description: 'Analyze the credibility and relevance of found sources',
+          provider: 'anthropic',
+          prompt: '',
+          promptTemplate: `Analyze the following search results for credibility and relevance:
+
+Search Results: {{initial_search_result}}
+Research Topic: {{topic}}
+
+Please evaluate:
+1. Source credibility and authority
+2. Information recency and relevance
+3. Bias detection
+4. Key insights and patterns
+5. Gaps that need additional research
+
+Provide a structured analysis with recommendations for next steps.`,
+          inputFields: ['initial_search_result', 'topic'],
+          outputType: 'analysis'
+        },
+        {
+          id: 'deep-dive-search',
+          name: 'Deep Dive Search',
+          description: 'Perform targeted searches based on analysis',
+          provider: 'tavily',
+          prompt: '',
+          promptTemplate: `Based on the source analysis, conduct deeper research:
+
+Analysis Results: {{analyze_sources_result}}
+Original Topic: {{topic}}
+Identified Gaps: {{gaps}}
+
+Search for specific information to fill gaps and verify claims.`,
+          inputFields: ['analyze_sources_result', 'topic', 'gaps'],
+          outputType: 'json'
+        },
+        {
+          id: 'synthesize-findings',
+          name: 'Synthesize Findings',
+          description: 'Synthesize all research into comprehensive report',
+          provider: 'gpt-oss-120b',
+          prompt: '',
+          promptTemplate: `Synthesize all research findings into a comprehensive report:
+
+Initial Search: {{initial_search_result}}
+Source Analysis: {{analyze_sources_result}}
+Deep Dive Results: {{deep_dive_search_result}}
+Research Topic: {{topic}}
+
+Create a comprehensive report including:
+1. Executive Summary
+2. Key Findings
+3. Supporting Evidence
+4. Conflicting Information (if any)
+5. Conclusions and Implications
+6. Sources and References
+7. Recommendations for further research
+
+Format as a professional research report.`,
+          inputFields: ['initial_search_result', 'analyze_sources_result', 'deep_dive_search_result', 'topic'],
+          outputType: 'text'
+        }
+      ]
+    });
+
+    // Real-time Information Chain
+    this.registerChain({
+      id: 'real-time-info-chain',
+      name: 'Real-time Information Gathering',
+      description: 'Quick search and analysis for current information needs',
+      version: '1.0',
+      contextStrategy: 'selective',
+      maxContextTokens: 6000,
+      steps: [
+        {
+          id: 'quick-search',
+          name: 'Quick Web Search',
+          description: 'Perform quick search for current information',
+          provider: 'tavily',
+          prompt: '',
+          promptTemplate: `Quick search for current information about: {{query}}
+Context: {{context}}
+Need recent/live data: {{needsRecent}}`,
+          inputFields: ['query', 'context', 'needsRecent'],
+          outputType: 'json'
+        },
+        {
+          id: 'fact-check',
+          name: 'Fact Check Results',
+          description: 'Verify and fact-check the search results',
+          provider: 'anthropic',
+          prompt: '',
+          promptTemplate: `Fact-check and verify the following search results:
+
+Search Results: {{quick_search_result}}
+Original Query: {{query}}
+
+Please:
+1. Verify key facts and figures
+2. Check for contradictions
+3. Assess information freshness
+4. Identify any biases or limitations
+5. Provide confidence scores for key claims
+
+Format as structured fact-check report.`,
+          inputFields: ['quick_search_result', 'query'],
+          outputType: 'analysis'
+        },
+        {
+          id: 'context-integration',
+          name: 'Integrate with Context',
+          description: 'Integrate verified information with existing context',
+          provider: 'spaceagent',
+          prompt: '',
+          promptTemplate: `Integrate the verified web information with existing context:
+
+Verified Information: {{fact_check_result}}
+Existing Context: {{context}}
+User Intent: {{userIntent}}
+
+Provide:
+1. Updated understanding based on new information
+2. How this changes or confirms existing knowledge
+3. Actionable insights
+4. Recommendations based on current information
+
+Focus on practical applications and next steps.`,
+          inputFields: ['fact_check_result', 'context', 'userIntent'],
+          outputType: 'text'
+        }
+      ]
+    });
+
+    // News and Current Events Chain
+    this.registerChain({
+      id: 'news-analysis-chain',
+      name: 'News and Current Events Analysis',
+      description: 'Analyze current news and events with context',
+      version: '1.0',
+      contextStrategy: 'windowed',
+      maxContextTokens: 8000,
+      steps: [
+        {
+          id: 'news-search',
+          name: 'Search Current News',
+          description: 'Search for recent news and developments',
+          provider: 'tavily',
+          prompt: '',
+          promptTemplate: `Search for recent news about: {{topic}}
+Time frame: {{timeFrame}}
+News sources preference: {{sourcePreference}}
+Focus areas: {{focusAreas}}`,
+          inputFields: ['topic', 'timeFrame', 'sourcePreference', 'focusAreas'],
+          outputType: 'json'
+        },
+        {
+          id: 'trend-analysis',
+          name: 'Analyze Trends',
+          description: 'Analyze trends and patterns in the news',
+          provider: 'anthropic',
+          prompt: '',
+          promptTemplate: `Analyze trends and patterns in the following news:
+
+News Results: {{news_search_result}}
+Topic: {{topic}}
+
+Identify:
+1. Key trends and patterns
+2. Sentiment analysis
+3. Major stakeholders and impacts
+4. Timeline of developments
+5. Potential future implications
+
+Provide trend analysis with supporting evidence.`,
+          inputFields: ['news_search_result', 'topic'],
+          outputType: 'analysis'
+        },
+        {
+          id: 'impact-assessment',
+          name: 'Assess Impact',
+          description: 'Assess potential impacts and implications',
+          provider: 'mindsphere',
+          prompt: '',
+          promptTemplate: `Assess the potential impacts of these developments:
+
+News Analysis: {{trend_analysis_result}}
+Context: {{context}}
+Stakeholder perspective: {{stakeholderView}}
+
+Evaluate:
+1. Short-term and long-term impacts
+2. Effects on different stakeholders
+3. Economic, social, political implications
+4. Risk assessment
+5. Opportunities and challenges
+
+Provide comprehensive impact assessment.`,
+          inputFields: ['trend_analysis_result', 'context', 'stakeholderView'],
+          outputType: 'analysis'
+        }
+      ]
+    });
   }
 
   registerChain(definition: ChainDefinition): void {
@@ -442,20 +671,28 @@ Focus on algorithmic efficiency.`,
         // Build prompt from template
         const prompt = this.buildPromptFromTemplate(step.promptTemplate, input);
         
-        // Execute with AI provider
-        const result = await aiProviderService.generateCode(prompt, step.provider);
+        // Execute based on provider type
+        let result;
+        if (step.provider === 'tavily') {
+          // Handle Tavily web search steps
+          result = await this.executeTavilyStep(step, input);
+        } else {
+          // Execute with AI provider
+          result = await aiProviderService.generateCode(prompt, step.provider);
+          result = {
+            output: result.response,
+            tokensUsed: result.tokensUsed,
+            costUsd: result.cost,
+            provider: step.provider
+          };
+        }
         
         // Validate result if validation rules exist
-        if (step.validation) {
-          this.validateStepOutput(result.response, step.validation);
+        if (step.validation && result.output) {
+          this.validateStepOutput(result.output, step.validation);
         }
 
-        return {
-          output: result.response,
-          tokensUsed: result.tokensUsed,
-          costUsd: result.cost,
-          provider: step.provider
-        };
+        return result;
 
       } catch (error) {
         console.warn(`Step ${step.id} attempt ${attempt} failed:`, error);
@@ -470,6 +707,57 @@ Focus on algorithmic efficiency.`,
     }
 
     throw new Error(`Step ${step.id} failed after ${maxAttempts} attempts`);
+  }
+
+  private async executeTavilyStep(
+    step: ChainStep,
+    input: Record<string, any>
+  ): Promise<{ output: any; tokensUsed?: number; costUsd?: string; provider: string }> {
+    // Extract search parameters from input
+    const searchQuery = this.buildPromptFromTemplate(step.promptTemplate, input);
+    
+    try {
+      let searchResult;
+      
+      // Determine search type based on step name/description
+      if (step.name.toLowerCase().includes('news') || step.description.toLowerCase().includes('news')) {
+        // News search
+        searchResult = await tavilyService.search({
+          query: searchQuery,
+          search_depth: 'advanced',
+          max_results: 5,
+          include_answer: true,
+          include_images: false
+        });
+      } else if (step.name.toLowerCase().includes('quick') || step.description.toLowerCase().includes('quick')) {
+        // Quick search
+        searchResult = await tavilyService.quickSearch(searchQuery);
+      } else if (step.name.toLowerCase().includes('research') || step.description.toLowerCase().includes('comprehensive')) {
+        // Comprehensive research
+        const topic = input.topic || searchQuery;
+        const aspects = input.focusAreas ? input.focusAreas.split(',').map((s: string) => s.trim()) : [];
+        searchResult = await tavilyService.researchTopic(topic, aspects);
+      } else {
+        // Default search
+        searchResult = await tavilyService.search({
+          query: searchQuery,
+          search_depth: input.researchDepth || 'basic',
+          max_results: input.maxResults || 5,
+          include_answer: true
+        });
+      }
+
+      return {
+        output: JSON.stringify(searchResult, null, 2),
+        tokensUsed: Math.ceil(searchQuery.length / 4), // Approximate token count
+        costUsd: '0.001', // Approximate cost
+        provider: 'tavily'
+      };
+      
+    } catch (error) {
+      console.error('Tavily step execution failed:', error);
+      throw new Error(`Web search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private buildPromptFromTemplate(template: string, variables: Record<string, any>): string {

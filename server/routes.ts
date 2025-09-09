@@ -18,6 +18,7 @@ import subscriptionRoutes from "./routes/subscriptions";
 import replitUserSearchRoutes from "./routes/replitUserSearch";
 import consciousnessRoutes from "./routes/consciousness";
 import agenticRoutes from "./routes/agentic";
+import webSearchRoutes from "./routes/webSearch";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - Comment out Replit auth for now
@@ -769,6 +770,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register agentic system routes
   app.use('/api/agentic', agenticRoutes);
+  
+  // Register web search routes
+  app.use('/api/web-search', webSearchRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);
