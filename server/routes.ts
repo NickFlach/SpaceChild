@@ -376,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             request: enhancedMessage,
             context: {
               domain: 'web_research',
-              complexity: 'moderate',
+              complexity: 'moderate' as const,
               capabilities: ['web_search', 'real_time_info']
             }
           };

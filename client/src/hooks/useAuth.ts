@@ -15,14 +15,14 @@ export function useAuth() {
   }, []);
 
   const { data: user, isLoading, error, refetch } = useQuery<User | null>({
-    queryKey: ['/api/auth/user'],
+    queryKey: ['/api/zkp/auth/user'],
     queryFn: async () => {
       const token = localStorage.getItem('zkp_token');
       if (!token) {
         return null;
       }
 
-      const response = await fetch('/api/auth/user', {
+      const response = await fetch('/api/zkp/auth/user', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -62,7 +62,7 @@ export function useAuth() {
       setToken(null);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/zkp/auth/user'] });
       // Force reload to go back to landing page
       window.location.href = '/';
     },

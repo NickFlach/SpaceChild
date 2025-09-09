@@ -59,7 +59,7 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
         title: "Success",
         description: "Profile updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/zkp/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
     },
     onError: () => {

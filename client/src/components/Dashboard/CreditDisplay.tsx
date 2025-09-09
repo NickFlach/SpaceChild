@@ -23,41 +23,21 @@ export default function CreditDisplay({ className }: CreditDisplayProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCreditData = async () => {
-      if (!user?.id) return;
-      
-      try {
-        setIsLoading(true);
-        const [subscription, creditCheck] = await Promise.all([
-          PricingService.getUserSubscription(user.id),
-          PricingService.checkCredits(user.id, 0),
-        ]);
+    if (user) {
+      setIsLoading(false);
+      const totalCredits = user.monthlyCredits || 100;
+      const usedCredits = user.usedCredits || 0;
+      const availableCredits = totalCredits - usedCredits;
+      const resetDate = user.creditResetDate ? new Date(user.creditResetDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-        if (subscription) {
-          const plan = await PricingService.getPlanById(subscription.planId);
-          setCreditData({
-            availableCredits: creditCheck.availableCredits,
-            totalCredits: plan?.monthlyCredits || 100,
-            usedCredits: (plan?.monthlyCredits || 100) - creditCheck.availableCredits,
-            resetDate: new Date(subscription.currentPeriodEnd),
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching credit data:', error);
-        // Use mock data as fallback
-        setCreditData({
-          availableCredits: 85,
-          totalCredits: 100,
-          usedCredits: 15,
-          resetDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCreditData();
-  }, [user?.id]);
+      setCreditData({
+        availableCredits,
+        totalCredits,
+        usedCredits,
+        resetDate,
+      });
+    }
+  }, [user]);
 
   const usagePercentage = (creditData.usedCredits / creditData.totalCredits) * 100;
   const isLowCredits = creditData.availableCredits < creditData.totalCredits * 0.2;

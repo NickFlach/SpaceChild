@@ -12,9 +12,25 @@ router.post('/register', async (req, res) => {
   try {
     const { email, username, salt, verifier, subscriptionTier } = req.body;
 
+    // Input validation
     if (!email || !username || !salt || !verifier) {
       return res.status(400).json({ 
         message: 'Email, username, salt, and verifier are required' 
+      });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        message: 'Invalid email format' 
+      });
+    }
+
+    // Username validation
+    if (username.length < 3 || username.length > 50) {
+      return res.status(400).json({ 
+        message: 'Username must be between 3 and 50 characters' 
       });
     }
 
@@ -36,9 +52,16 @@ router.post('/auth/start', async (req, res) => {
   try {
     const { username, clientEphemeralPublic } = req.body;
 
+    // Input validation
     if (!username || !clientEphemeralPublic) {
       return res.status(400).json({ 
         message: 'Username and client ephemeral public key are required' 
+      });
+    }
+
+    if (typeof username !== 'string' || typeof clientEphemeralPublic !== 'string') {
+      return res.status(400).json({ 
+        message: 'Invalid input types' 
       });
     }
 
@@ -64,9 +87,16 @@ router.post('/auth/complete', async (req, res) => {
   try {
     const { sessionId, clientEphemeralPublic, clientProof } = req.body;
 
+    // Input validation
     if (!sessionId || !clientEphemeralPublic || !clientProof) {
       return res.status(400).json({ 
         message: 'Session ID, client ephemeral public key, and client proof are required' 
+      });
+    }
+
+    if (typeof sessionId !== 'string' || typeof clientEphemeralPublic !== 'string' || typeof clientProof !== 'string') {
+      return res.status(400).json({ 
+        message: 'Invalid input types' 
       });
     }
 
@@ -145,45 +175,5 @@ router.get('/auth/user', zkpAuthenticated, async (req: any, res) => {
   }
 });
 
-/**
- * Demo endpoint for testing SRP client-side
- * This would normally be done on the client
- */
-router.post('/demo/client-srp', async (req, res) => {
-  try {
-    const { username, password, action } = req.body;
-
-    if (action === 'start') {
-      // Generate client ephemeral
-      const salt = srpClient.generateSalt();
-      const privateKey = srpClient.derivePrivateKey(salt, username, password);
-      const clientEphemeral = srpClient.generateEphemeral();
-      
-      res.json({
-        clientEphemeralPublic: clientEphemeral.public,
-        clientEphemeralSecret: clientEphemeral.secret,
-        privateKey
-      });
-    } else if (action === 'complete') {
-      const { salt, serverEphemeralPublic, clientEphemeralSecret, privateKey } = req.body;
-      
-      // Derive session and generate proof
-      const clientSession = srpClient.deriveSession(
-        clientEphemeralSecret,
-        serverEphemeralPublic,
-        salt,
-        username,
-        privateKey
-      );
-      
-      res.json({
-        clientProof: clientSession.proof,
-        sessionKey: clientSession.key
-      });
-    }
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-});
 
 export default router;
