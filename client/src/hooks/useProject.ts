@@ -18,7 +18,7 @@ export function useProject() {
   // Handle projects error
   useEffect(() => {
     if (projectsError && isUnauthorizedError(projectsError as Error)) {
-      window.location.href = "/api/login";
+      window.location.href = "/";
     }
   }, [projectsError]);
 
@@ -31,7 +31,7 @@ export function useProject() {
   // Handle current project error
   useEffect(() => {
     if (currentProjectError && isUnauthorizedError(currentProjectError as Error)) {
-      window.location.href = "/api/login";
+      window.location.href = "/";
     }
   }, [currentProjectError]);
 
@@ -67,12 +67,12 @@ export function useProject() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
+          title: "Unauthorized", 
           description: "You are logged out. Logging in again...",
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/";
         }, 500);
         return;
       }
@@ -96,7 +96,7 @@ export function useProject() {
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
+        window.location.href = "/";
         return;
       }
       toast({
@@ -126,7 +126,7 @@ export function useProject() {
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
+        window.location.href = "/";
         return;
       }
       toast({
@@ -155,7 +155,7 @@ export function useProject() {
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
+        window.location.href = "/";
         return;
       }
       toast({
