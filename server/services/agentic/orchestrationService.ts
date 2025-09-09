@@ -38,6 +38,8 @@ export interface AgenticResponse {
   iterations: number;
   providers_used: string[];
   execution_time_ms: number;
+  strategy?: 'simple' | 'agentic';
+  webSearchResults?: any;
   metadata: {
     routing_decision?: any;
     planning_used?: boolean;
@@ -149,6 +151,8 @@ class AgenticOrchestrationService {
         iterations: strategy.use_reflection ? 2 : 1,
         providers_used: [executionResult.provider_used],
         execution_time_ms: endTime - startTime,
+        strategy: strategy.approach === 'simple' ? 'simple' : 'agentic',
+        webSearchResults: executionResult.webSearchResults,
         metadata: {
           routing_decision: strategy.routing_decision,
           planning_used: strategy.use_planning,
@@ -304,6 +308,26 @@ class AgenticOrchestrationService {
     }
 
     return 'general';
+  }
+
+  private extractSearchQuery(request: string): string {
+    // Extract the most relevant search terms from the request
+    const searchIndicators = ['search for', 'find', 'what is', 'latest', 'current', 'recent', 'news about', 'information about'];
+    const lowerRequest = request.toLowerCase();
+    
+    // Try to find specific search phrases
+    for (const indicator of searchIndicators) {
+      const index = lowerRequest.indexOf(indicator);
+      if (index !== -1) {
+        const afterIndicator = request.substring(index + indicator.length).trim();
+        if (afterIndicator.length > 0) {
+          return afterIndicator.split('.')[0].split('?')[0].trim(); // Take first sentence
+        }
+      }
+    }
+    
+    // If no specific indicators found, use the request but limit length
+    return request.length > 100 ? request.substring(0, 100) + '...' : request;
   }
 
   private async getUserContext(userId: string): Promise<any> {
@@ -484,8 +508,25 @@ Please complete this task thoroughly.`;
     request: AgenticRequest,
     strategy: any
   ): Promise<any> {
+    let webSearchResults = null;
+    let enhancedRequest = request.request;
+    
+    // Check if request needs web search
+    if (request.context?.domain === 'web_research' || strategy.requiresWebSearch) {
+      try {
+        // Perform web search
+        const searchQuery = this.extractSearchQuery(request.request);
+        webSearchResults = await tavilyService.quickSearch(searchQuery);
+        
+        // Enhance request with web search results
+        enhancedRequest = `${request.request}\n\nCurrent web information:\n${JSON.stringify(webSearchResults, null, 2)}`;
+      } catch (webSearchError) {
+        console.warn('Web search failed during direct execution:', webSearchError);
+      }
+    }
+
     const result = await aiProviderService.generateCode(
-      request.request,
+      enhancedRequest,
       strategy.selected_provider,
       request.projectId
     );
@@ -495,7 +536,8 @@ Please complete this task thoroughly.`;
       total_tokens: result.tokensUsed,
       total_cost: result.cost,
       provider_used: strategy.selected_provider,
-      execution_type: 'direct'
+      execution_type: 'direct',
+      webSearchResults
     };
   }
 

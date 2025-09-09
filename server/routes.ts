@@ -10,7 +10,7 @@ import { consciousnessService } from "./services/consciousness";
 import { superintelligenceService } from "./services/superintelligence";
 import { aiProviderService } from "./services/aiProviders";
 import { projectMemoryService } from "./services/projectMemory";
-import { orchestrationService } from "./services/agentic/orchestrationService";
+import { agenticOrchestrationService } from "./services/agentic/orchestrationService";
 import projectMemoryRoutes from "./routes/projectMemory";
 import templateRoutes from "./routes/templates";
 import sandboxRoutes from "./routes/sandbox";
@@ -381,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           
-          const orchestrationResult = await orchestrationService.processRequest(orchestrationRequest);
+          const orchestrationResult = await agenticOrchestrationService.processRequest(orchestrationRequest);
           
           if (orchestrationResult.strategy === 'agentic' && orchestrationResult.webSearchResults) {
             // Add web search results to the enhanced message
