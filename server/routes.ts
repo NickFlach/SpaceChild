@@ -10,6 +10,7 @@ import { consciousnessService } from "./services/consciousness";
 import { superintelligenceService } from "./services/superintelligence";
 import { aiProviderService } from "./services/aiProviders";
 import { projectMemoryService } from "./services/projectMemory";
+import { orchestrationService } from "./services/agentic/orchestrationService";
 import projectMemoryRoutes from "./routes/projectMemory";
 import templateRoutes from "./routes/templates";
 import sandboxRoutes from "./routes/sandbox";
@@ -351,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/ai/chat', zkpAuthenticated, async (req: any, res) => {
     try {
-      const { message, provider = 'anthropic', projectId } = req.body;
+      const { message, provider = 'anthropic', projectId, enableWebSearch = false } = req.body;
       const userId = req.user.claims.sub;
       
       // Get relevant memories if projectId is provided
@@ -361,9 +362,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Add contextual hints to the message
-      const enhancedMessage = contextualHints.length > 0 
+      let enhancedMessage = contextualHints.length > 0 
         ? `${message}\n\nContext from previous interactions:\n${contextualHints.join('\n')}`
         : message;
+      
+      // Check if web search is enabled and if the query needs real-time information
+      if (enableWebSearch) {
+        try {
+          // Use orchestration service to determine if web search is needed
+          const orchestrationRequest = {
+            userId,
+            projectId,
+            request: enhancedMessage,
+            context: {
+              domain: 'web_research',
+              complexity: 'moderate',
+              capabilities: ['web_search', 'real_time_info']
+            }
+          };
+          
+          const orchestrationResult = await orchestrationService.processRequest(orchestrationRequest);
+          
+          if (orchestrationResult.strategy === 'agentic' && orchestrationResult.webSearchResults) {
+            // Add web search results to the enhanced message
+            enhancedMessage = `${enhancedMessage}\n\nCurrent web information:\n${JSON.stringify(orchestrationResult.webSearchResults, null, 2)}`;
+          }
+        } catch (webSearchError) {
+          console.warn('Web search failed, continuing with regular chat:', webSearchError);
+        }
+      }
       
       const result = await aiProviderService.chat(enhancedMessage, provider, projectId);
       

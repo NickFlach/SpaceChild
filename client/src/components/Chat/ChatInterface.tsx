@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Bot, User, Paperclip, Mic, Send, Loader2, FileCode, Eye } from "lucide-react";
+import { Bot, User, Paperclip, Mic, Send, Loader2, FileCode, Eye, Search, Globe } from "lucide-react";
 import { useEditorContextSubscription } from "@/contexts/EditorContext";
 import type { Project } from "@shared/schema";
 
@@ -29,6 +29,7 @@ export default function ChatInterface({ project }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [provider, setProvider] = useState("anthropic");
   const [includeFileContext, setIncludeFileContext] = useState(true);
+  const [enableWebSearch, setEnableWebSearch] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -53,6 +54,7 @@ User Message: ${message}`;
         message: contextualMessage,
         provider,
         projectId: project?.id,
+        enableWebSearch,
       });
       return response.json();
     },
@@ -162,16 +164,30 @@ User Message: ${message}`;
                   <FileCode className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Context: {editorContext.file.filePath}</span>
                 </div>
-                <button
-                  onClick={() => setIncludeFileContext(!includeFileContext)}
-                  className={`text-xs px-2 py-1 rounded ${
-                    includeFileContext 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  {includeFileContext ? 'Context On' : 'Context Off'}
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setIncludeFileContext(!includeFileContext)}
+                    className={`text-xs px-2 py-1 rounded ${
+                      includeFileContext 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {includeFileContext ? 'Context On' : 'Context Off'}
+                  </button>
+                  <button
+                    onClick={() => setEnableWebSearch(!enableWebSearch)}
+                    className={`text-xs px-2 py-1 rounded flex items-center space-x-1 ${
+                      enableWebSearch 
+                        ? 'bg-cyan-600 text-white' 
+                        : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                    }`}
+                    title={enableWebSearch ? 'Disable web search' : 'Enable web search for real-time information'}
+                  >
+                    <Globe className="h-3 w-3" />
+                    <span>{enableWebSearch ? 'Web On' : 'Web Off'}</span>
+                  </button>
+                </div>
               </div>
               <div className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
                 <div>Language: {editorContext.language} • Line: {editorContext.cursorPosition.line} • {editorContext.lineCount} lines total</div>
@@ -310,6 +326,16 @@ User Message: ${message}`;
                   title="Voice input (coming soon)"
                 >
                   <Mic className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant={enableWebSearch ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setEnableWebSearch(!enableWebSearch)}
+                  className={`p-1 h-auto ${enableWebSearch ? 'bg-cyan-600 hover:bg-cyan-700 text-white' : 'opacity-60 hover:opacity-100'}`}
+                  disabled={chatMutation.isPending}
+                  title={enableWebSearch ? "Disable web search" : "Enable web search for real-time information"}
+                >
+                  <Globe className="h-3 w-3" />
                 </Button>
               </div>
             </div>
