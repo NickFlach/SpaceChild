@@ -14,7 +14,7 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import * as parser from "@babel/parser";
-import traverse from "@babel/traverse";
+import { default as babelTraverse } from "@babel/traverse";
 import generate from "@babel/generator";
 import { OpenAI } from "openai";
 import { Anthropic } from "@anthropic-ai/sdk";
@@ -53,7 +53,7 @@ export class SuperintelligenceService {
    * Analyze code using AST parsing and AI-powered insights
    */
   async analyzeCode(
-    projectId: number,
+    projectId: number | string,
     fileId: string,
     code: string,
     language: string = "typescript",
@@ -86,7 +86,7 @@ export class SuperintelligenceService {
       const usedVariables = new Set<string>();
       let complexity = 1;
 
-      traverse(ast, {
+      babelTraverse(ast, {
         // Track complexity
         IfStatement() {
           complexity++;
@@ -229,7 +229,7 @@ export class SuperintelligenceService {
 
       // Store analysis in database
       const analysisData: InsertSuperintelligenceAnalysis = {
-        projectId,
+        projectId: String(projectId),
         fileId,
         analysisType: "code_quality",
         results: analysis,
@@ -253,7 +253,7 @@ export class SuperintelligenceService {
    * Generate performance optimization suggestions
    */
   async optimizePerformance(
-    projectId: number,
+    projectId: number | string,
     analysis: CodeAnalysis,
   ): Promise<SuperintelligenceOptimization[]> {
     const optimizations: InsertSuperintelligenceOptimization[] = [];
@@ -261,7 +261,7 @@ export class SuperintelligenceService {
     // Check for performance anti-patterns
     if (analysis.metrics.cyclomaticComplexity > 10) {
       optimizations.push({
-        projectId,
+        projectId: String(projectId),
         optimizationType: "refactoring",
         description: "High cyclomatic complexity detected",
         impact: "high",
@@ -305,7 +305,7 @@ function processData(data) {
     // Check for unused variables
     if (analysis.metrics.unusedVariables.length > 0) {
       optimizations.push({
-        projectId,
+        projectId: String(projectId),
         optimizationType: "cleanup",
         description: "Remove unused variables to reduce memory usage",
         impact: "low",
@@ -323,7 +323,7 @@ function processData(data) {
     }
 
     // Use AI for advanced optimization suggestions
-    const aiOptimizations = await this.getAIOptimizations(projectId, analysis);
+    const aiOptimizations = await this.getAIOptimizations(String(projectId), analysis);
     optimizations.push(...aiOptimizations);
 
     // Store optimizations in database
@@ -339,7 +339,7 @@ function processData(data) {
    * Generate architecture recommendations
    */
   async recommendArchitecture(
-    projectId: number,
+    projectId: number | string,
     projectType: string,
     currentStructure: any,
   ): Promise<SuperintelligenceRecommendation[]> {
@@ -418,7 +418,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 
     for (const rec of baseRecommendations) {
       recommendations.push({
-        projectId,
+        projectId: String(projectId),
         recommendationType: rec.type,
         title: rec.title,
         description: rec.description,
@@ -433,7 +433,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 
     // Get AI-powered recommendations
     const aiRecommendations = await this.getAIArchitectureRecommendations(
-      projectId,
+      String(projectId),
       projectType,
       currentStructure,
     );
@@ -452,7 +452,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Predict potential bugs using pattern matching
    */
   async predictBugs(
-    projectId: number,
+    projectId: number | string,
     code: string,
     history?: any[],
   ): Promise<any[]> {
@@ -505,7 +505,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 
     // Store predictions
     const analysis: InsertSuperintelligenceAnalysis = {
-      projectId,
+      projectId: String(projectId),
       fileId: "", // Would need actual file ID
       analysisType: "bug_prediction",
       results: { predictions },
@@ -522,7 +522,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Get AI-powered optimization suggestions
    */
   private async getAIOptimizations(
-    projectId: number,
+    projectId: number | string,
     analysis: CodeAnalysis,
   ): Promise<InsertSuperintelligenceOptimization[]> {
     const cacheKey = `opt_${projectId}_${JSON.stringify(analysis.metrics)}`;
@@ -549,7 +549,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 
       // This is simplified - in reality, we'd parse the AI response more carefully
       optimizations.push({
-        projectId,
+        projectId: String(projectId),
         optimizationType: "ai_suggested",
         description: "AI-powered optimization suggestions",
         impact: "medium",
@@ -580,7 +580,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Get AI-powered architecture recommendations
    */
   private async getAIArchitectureRecommendations(
-    projectId: number,
+    projectId: number | string,
     projectType: string,
     currentStructure: any,
   ): Promise<InsertSuperintelligenceRecommendation[]> {
@@ -610,7 +610,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
       const recommendations: InsertSuperintelligenceRecommendation[] = [];
 
       recommendations.push({
-        projectId,
+        projectId: String(projectId),
         recommendationType: "ai_analysis",
         title: "AI-Powered Architecture Analysis",
         description:
@@ -645,7 +645,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Get recent analyses for a project
    */
   async getProjectAnalyses(
-    projectId: number,
+    projectId: number | string,
   ): Promise<SuperintelligenceAnalysis[]> {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
@@ -654,7 +654,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
       .from(superintelligenceAnalyses)
       .where(
         and(
-          eq(superintelligenceAnalyses.projectId, projectId),
+          eq(superintelligenceAnalyses.projectId, String(projectId)),
           gte(superintelligenceAnalyses.timestamp, oneHourAgo),
         ),
       )
@@ -666,12 +666,12 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Get optimizations for a project
    */
   async getProjectOptimizations(
-    projectId: number,
+    projectId: number | string,
   ): Promise<SuperintelligenceOptimization[]> {
     return await db
       .select()
       .from(superintelligenceOptimizations)
-      .where(eq(superintelligenceOptimizations.projectId, projectId))
+      .where(eq(superintelligenceOptimizations.projectId, String(projectId)))
       .orderBy(desc(superintelligenceOptimizations.createdAt))
       .limit(20);
   }
@@ -680,12 +680,12 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
    * Get recommendations for a project
    */
   async getProjectRecommendations(
-    projectId: number,
+    projectId: number | string,
   ): Promise<SuperintelligenceRecommendation[]> {
     return await db
       .select()
       .from(superintelligenceRecommendations)
-      .where(eq(superintelligenceRecommendations.projectId, projectId))
+      .where(eq(superintelligenceRecommendations.projectId, String(projectId)))
       .orderBy(desc(superintelligenceRecommendations.priority))
       .limit(20);
   }

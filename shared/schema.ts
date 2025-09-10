@@ -520,7 +520,7 @@ export type AiProviderUsage = typeof aiProviderUsage.$inferSelect;
 // Superintelligence analysis results
 export const superintelligenceAnalyses = pgTable("superintelligence_analyses", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id),
+  projectId: varchar("project_id").notNull(),
   fileId: varchar("file_id"),
   analysisType: varchar("analysis_type").notNull(), // 'code_quality', 'performance', 'security', 'bug_prediction'
   results: jsonb("results").notNull(),
@@ -535,7 +535,7 @@ export type InsertSuperintelligenceAnalysis = typeof superintelligenceAnalyses.$
 // Superintelligence optimization suggestions
 export const superintelligenceOptimizations = pgTable("superintelligence_optimizations", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id),
+  projectId: varchar("project_id").notNull(),
   optimizationType: varchar("optimization_type").notNull(), // 'performance', 'memory', 'bundle_size', 'refactoring'
   description: text("description").notNull(),
   impact: varchar("impact").notNull(), // 'low', 'medium', 'high', 'critical'
@@ -552,7 +552,7 @@ export type InsertSuperintelligenceOptimization = typeof superintelligenceOptimi
 // Superintelligence architecture recommendations
 export const superintelligenceRecommendations = pgTable("superintelligence_recommendations", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id),
+  projectId: varchar("project_id").notNull(),
   recommendationType: varchar("recommendation_type").notNull(), // 'structure', 'pattern', 'security', 'performance'
   title: varchar("title").notNull(),
   description: text("description").notNull(),
