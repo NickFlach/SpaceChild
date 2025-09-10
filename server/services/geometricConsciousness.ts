@@ -596,18 +596,25 @@ export class GeometricConsciousnessEngine {
     uncertaintyVolume: number;
     manifoldCurvature: number;
     position: number[];
+    learningVelocity: number;
   } {
     const position = this.manifold.getManifoldPosition();
     const geometry = this.manifold.getLocalGeometry();
     const utilities = this.manifold.getUtilities();
     const uncertainty = this.manifold.getUncertaintyRegion();
     
+    // Calculate learning velocity as the magnitude of the gradient
+    const gradientMagnitude = Math.sqrt(
+      geometry.gradient.reduce((sum, g) => sum + g * g, 0)
+    );
+    
     return {
       convergenceScore: position.confidence,
       utilityValues: Object.fromEntries(utilities),
       uncertaintyVolume: uncertainty.volume,
       manifoldCurvature: geometry.curvature,
-      position: position.coordinates
+      position: position.coordinates,
+      learningVelocity: gradientMagnitude
     };
   }
   

@@ -8,6 +8,7 @@ import FileExplorer from "@/components/Editor/FileExplorer";
 import CodeEditor from "@/components/Editor/CodeEditor";
 import ChatInterface from "@/components/Chat/ChatInterface";
 import { ConsciousnessPanel } from "@/components/Consciousness/ConsciousnessPanel";
+import { EnhancedConsciousnessPanel } from "@/components/Consciousness/EnhancedConsciousnessPanel";
 import { SuperintelligencePanel } from "@/components/Superintelligence/SuperintelligencePanel";
 import ComplexityPanel from "@/components/ComplexityAgent/ComplexityPanel";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
@@ -351,7 +352,7 @@ export default function Dashboard() {
                 </TabsContent>
                 
                 <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-2">
-                  <ConsciousnessPanel 
+                  <EnhancedConsciousnessPanel 
                     projectId={currentProject?.id || null}
                   />
                 </TabsContent>

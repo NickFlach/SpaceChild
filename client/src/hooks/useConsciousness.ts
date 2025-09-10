@@ -45,16 +45,7 @@ export function useConsciousness(projectId: number | null) {
   // Activate consciousness for a project
   const activateMutation = useMutation({
     mutationFn: async (projectId: number): Promise<ConsciousnessSession> => {
-      const response = await fetch('/api/consciousness/activate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId }),
-      });
-      if (!response.ok) {
-        throw new Error(`${response.status}: ${response.statusText}`);
-      }
+      const response = await apiRequest('POST', '/api/consciousness/activate', { projectId });
       return response.json();
     },
     onSuccess: (session) => {
@@ -69,20 +60,11 @@ export function useConsciousness(projectId: number | null) {
       if (!activeSession) {
         throw new Error("Consciousness not activated");
       }
-      const response = await fetch('/api/consciousness/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: activeSession.sessionId,
-          query,
-          projectId,
-        }),
+      const response = await apiRequest('POST', '/api/consciousness/query', {
+        sessionId: activeSession.sessionId,
+        query,
+        projectId,
       });
-      if (!response.ok) {
-        throw new Error(`${response.status}: ${response.statusText}`);
-      }
       return response.json();
     },
     onSuccess: () => {

@@ -382,7 +382,7 @@ export class DatabaseStorage implements IStorage {
       aiProviders: template.aiProviders ? (Array.isArray(template.aiProviders) ? template.aiProviders : [template.aiProviders as string]) : undefined,
     };
     
-    const [newTemplate] = await db.insert(projectTemplates).values([formattedTemplate]).returning();
+    const [newTemplate] = await db.insert(projectTemplates).values(formattedTemplate).returning();
     return newTemplate;
   }
   

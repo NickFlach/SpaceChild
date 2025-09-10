@@ -2,6 +2,8 @@ import { Router } from "express";
 import { GeometricConsciousnessEngine } from "../services/geometricConsciousness";
 import { GeometricAICoordinator } from "../services/geometricAICoordinator";
 import { GeometricServiceCoordinator } from "../services/geometricServiceCoordinator";
+import { EnhancedConsciousnessEngine } from "../services/consciousnessEnhanced";
+import { zkpAuthenticated } from "../services/zkpAuth";
 
 const router = Router();
 
@@ -11,6 +13,9 @@ const consciousnessInstances = new Map<string, {
   aiCoordinator: GeometricAICoordinator;
   serviceCoordinator: GeometricServiceCoordinator;
 }>();
+
+// Store enhanced consciousness instances per session
+const enhancedConsciousnessInstances = new Map<string, EnhancedConsciousnessEngine>();
 
 /**
  * Get or create consciousness instance for a session
@@ -39,6 +44,25 @@ function getConsciousnessInstance(userId: string, projectId: number, sessionId: 
   }
   
   return consciousnessInstances.get(key)!;
+}
+
+/**
+ * Get or create enhanced consciousness instance for a session
+ */
+function getEnhancedConsciousnessInstance(userId: string, projectId: number, sessionId: string): EnhancedConsciousnessEngine {
+  const key = `${userId}-${projectId}-${sessionId}`;
+  
+  if (!enhancedConsciousnessInstances.has(key)) {
+    const context = { userId, projectId, sessionId, timestamp: new Date() };
+    const engine = new EnhancedConsciousnessEngine(context);
+    
+    enhancedConsciousnessInstances.set(key, engine);
+    
+    // Initialize enhanced consciousness
+    engine.initializeEnhanced().catch(console.error);
+  }
+  
+  return enhancedConsciousnessInstances.get(key)!;
 }
 
 /**
@@ -272,6 +296,208 @@ router.get("/insights", async (req, res) => {
     console.error("Error getting consciousness insights:", error);
     res.status(500).json({
       error: "Failed to get insights",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * GET /api/consciousness/enhanced/state
+ * Get enhanced consciousness state with cross-project insights
+ */
+router.get("/enhanced/state", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId } = req.query;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId) {
+      return res.status(400).json({
+        error: "Missing required parameters: projectId, sessionId"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId as string), sessionId as string);
+    const enhancedState = await engine.initializeEnhanced();
+    const metrics = engine.getEnhancedMetrics();
+    
+    res.json({
+      success: true,
+      enhancedState: {
+        baseState: enhancedState.baseState,
+        crossProjectInsights: enhancedState.crossProjectInsights,
+        predictiveCapabilities: enhancedState.predictiveCapabilities,
+        multiAgentStatus: enhancedState.multiAgentStatus,
+        enhancedMetrics: metrics
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error getting enhanced consciousness state:", error);
+    res.status(500).json({
+      error: "Failed to get enhanced consciousness state",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * POST /api/consciousness/enhanced/interact
+ * Process interaction through enhanced consciousness
+ */
+router.post("/enhanced/interact", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId, interaction, context, response } = req.body;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId || !interaction) {
+      return res.status(400).json({
+        error: "Missing required fields: projectId, sessionId, interaction"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId), sessionId);
+    const result = await engine.processEnhancedInteraction(interaction, context || {}, response || {});
+    
+    res.json({
+      success: true,
+      result
+    });
+    
+  } catch (error) {
+    console.error("Error processing enhanced consciousness interaction:", error);
+    res.status(500).json({
+      error: "Failed to process enhanced interaction",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * GET /api/consciousness/enhanced/insights
+ * Get cross-project learning insights
+ */
+router.get("/enhanced/insights", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId } = req.query;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId) {
+      return res.status(400).json({
+        error: "Missing required parameters: projectId, sessionId"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId as string), sessionId as string);
+    const insights = await engine.generateCrossProjectInsights();
+    
+    res.json({
+      success: true,
+      crossProjectInsights: insights,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error("Error getting cross-project insights:", error);
+    res.status(500).json({
+      error: "Failed to get cross-project insights",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * GET /api/consciousness/enhanced/predictions
+ * Get predictive capabilities and next action predictions
+ */
+router.get("/enhanced/predictions", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId, context } = req.query;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId) {
+      return res.status(400).json({
+        error: "Missing required parameters: projectId, sessionId"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId as string), sessionId as string);
+    const predictions = await engine.generatePredictions("", JSON.parse((context as string) || "{}"));
+    
+    res.json({
+      success: true,
+      predictions,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error("Error getting predictions:", error);
+    res.status(500).json({
+      error: "Failed to get predictions",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * GET /api/consciousness/enhanced/consensus
+ * Get multi-agent consensus on responses
+ */
+router.get("/enhanced/consensus", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId, interaction, response } = req.query;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId || !interaction || !response) {
+      return res.status(400).json({
+        error: "Missing required parameters: projectId, sessionId, interaction, response"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId as string), sessionId as string);
+    const consensus = await engine.getAgentConsensus(interaction as string, JSON.parse((response as string) || "{}"));
+    
+    res.json({
+      success: true,
+      consensus,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error("Error getting agent consensus:", error);
+    res.status(500).json({
+      error: "Failed to get agent consensus",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * POST /api/consciousness/enhanced/configure
+ * Configure enhanced consciousness features
+ */
+router.post("/enhanced/configure", zkpAuthenticated, async (req: any, res) => {
+  try {
+    const { projectId, sessionId, config } = req.body;
+    const userId = req.user.claims.sub;
+    
+    if (!projectId || !sessionId || !config) {
+      return res.status(400).json({
+        error: "Missing required fields: projectId, sessionId, config"
+      });
+    }
+    
+    const engine = getEnhancedConsciousnessInstance(userId, parseInt(projectId), sessionId);
+    engine.configureEnhancedFeatures(config);
+    
+    res.json({
+      success: true,
+      message: "Enhanced consciousness features configured successfully"
+    });
+    
+  } catch (error) {
+    console.error("Error configuring enhanced consciousness:", error);
+    res.status(500).json({
+      error: "Failed to configure enhanced consciousness",
       details: error instanceof Error ? error.message : "Unknown error"
     });
   }

@@ -188,20 +188,102 @@ export class ProjectMemoryService {
   }
 
   /**
-   * Apply learned patterns to new code generation
+   * Apply learned patterns to new code generation (Enhanced with Cross-Project Learning)
    */
   async applyLearnedPatterns(
     projectId: number,
-    requestContext: string
+    requestContext: string,
+    limit: number = 5
   ): Promise<string[]> {
-    const relevantMemories = await this.getRelevantMemories(projectId, requestContext);
+    // Get patterns from current project
+    const currentProjectMemories = await this.getRelevantMemories(projectId, requestContext, limit);
     
-    return relevantMemories.map(memory => {
+    // Get cross-project patterns for enhanced learning
+    const crossProjectMemories = await this.getCrossProjectMemories(projectId, requestContext, limit);
+    
+    // Combine and prioritize by confidence and relevance
+    const allMemories = [...currentProjectMemories, ...crossProjectMemories]
+      .filter(memory => Number(memory.confidence) > 0.6)
+      .sort((a, b) => {
+        // Prioritize current project memories slightly
+        const aScore = Number(a.confidence) + (a.projectId === projectId ? 0.1 : 0);
+        const bScore = Number(b.confidence) + (b.projectId === projectId ? 0.1 : 0);
+        return bScore - aScore;
+      })
+      .slice(0, limit);
+    
+    return allMemories.map(memory => {
       const metadata = memory.metadata as any;
-      return `Based on previous patterns: ${memory.content}${
+      const isFromCurrentProject = memory.projectId === projectId;
+      const prefix = isFromCurrentProject 
+        ? "Based on this project's patterns:" 
+        : "Based on patterns from similar projects:";
+      
+      return `${prefix} ${memory.content}${
         metadata?.context ? ` (Context: ${metadata.context})` : ''
       }`;
     });
+  }
+
+  /**
+   * Get relevant memories from other projects by the same user (Cross-Project Learning)
+   */
+  private async getCrossProjectMemories(
+    currentProjectId: number,
+    context: string,
+    limit: number = 5
+  ): Promise<ProjectMemory[]> {
+    try {
+      // Get current project to find user ID
+      const currentProject = await storage.getProject(currentProjectId);
+      if (!currentProject) return [];
+
+      // Get all user's projects (this will require a new storage method)
+      const userProjects = await this.getUserProjectIds(currentProject.userId);
+      const otherProjectIds = userProjects.filter(id => id !== currentProjectId);
+
+      if (otherProjectIds.length === 0) return [];
+
+      // Search for relevant memories across user's other projects
+      const crossProjectMemories: ProjectMemory[] = [];
+      
+      for (const projectId of otherProjectIds.slice(0, 8)) { // Limit to recent 8 projects
+        try {
+          const memories = await storage.searchProjectMemories(projectId, context);
+          crossProjectMemories.push(
+            ...memories
+              .filter(m => Number(m.confidence) > 0.5)
+              .slice(0, 2) // Top 2 from each project
+          );
+        } catch (error) {
+          // Skip projects with access issues
+          console.warn(`Failed to access memories for project ${projectId}:`, error);
+        }
+      }
+
+      // Sort by confidence and return top matches
+      return crossProjectMemories
+        .sort((a, b) => Number(b.confidence) - Number(a.confidence))
+        .slice(0, limit);
+        
+    } catch (error) {
+      console.error('Error getting cross-project memories:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all project IDs for a user (helper method)
+   */
+  private async getUserProjectIds(userId: string): Promise<number[]> {
+    try {
+      // Use existing storage method to get user's projects
+      const projects = await storage.getProjectsByUserId(userId);
+      return projects.map(project => project.id);
+    } catch (error) {
+      console.error('Error getting user project IDs:', error);
+      return [];
+    }
   }
 
   /**
