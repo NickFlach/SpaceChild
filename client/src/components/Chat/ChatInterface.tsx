@@ -153,7 +153,7 @@ User Message: ${message}`;
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden min-h-0">
       {/* Current File Context */}
       {editorContext.file && (
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -203,7 +203,7 @@ User Message: ${message}`;
       )}
       
       {/* Chat Messages */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea ref={scrollAreaRef} className="h-full w-full">
           <div className="p-4 space-y-4">
             {messages.length === 0 ? (
