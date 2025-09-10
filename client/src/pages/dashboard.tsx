@@ -351,25 +351,25 @@ export default function Dashboard() {
                   <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
-                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-hidden p-2">
                   <EnhancedConsciousnessPanel 
                     projectId={currentProject?.id || null}
                   />
                 </TabsContent>
 
-                <TabsContent value="complexity" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="complexity" className="flex-1 mt-0 overflow-hidden p-2">
                   {currentProject && (
                     <ComplexityPanel projectId={currentProject.id} />
                   )}
                 </TabsContent>
                 
-                <TabsContent value="memory" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="memory" className="flex-1 mt-0 overflow-hidden p-2">
                   {currentProject && (
                     <ProjectMemoryPanel projectId={currentProject.id} />
                   )}
                 </TabsContent>
                 
-                <TabsContent value="templates" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="templates" className="flex-1 mt-0 overflow-hidden p-2">
                   <TemplateGallery 
                     onProjectCreated={async (project) => {
                       await selectProject(project.id);
@@ -378,7 +378,7 @@ export default function Dashboard() {
                   />
                 </TabsContent>
                 
-                <TabsContent value="analysis" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="analysis" className="flex-1 mt-0 overflow-hidden p-2">
                   {currentProject && (
                     <SuperintelligencePanel 
                       project={currentProject}
@@ -386,7 +386,7 @@ export default function Dashboard() {
                   )}
                 </TabsContent>
                 
-                <TabsContent value="agents" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="agents" className="flex-1 mt-0 overflow-hidden p-2">
                   {currentProject && (
                     <MultiAgentPanel 
                       project={currentProject}
@@ -394,26 +394,26 @@ export default function Dashboard() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="crypto" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="crypto" className="flex-1 mt-0 overflow-hidden p-2">
                   <DivModLab />
                 </TabsContent>
 
-                <TabsContent value="quantum" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="quantum" className="flex-1 mt-0 overflow-hidden p-2">
                   <PostQuantumLab />
                 </TabsContent>
 
-                <TabsContent value="replit-search" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="replit-search" className="flex-1 mt-0 overflow-hidden p-2">
                   <ReplitUserSearch />
                 </TabsContent>
                 
-                <TabsContent value="terminal" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="terminal" className="flex-1 mt-0 overflow-hidden p-2">
                   <TerminalComponent 
                     projectId={currentProject?.id}
                     className="h-full"
                   />
                 </TabsContent>
                 
-                <TabsContent value="deployment" className="flex-1 mt-0 overflow-auto p-2">
+                <TabsContent value="deployment" className="flex-1 mt-0 overflow-hidden p-2">
                   {currentProject && (
                     <DeploymentPanel 
                       project={currentProject}
