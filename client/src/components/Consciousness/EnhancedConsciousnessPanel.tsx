@@ -294,8 +294,9 @@ export function EnhancedConsciousnessPanel({ projectId, className }: EnhancedCon
   const intelligenceLevel = getIntelligenceLevel(enhancedMetrics.overallIntelligence);
 
   return (
-    <Card className={cn("p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-cyan-500/20 overflow-hidden", className)}>
-      <div className="space-y-6">
+    <div className={cn("h-full flex flex-col min-h-0", className)}>
+      <Card className="flex-1 min-h-0 p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-cyan-500/20 overflow-hidden">
+        <div className="h-full flex flex-col space-y-6">
         {/* Enhanced Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -579,7 +580,8 @@ export function EnhancedConsciousnessPanel({ projectId, className }: EnhancedCon
             )}
           </div>
         )}
-      </div>
-    </Card>
+        </div>
+      </Card>
+    </div>
   );
 }

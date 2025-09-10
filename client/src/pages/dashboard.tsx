@@ -347,78 +347,100 @@ export default function Dashboard() {
                   </TabsList>
                 </div>
                 
-                <TabsContent value="chat" className="flex-1 mt-0 overflow-hidden">
+                <TabsContent value="chat" className="flex-1 mt-0 min-h-0 overflow-hidden">
                   <ChatInterface project={currentProject || null} />
                 </TabsContent>
                 
-                <TabsContent value="consciousness" className="flex-1 mt-0 overflow-hidden p-2">
-                  <EnhancedConsciousnessPanel 
-                    projectId={currentProject?.id || null}
-                  />
-                </TabsContent>
-
-                <TabsContent value="complexity" className="flex-1 mt-0 overflow-hidden p-2">
-                  {currentProject && (
-                    <ComplexityPanel projectId={currentProject.id} />
-                  )}
-                </TabsContent>
-                
-                <TabsContent value="memory" className="flex-1 mt-0 overflow-hidden p-2">
-                  {currentProject && (
-                    <ProjectMemoryPanel projectId={currentProject.id} />
-                  )}
-                </TabsContent>
-                
-                <TabsContent value="templates" className="flex-1 mt-0 overflow-hidden p-2">
-                  <TemplateGallery 
-                    onProjectCreated={async (project) => {
-                      await selectProject(project.id);
-                      setActiveTab("chat");
-                    }}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="analysis" className="flex-1 mt-0 overflow-hidden p-2">
-                  {currentProject && (
-                    <SuperintelligencePanel 
-                      project={currentProject}
+                <TabsContent value="consciousness" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <EnhancedConsciousnessPanel 
+                      projectId={currentProject?.id || null}
                     />
-                  )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="complexity" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    {currentProject && (
+                      <ComplexityPanel projectId={currentProject.id} />
+                    )}
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="agents" className="flex-1 mt-0 overflow-hidden p-2">
-                  {currentProject && (
-                    <MultiAgentPanel 
-                      project={currentProject}
+                <TabsContent value="memory" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    {currentProject && (
+                      <ProjectMemoryPanel projectId={currentProject.id} />
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="templates" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <TemplateGallery 
+                      onProjectCreated={async (project) => {
+                        await selectProject(project.id);
+                        setActiveTab("chat");
+                      }}
                     />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="crypto" className="flex-1 mt-0 overflow-hidden p-2">
-                  <DivModLab />
-                </TabsContent>
-
-                <TabsContent value="quantum" className="flex-1 mt-0 overflow-hidden p-2">
-                  <PostQuantumLab />
-                </TabsContent>
-
-                <TabsContent value="replit-search" className="flex-1 mt-0 overflow-hidden p-2">
-                  <ReplitUserSearch />
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="terminal" className="flex-1 mt-0 overflow-hidden p-2">
-                  <TerminalComponent 
-                    projectId={currentProject?.id}
-                    className="h-full"
-                  />
+                <TabsContent value="analysis" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    {currentProject && (
+                      <SuperintelligencePanel 
+                        project={currentProject}
+                      />
+                    )}
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="deployment" className="flex-1 mt-0 overflow-hidden p-2">
-                  {currentProject && (
-                    <DeploymentPanel 
-                      project={currentProject}
+                <TabsContent value="agents" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    {currentProject && (
+                      <MultiAgentPanel 
+                        project={currentProject}
+                      />
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="crypto" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <DivModLab />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="quantum" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <PostQuantumLab />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="replit-search" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <ReplitUserSearch />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="terminal" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    <TerminalComponent 
+                      projectId={currentProject?.id}
+                      className="h-full"
                     />
-                  )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="deployment" className="flex-1 mt-0 min-h-0 overflow-hidden">
+                  <div className="h-full p-2">
+                    {currentProject && (
+                      <DeploymentPanel 
+                        project={currentProject}
+                      />
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
