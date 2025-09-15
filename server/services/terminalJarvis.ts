@@ -119,12 +119,12 @@ export class TerminalJarvisService {
   async executeCommand(prompt: string, projectId?: number): Promise<TerminalJarvisResult> {
     const command = this.parseCommand(prompt);
     
+    // SECURITY FIX: Disable shell execution for safety
+    // Until E2B sandbox integration is complete, we provide safe simulated responses
+    console.warn(`🚫 SECURITY: Shell execution disabled for TerminalJarvis. Command: ${command.action}`);
+    
     try {
-      // Build the terminal-jarvis command
-      let jarvisCommand = 'npx terminal-jarvis';
-      
       if (command.action === 'interactive') {
-        // For interactive mode, just show help and available commands
         return {
           output: this.getInteractiveHelp(),
           success: true,
@@ -132,62 +132,8 @@ export class TerminalJarvisService {
         };
       }
       
-      // Build command arguments
-      const cmdArgs: string[] = [];
-      
-      switch (command.action) {
-        case 'install':
-          cmdArgs.push('install');
-          if (command.tool) {
-            cmdArgs.push(command.tool);
-          }
-          break;
-          
-        case 'run':
-          cmdArgs.push('run');
-          if (command.tool) {
-            cmdArgs.push(command.tool);
-          }
-          if (command.args) {
-            cmdArgs.push(...command.args);
-          }
-          break;
-          
-        case 'list':
-          cmdArgs.push('list');
-          break;
-          
-        case 'info':
-          cmdArgs.push('info');
-          if (command.tool) {
-            cmdArgs.push(command.tool);
-          }
-          break;
-          
-        case 'update':
-          cmdArgs.push('update');
-          if (command.tool) {
-            cmdArgs.push(command.tool);
-          }
-          break;
-      }
-      
-      const fullCommand = `${jarvisCommand} ${cmdArgs.join(' ')}`;
-      
-      // Execute the command with timeout
-      const { stdout, stderr } = await execAsync(fullCommand, {
-        timeout: 30000, // 30 second timeout
-        cwd: process.cwd()
-      });
-      
-      const output = stdout || stderr || 'Command executed successfully';
-      
-      return {
-        output: this.formatOutput(output, command),
-        success: true,
-        command: fullCommand,
-        exitCode: 0
-      };
+      // SECURITY: Return simulated safe responses instead of executing shell commands
+      return this.getSimulatedResponse(command);
       
     } catch (error: any) {
       const errorMessage = error.message || error.toString();
@@ -253,6 +199,130 @@ ${separator}
 💡 Available commands: install, run, list, info, update
 🛠️ Supported tools: claude, gemini, qwen, opencode
 📋 Example: "Run claude with prompt 'optimize this function'"`;
+  }
+
+  /**
+   * SECURITY: Provide simulated responses instead of executing shell commands
+   */
+  private getSimulatedResponse(command: TerminalJarvisCommand): TerminalJarvisResult {
+    switch (command.action) {
+      case 'install':
+        return {
+          output: `🔒 SECURITY MODE: Terminal Jarvis execution disabled
+          
+${command.tool ? `Tool '${command.tool}' would be installed in a production environment.` : 'Package installation would occur in a production environment.'}
+
+🛡️ Security Notice: Shell execution has been disabled to prevent potential security vulnerabilities. In a production environment with proper sandboxing, this command would:
+
+1. Validate the tool name against an allowlist
+2. Execute installation in an isolated sandbox environment  
+3. Monitor resource usage and network access
+4. Provide detailed logging and audit trails
+
+For development purposes, consider using the built-in AI providers instead.`,
+          success: true,
+          command: `simulated: install ${command.tool || ''}`,
+          exitCode: 0
+        };
+
+      case 'run':
+        return {
+          output: `🔒 SECURITY MODE: Terminal Jarvis execution disabled
+
+${command.tool ? `Tool '${command.tool}' would be executed in a production environment.` : 'Tool execution would occur in a production environment.'}
+
+🛡️ Security Notice: Shell execution has been disabled to prevent potential security vulnerabilities. In a production environment with proper sandboxing, this command would:
+
+1. Validate all parameters and arguments
+2. Execute in a secure E2B sandbox environment
+3. Limit resource usage and execution time
+4. Filter and validate all outputs
+5. Provide comprehensive audit logging
+
+For development purposes, use the integrated AI services available through the main application interface.`,
+          success: true,
+          command: `simulated: run ${command.tool || ''} ${command.args?.join(' ') || ''}`,
+          exitCode: 0
+        };
+
+      case 'list':
+        return {
+          output: `🔒 SECURITY MODE: Available Tools (Simulated)
+
+📋 AI Coding Assistants:
+• claude - Anthropic's Claude (would require API key)
+• gemini - Google's Gemini (would require API key) 
+• qwen - Alibaba's Qwen (would require API key)
+• opencode - Open source coding assistant
+
+🛡️ Security Notice: In a production environment, these tools would be:
+• Validated against security policies
+• Executed in isolated sandbox environments
+• Monitored for resource usage and security compliance
+• Logged for audit purposes
+
+Current Status: Shell execution disabled for security
+Alternative: Use the integrated AI providers in the main application`,
+          success: true,
+          command: 'simulated: list',
+          exitCode: 0
+        };
+
+      case 'info':
+        return {
+          output: `🔒 SECURITY MODE: Tool Information (Simulated)
+
+${command.tool ? `Tool: ${command.tool}` : 'General Tool Information'}
+
+🛡️ Security Notice: In a production environment, tool information would include:
+• Security compliance status
+• Resource requirements and limits
+• API access requirements
+• Supported features and capabilities
+• Security audit results
+
+Current Status: Shell execution disabled for security
+Alternative: Use the integrated AI providers in the main application`,
+          success: true,
+          command: `simulated: info ${command.tool || ''}`,
+          exitCode: 0
+        };
+
+      case 'update':
+        return {
+          output: `🔒 SECURITY MODE: Tool Update (Simulated)
+
+${command.tool ? `Tool '${command.tool}' would be updated in a production environment.` : 'Tool updates would be processed in a production environment.'}
+
+🛡️ Security Notice: In a production environment, updates would:
+• Verify digital signatures and checksums
+• Execute in isolated sandbox environments
+• Validate compatibility and security
+• Maintain audit logs of all changes
+• Provide rollback capabilities
+
+Current Status: Shell execution disabled for security
+Alternative: System updates are handled automatically by the platform`,
+          success: true,
+          command: `simulated: update ${command.tool || ''}`,
+          exitCode: 0
+        };
+
+      default:
+        return {
+          output: `🔒 SECURITY MODE: Unknown Command
+
+Command '${command.action}' not recognized.
+
+🛡️ Security Notice: Shell execution has been disabled to prevent potential security vulnerabilities.
+
+Available simulated commands: install, run, list, info, update
+Alternative: Use the integrated AI services in the main application`,
+          success: false,
+          command: `simulated: ${command.action}`,
+          exitCode: 1
+        };
+    }
   }
   
   private getInteractiveHelp(): string {
