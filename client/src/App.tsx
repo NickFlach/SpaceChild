@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/Common/ThemeProvider";
 import { EditorContextProvider } from "@/contexts/EditorContext";
+import { CollaborationProvider } from "@/contexts/CollaborationContext";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
@@ -48,10 +49,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <EditorContextProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <CollaborationProvider autoConnect={true}>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </CollaborationProvider>
         </EditorContextProvider>
       </ThemeProvider>
     </QueryClientProvider>

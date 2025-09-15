@@ -375,14 +375,14 @@ export class DatabaseStorage implements IStorage {
   
   async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
     // Ensure arrays are properly formatted for database insertion
-    const formattedTemplate = {
+    const formattedTemplate: InsertProjectTemplate = {
       ...template,
-      techStack: Array.isArray(template.techStack) ? template.techStack : (template.techStack ? [template.techStack as string] : []),
-      features: template.features ? (Array.isArray(template.features) ? template.features : [template.features as string]) : undefined,
-      aiProviders: template.aiProviders ? (Array.isArray(template.aiProviders) ? template.aiProviders : [template.aiProviders as string]) : undefined,
+      techStack: Array.isArray(template.techStack) ? template.techStack as string[] : (template.techStack ? [template.techStack as string] : [] as string[]),
+      features: template.features ? (Array.isArray(template.features) ? template.features as string[] : [template.features as string]) : undefined,
+      aiProviders: template.aiProviders ? (Array.isArray(template.aiProviders) ? template.aiProviders as string[] : [template.aiProviders as string]) : undefined,
     };
     
-    const [newTemplate] = await db.insert(projectTemplates).values(formattedTemplate).returning();
+    const [newTemplate] = await db.insert(projectTemplates).values([formattedTemplate]).returning();
     return newTemplate;
   }
   

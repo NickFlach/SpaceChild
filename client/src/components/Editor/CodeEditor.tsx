@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Save, Play, Download, Upload, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, X } from "lucide-react";
 import { useEditorContext } from "@/contexts/EditorContext";
 import { useContextualAI } from "@/hooks/useContextualAI";
+import { useCollaborationContext, useCollaborationStatus } from "@/contexts/CollaborationContext";
+import { UserPresence, CursorIndicator, CollaborationStatus } from "./UserPresence";
 import type { ProjectFile, Project } from "@shared/schema";
 
 interface CodeEditorProps {
@@ -43,6 +45,14 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
     hasHighSeverity,
     suggestionCount
   } = useContextualAI();
+  
+  // Use collaboration features
+  const collaboration = useCollaborationStatus();
+  const {
+    users: collaborationUsers,
+    isTyping: isUserTyping,
+    setIsTyping
+  } = useCollaborationContext();
 
   // Sync props with context when they change
   useEffect(() => {
@@ -55,6 +65,9 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
 
   const handleContentChange = (newContent: string) => {
     updateFileContent(newContent);
+    
+    // Set typing indicator
+    setIsTyping(true);
     
     // Update cursor position based on textarea
     if (textareaRef.current) {
@@ -172,9 +185,24 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               Unsaved
             </Badge>
           )}
+          
+          {/* Collaboration Status */}
+          <CollaborationStatus
+            isConnected={collaboration.isConnected}
+            connectionStatus={collaboration.connectionStatus}
+            userCount={collaboration.userCount}
+            currentRoom={collaboration.currentRoom}
+          />
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* User Presence */}
+          <UserPresence 
+            users={collaborationUsers} 
+            maxVisible={3}
+            showDetails={true}
+          />
+          
           {/* AI Analysis Indicator */}
           {isAnalyzing && (
             <Badge variant="outline" className="text-xs animate-pulse">
@@ -214,9 +242,9 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
 
       {/* Editor Content */}
       <div className="flex-1 overflow-auto p-4">
-        <div className="min-h-full">
+        <div className="min-h-full relative">
           {/* Mock Monaco Editor */}
-          <div ref={editorRef} className="font-mono text-sm">
+          <div ref={editorRef} className="font-mono text-sm relative">
             <textarea
               ref={textareaRef}
               value={fileContent}
@@ -224,10 +252,21 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               onSelect={handleCursorChange}
               onKeyUp={handleCursorChange}
               onClick={handleCursorChange}
-              className="w-full h-96 bg-transparent border-none outline-none resize-none font-mono text-sm"
+              className="w-full h-96 bg-transparent border-none outline-none resize-none font-mono text-sm relative z-10"
               placeholder="Start typing your code..."
               spellCheck={false}
             />
+            
+            {/* Collaboration Cursor Indicators */}
+            {collaborationUsers.map((user) => (
+              <CursorIndicator
+                key={user.userId}
+                user={user}
+                editorRect={editorRef.current?.getBoundingClientRect() || new DOMRect()}
+                lineHeight={20} // Approximate line height
+                characterWidth={8} // Approximate character width
+              />
+            ))}
           </div>
           
           {/* Advanced AI Suggestions Panel */}

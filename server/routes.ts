@@ -11,6 +11,7 @@ import { superintelligenceService } from "./services/superintelligence";
 import { aiProviderService } from "./services/aiProviders";
 import { projectMemoryService } from "./services/projectMemory";
 import { agenticOrchestrationService } from "./services/agentic/orchestrationService";
+import { collaborationService } from "./services/collaborationService";
 import projectMemoryRoutes from "./routes/projectMemory";
 import templateRoutes from "./routes/templates";
 import sandboxRoutes from "./routes/sandbox";
@@ -20,6 +21,8 @@ import replitUserSearchRoutes from "./routes/replitUserSearch";
 import consciousnessRoutes from "./routes/consciousness";
 import agenticRoutes from "./routes/agentic";
 import webSearchRoutes from "./routes/webSearch";
+import { WebSocketMessage, createRoomId } from "@shared/collaboration";
+import { OperationalTransform } from "@shared/operationalTransform";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - Comment out Replit auth for now
@@ -804,20 +807,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // WebSocket server for real-time features
+  // Enhanced WebSocket server for real-time collaboration
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  wss.on('connection', (ws: WebSocket, req) => {
-    console.log('WebSocket connection established');
+  interface ExtendedWebSocket extends WebSocket {
+    userId?: string;
+    roomId?: string;
+  }
+
+  wss.on('connection', async (ws: ExtendedWebSocket, req) => {
+    console.log('WebSocket connection attempt');
+
+    // Parse authorization from query params or headers
+    const url = new URL(req.url!, `http://${req.headers.host}`);
+    const token = url.searchParams.get('token') || req.headers.authorization?.replace('Bearer ', '');
+    
+    let userId: string | undefined;
+    if (token) {
+      try {
+        // SECURITY FIX: Use proper JWT verification instead of payload extraction
+        const { ZKPAuthService } = await import('./services/zkpAuth');
+        const decoded = ZKPAuthService.verifyToken(token);
+        userId = decoded.sub;
+        ws.userId = userId;
+        console.log(`WebSocket authenticated for user: ${userId}`);
+      } catch (error) {
+        console.warn('Invalid token provided for WebSocket connection:', error instanceof Error ? error.message : 'Unknown error');
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Authentication failed. Please login again.',
+          code: 'AUTH_FAILED'
+        }));
+        ws.close(1008, 'Authentication failed');
+        return;
+      }
+    } else {
+      console.warn('No authentication token provided for WebSocket connection');
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication token required for collaboration features.',
+        code: 'AUTH_REQUIRED'
+      }));
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+
+    // Initialize collaboration service for this connection
+    await collaborationService.handleConnection(ws, userId);
 
     ws.on('message', async (data) => {
       try {
-        const message = JSON.parse(data.toString());
+        const message: WebSocketMessage = JSON.parse(data.toString());
         
-        // Handle different message types
+        // Handle collaboration-specific message types
         switch (message.type) {
+          case 'join':
+            if (!userId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Authentication required to join collaboration room'
+              }));
+              return;
+            }
+            
+            try {
+              const { projectId, fileId } = message.data;
+              const room = await collaborationService.joinRoom(userId, projectId, fileId);
+              ws.roomId = room.roomId;
+              
+              ws.send(JSON.stringify({
+                type: 'joined',
+                data: {
+                  roomId: room.roomId,
+                  users: Array.from(room.users.values()),
+                  revision: room.documentRevision
+                }
+              }));
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Failed to join room'
+              }));
+            }
+            break;
+
+          case 'leave':
+            if (userId && ws.roomId) {
+              await collaborationService.leaveRoom(userId, ws.roomId);
+              ws.roomId = undefined;
+            }
+            break;
+
+          case 'operation':
+            if (!userId || !ws.roomId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Must be in a room to send operations'
+              }));
+              return;
+            }
+            
+            try {
+              const { operation } = message.data;
+              const transformedOp = await collaborationService.processOperation(
+                userId, 
+                operation, 
+                ws.roomId
+              );
+              
+              // Send acknowledgment back to sender
+              ws.send(JSON.stringify({
+                type: 'operation_ack',
+                data: {
+                  originalId: operation.id,
+                  transformedOperation: transformedOp
+                }
+              }));
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Failed to process operation'
+              }));
+            }
+            break;
+
+          case 'cursor':
+            if (!userId || !ws.roomId) return;
+            
+            const { cursorPosition, selection, isTyping } = message.data;
+            await collaborationService.updateCursor(
+              userId, 
+              ws.roomId, 
+              cursorPosition, 
+              selection, 
+              isTyping
+            );
+            break;
+
+          case 'presence':
+            if (!userId || !ws.roomId) return;
+            
+            const { user, action } = message.data;
+            if (action === 'update') {
+              collaborationService.updateUserPresence(ws.roomId, userId, user);
+            }
+            break;
+
+          // Legacy message types for backward compatibility
           case 'consciousness_update':
-            // Broadcast consciousness updates to relevant clients
             wss.clients.forEach((client) => {
               if (client !== ws && client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
@@ -829,15 +966,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           
           case 'file_change':
-            // Broadcast file changes for real-time collaboration
-            wss.clients.forEach((client) => {
-              if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: 'file_change',
-                  data: message.data
-                }));
+            // Handle legacy file change messages
+            if (ws.roomId) {
+              const room = collaborationService.getRoom(ws.roomId);
+              if (room) {
+                // Broadcast to room users
+                wss.clients.forEach((client: ExtendedWebSocket) => {
+                  if (client !== ws && 
+                      client.readyState === WebSocket.OPEN && 
+                      client.roomId === ws.roomId) {
+                    client.send(JSON.stringify({
+                      type: 'file_change',
+                      data: message.data
+                    }));
+                  }
+                });
               }
-            });
+            } else {
+              // Fallback to broadcast to all clients
+              wss.clients.forEach((client) => {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'file_change',
+                    data: message.data
+                  }));
+                }
+              });
+            }
             break;
           
           default:
@@ -845,17 +1000,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Failed to process message'
+        }));
       }
     });
 
     ws.on('close', () => {
       console.log('WebSocket connection closed');
+      // collaborationService.handleDisconnection is called automatically
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
     });
 
     // Send welcome message
     ws.send(JSON.stringify({
       type: 'welcome',
-      message: 'Connected to Space Child WebSocket'
+      message: 'Connected to Space Child WebSocket',
+      userId,
+      timestamp: Date.now()
     }));
   });
 
