@@ -84,14 +84,15 @@ export default function ProjectHeader({
                 <DialogTitle>Create New Project</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <Label htmlFor="name">Project Name</Label>
-                <Input
-                  id="name"
-                  value={projectForm.name}
-                  onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="My AI App"
-                />
-              </div>
+                <div>
+                  <Label htmlFor="name">Project Name</Label>
+                  <Input
+                    id="name"
+                    value={projectForm.name}
+                    onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="My AI App"
+                  />
+                </div></div>
               <div>
                 <Label htmlFor="type">Project Type</Label>
                 <Select
