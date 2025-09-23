@@ -92,7 +92,7 @@ export default function ProjectHeader({
                     onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="My AI App"
                   />
-                </div></div>
+                </div>
               <div>
                 <Label htmlFor="type">Project Type</Label>
                 <Select
