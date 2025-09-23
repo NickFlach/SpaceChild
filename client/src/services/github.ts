@@ -4,6 +4,14 @@ import { toast } from "sonner";
 // Initialize Octokit with default empty token (will be set after auth)
 let octokit: Octokit | null = null;
 
+export interface GitHubRepoOwner {
+  login: string;
+  id: number;
+  avatar_url: string;
+  html_url: string;
+  type: string;
+}
+
 export interface GitHubRepo {
   id: number;
   name: string;
@@ -17,6 +25,7 @@ export interface GitHubRepo {
   pushed_at: string;
   language: string | null;
   default_branch: string;
+  owner: GitHubRepoOwner;
 }
 
 export interface GitHubUser {

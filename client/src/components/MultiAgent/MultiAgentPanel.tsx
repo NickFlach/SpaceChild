@@ -314,7 +314,7 @@ export default function MultiAgentPanel({ project }: MultiAgentPanelProps) {
                               {task.taskType}
                             </CardTitle>
                             <Badge variant={
-                              task.status === 'complete' ? 'success' :
+                              task.status === 'complete' ? 'default' :
                               task.status === 'in_progress' ? 'default' :
                               'secondary'
                             }>

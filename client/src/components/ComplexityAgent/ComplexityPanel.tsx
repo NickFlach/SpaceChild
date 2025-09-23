@@ -6,10 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Brain, Zap, Eye, TreePine, Waves, Target, FileCode, Lightbulb } from "lucide-react";
+import { Brain, Zap, Eye, TreePine, Waves, Target, FileCode, Lightbulb, Loader2, Send } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { EditorFileContext } from '@/contexts/EditorContext';
 import { useEditorContextSubscription } from "@/contexts/EditorContext";
 
 interface ComplexityMetrics {
@@ -57,7 +58,7 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
   const queryClient = useQueryClient();
   
   // Subscribe to editor context changes
-  const contextCallback = useCallback((ctx) => {
+  const contextCallback = useCallback((ctx: EditorFileContext) => {
     if (ctx.file) {
       const insights: string[] = [];
       
@@ -76,10 +77,11 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
       }
       
       // Check for code patterns
-      if (ctx.language === 'typescript' || ctx.language === 'javascript') {
-        const functionCount = (ctx.content.match(/function\s+\w+|const\s+\w+\s*=/g) || []).length;
+      const fileLanguage = (ctx.language || '').toLowerCase();
+      if (fileLanguage === 'typescript' || fileLanguage === 'javascript' || fileLanguage === 'typescriptreact' || fileLanguage === 'javascriptreact') {
+        const functionCount = (ctx.content.match(/function\s+\w+|const\s+\w+\s*=|class\s+\w+/g) || []).length;
         if (functionCount > 10) {
-          insights.push('Functional complexity: Multiple functions in one file. Consider modular architecture.');
+          insights.push('Functional complexity: Multiple functions/classes in one file. Consider modular architecture.');
         }
         
         if (ctx.content.includes('Promise') && ctx.content.includes('async')) {
@@ -93,15 +95,21 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
     }
   }, []);
   
+  // Set up the editor context subscription
   const editorContext = useEditorContextSubscription(contextCallback);
 
   const complexityMutation = useMutation({
     mutationFn: async (requestText: string) => {
-      const response = await apiRequest("POST", "/api/ai/chat", {
+      const payload: any = {
         message: requestText,
-        provider: "complexity",
-        projectId
-      });
+        provider: "complexity"
+      };
+      
+      if (projectId) {
+        payload.projectId = projectId;
+      }
+      
+      const response = await apiRequest("POST", "/api/ai/chat", payload);
       return response.json();
     },
     onSuccess: (data) => {
@@ -168,9 +176,24 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
     }
   });
 
-  const handleAnalyze = () => {
-    if (!request.trim()) return;
-    complexityMutation.mutate(request);
+  const handleAnalyzeCurrentFile = () => {
+    if (editorContext?.content) {
+      const requestText = `Analyze the complexity of the current file: ${editorContext.file?.filePath || 'unknown'}\n\n${editorContext.content}`;
+      complexityMutation.mutate(requestText);
+    } else {
+      toast({
+        title: "No file content",
+        description: "Please open a file to analyze its complexity.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (request.trim()) {
+      complexityMutation.mutate(request);
+    }
   };
 
   const getMetricIcon = (metric: string) => {
@@ -280,11 +303,18 @@ export default function ComplexityPanel({ projectId }: ComplexityPanelProps) {
             />
           </div>
           <Button
-            onClick={handleAnalyze}
+            onClick={handleSubmit}
             disabled={!request.trim() || complexityMutation.isPending}
             className="w-full"
           >
-            {complexityMutation.isPending ? "Analyzing..." : "Analyze with Complexity Consciousness"}
+            {complexityMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              "Analyze with Complexity Consciousness"
+            )}
           </Button>
         </CardContent>
       </Card>

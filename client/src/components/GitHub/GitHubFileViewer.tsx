@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Code, Copy, Check, Download, Save, GitBranch, GitCommit, GitPullRequest } from 'lucide-react';
+import { SimpleCodeBlock } from '@/components/Common/SimpleCodeBlock';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
 import { useTheme } from 'next-themes';
 
 interface GitHubFileViewerProps {
@@ -96,23 +96,12 @@ export function GitHubFileViewer({
     }
   };
   
-  const renderContent = () => {
+  const renderFileContent = () => {
     if (!file) {
       return (
         <div className="flex items-center justify-center h-full text-muted-foreground">
           Select a file to view its content
         </div>
-      );
-    }
-    
-    if (isEditing) {
-      return (
-        <textarea
-          className="w-full h-full p-4 font-mono text-sm bg-background text-foreground outline-none resize-none"
-          value={localContent}
-          onChange={handleContentChange}
-          spellCheck="false"
-        />
       );
     }
     
@@ -124,34 +113,13 @@ export function GitHubFileViewer({
       );
     }
     
-    // If it's a text file that can be syntax highlighted
-    if (language) {
-      return (
-        <SyntaxHighlighter
-          language={language}
-          style={theme === 'dark' ? darkTheme : lightTheme}
-          customStyle={{
-            margin: 0,
-            padding: '1rem',
-            backgroundColor: 'transparent',
-            fontSize: '0.875rem',
-            lineHeight: '1.5',
-            height: '100%',
-            overflow: 'auto'
-          }}
-          showLineNumbers
-          wrapLines
-        >
-          {localContent}
-        </SyntaxHighlighter>
-      );
-    }
-    
-    // Fallback for non-highlighted text
+    // Use SimpleCodeBlock for all text content
     return (
-      <pre className="whitespace-pre-wrap p-4 text-sm font-mono overflow-auto h-full">
-        {localContent}
-      </pre>
+      <SimpleCodeBlock 
+        code={localContent} 
+        language={language}
+        className="h-full"
+      />
     );
   };
   
@@ -257,7 +225,7 @@ export function GitHubFileViewer({
       
       {/* Content */}
       <ScrollArea className="flex-1 bg-background">
-        {renderContent()}
+        {renderFileContent()}
       </ScrollArea>
       
       {/* Status bar */}
@@ -353,119 +321,3 @@ function formatFileSize(bytes: number): string {
   
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
-
-// Light theme for syntax highlighting
-const lightTheme = {
-  plain: {
-    color: '#24292e',
-    backgroundColor: '#f6f8fa',
-  },
-  styles: [
-    {
-      types: ['comment', 'prolog', 'doctype', 'cdata'],
-      style: {
-        color: '#6a737d',
-      },
-    },
-    {
-      types: ['punctuation'],
-      style: {
-        color: '#24292e',
-      },
-    },
-    {
-      types: ['property', 'tag', 'boolean', 'number', 'constant', 'symbol', 'deleted'],
-      style: {
-        color: '#d73a49',
-      },
-    },
-    {
-      types: ['selector', 'attr-name', 'string', 'char', 'builtin', 'inserted'],
-      style: {
-        color: '#032f62',
-      },
-    },
-    {
-      types: ['operator', 'entity', 'url', 'variable'],
-      style: {
-        color: '#d73a49',
-      },
-    },
-    {
-      types: ['atrule', 'attr-value', 'function'],
-      style: {
-        color: '#6f42c1',
-      },
-    },
-    {
-      types: ['keyword'],
-      style: {
-        color: '#d73a49',
-      },
-    },
-    {
-      types: ['regex', 'important'],
-      style: {
-        color: '#032f62',
-      },
-    },
-  ],
-};
-
-// Dark theme for syntax highlighting
-const darkTheme = {
-  plain: {
-    color: '#e1e4e8',
-    backgroundColor: '#24292e',
-  },
-  styles: [
-    {
-      types: ['comment', 'prolog', 'doctype', 'cdata'],
-      style: {
-        color: '#8b949e',
-      },
-    },
-    {
-      types: ['punctuation'],
-      style: {
-        color: '#e1e4e8',
-      },
-    },
-    {
-      types: ['property', 'tag', 'boolean', 'number', 'constant', 'symbol', 'deleted'],
-      style: {
-        color: '#79c0ff',
-      },
-    },
-    {
-      types: ['selector', 'attr-name', 'string', 'char', 'builtin', 'inserted'],
-      style: {
-        color: '#7ee787',
-      },
-    },
-    {
-      types: ['operator', 'entity', 'url', 'variable'],
-      style: {
-        color: '#d2a8ff',
-      },
-    },
-    {
-      types: ['atrule', 'attr-value', 'function'],
-      style: {
-        color: '#d2a8ff',
-      },
-    },
-    {
-      types: ['keyword'],
-      style: {
-        color: '#ff7b72',
-      },
-    },
-    {
-      types: ['regex', 'important'],
-      style: {
-        color: '#7ee787',
-      },
-    },
-  ],
-};
