@@ -23,7 +23,7 @@ import PostQuantumLab from "@/components/CryptoTools/PostQuantumLab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Settings, Moon, Sun, User, Columns, FileCode, PanelLeftClose, PanelLeft, Github } from "lucide-react";
+import { Settings, Moon, Sun, User, Columns, FileCode, PanelLeftClose, PanelLeft, Github, BookOpen } from "lucide-react";
 import { useTheme } from "@/components/Common/ThemeProvider";
 import { SpaceChildLogo } from "@/components/Branding/SpaceChildLogo";
 import ProfileModal from "@/components/Profile/ProfileModal";
@@ -168,6 +168,19 @@ export default function Dashboard() {
           >
             <a href="/github">
               <Github className="h-4 w-4" />
+            </a>
+          </Button>
+
+          {/* Docs Link */}
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="p-2"
+            title="Documentation"
+          >
+            <a href="/docs">
+              <BookOpen className="h-4 w-4" />
             </a>
           </Button>
           
