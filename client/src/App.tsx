@@ -14,6 +14,7 @@ import GitHubPage from "@/pages/GitHubPage";
 import NotFound from "@/pages/not-found";
 import PricingPage from "@/pages/pricing";
 import TestAuth from "@/pages/test-auth";
+import DocsPage from "@/pages/docs";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,6 +34,7 @@ function Router() {
     <Switch>
       <Route path="/test-auth" component={TestAuth} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/docs" component={DocsPage} />
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

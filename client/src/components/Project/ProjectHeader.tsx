@@ -65,23 +65,25 @@ export default function ProjectHeader({
       </div>
     );
   }
-
   return (
     <div className="p-4 border-b border-border">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-lg">Projects</h2>
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="p-2">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href="/docs">Docs</a>
+          </Button>
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="p-2">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Create New Project</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
                 <Label htmlFor="name">Project Name</Label>
                 <Input
                   id="name"
