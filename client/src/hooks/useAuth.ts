@@ -5,26 +5,26 @@ import type { User } from "@shared/schema";
 
 export function useAuth() {
   const [token, setToken] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // Load token from localStorage on mount
     const storedToken = localStorage.getItem('zkp_token');
-    if (storedToken) {
-      setToken(storedToken);
-    }
+    setToken(storedToken);
+    setIsInitialized(true);
   }, []);
 
   const { data: user, isLoading, error, refetch } = useQuery<User | null>({
     queryKey: ['/api/zkp/auth/user'],
     queryFn: async () => {
-      const token = localStorage.getItem('zkp_token');
-      if (!token) {
+      const currentToken = token || localStorage.getItem('zkp_token');
+      if (!currentToken) {
         return null;
       }
 
       const response = await fetch('/api/zkp/auth/user', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${currentToken}`
         }
       });
 
@@ -33,6 +33,7 @@ export function useAuth() {
           // Clear invalid token
           localStorage.removeItem('zkp_token');
           localStorage.removeItem('zkp_user');
+          setToken(null);
           return null;
         }
         throw new Error('Failed to fetch user');
@@ -40,6 +41,7 @@ export function useAuth() {
 
       return response.json();
     },
+    enabled: isInitialized && !!token, // Only run query if we have a token
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -76,7 +78,7 @@ export function useAuth() {
 
   return {
     user,
-    isLoading,
+    isLoading: !isInitialized || (isInitialized && !!token && isLoading),
     isAuthenticated: !!user,
     error,
     logout: logout.mutate,
