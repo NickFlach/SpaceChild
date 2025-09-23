@@ -6,9 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/Common/ThemeProvider";
 import { EditorContextProvider } from "@/contexts/EditorContext";
 import { CollaborationProvider } from "@/contexts/CollaborationContext";
+import { GitHubProvider } from "@/providers/GitHubProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
+import GitHubPage from "@/pages/GitHubPage";
 import NotFound from "@/pages/not-found";
 import PricingPage from "@/pages/pricing";
 import TestAuth from "@/pages/test-auth";
@@ -37,6 +39,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/project/:id" component={Dashboard} />
+          <Route path="/github" component={GitHubPage} />
         </>
       )}
       <Route component={NotFound} />
@@ -48,6 +51,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <GitHubProvider>
         <EditorContextProvider>
           <CollaborationProvider autoConnect={true}>
             <TooltipProvider>
@@ -56,6 +60,7 @@ function App() {
             </TooltipProvider>
           </CollaborationProvider>
         </EditorContextProvider>
+        </GitHubProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
