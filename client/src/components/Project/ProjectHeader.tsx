@@ -178,19 +178,19 @@ export default function ProjectHeader({
           <CardContent className="p-3">
             <div className="flex items-center space-x-2 mb-2">
               <Folder className="h-4 w-4 text-primary" />
-              <span className="font-medium text-sm">{currentProject.name}</span>
+              <span className="font-medium text-sm">{currentProject?.name}</span>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              {currentProject.description || "No description"}
+              {currentProject?.description || "No description"}
             </p>
             <div className="flex items-center space-x-4 text-xs text-muted-foreground">
               <span className="flex items-center space-x-1">
                 <Code className="h-3 w-3" />
-                <span>{currentProject.projectType}</span>
+                <span>{currentProject?.projectType}</span>
               </span>
               <span className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />
-                <span>{formatDate(currentProject.updatedAt || currentProject.createdAt || new Date())}</span>
+                <span>{formatDate(currentProject?.updatedAt || currentProject?.createdAt || new Date())}</span>
               </span>
             </div>
           </CardContent>

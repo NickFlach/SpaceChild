@@ -4,10 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, FileArchive } from "lucide-react";
+import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, FileArchive, Github, ArrowLeft, RefreshCw } from "lucide-react";
 import type { ProjectFile, Project } from "@shared/schema";
 import JSZip from "jszip";
 import { useToast } from "@/hooks/use-toast";
+import { useGitHubIntegration } from "@/hooks/useGitHubIntegration";
+import type { GitHubRepo, GitHubFile } from "@/services/github";
 
 interface FileExplorerProps {
   files: ProjectFile[];
@@ -34,6 +36,7 @@ export default function FileExplorer({
 }: FileExplorerProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["src"]));
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
   const [fileForm, setFileForm] = useState({
     filePath: "",
     fileType: "tsx",
@@ -43,12 +46,73 @@ export default function FileExplorer({
   const folderInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const { isAuthenticated: isGitHubAuthed, repos, isLoading: isGitHubLoading, loadRepositories, loadRepositoryContents, getFileContent } = useGitHubIntegration();
+  const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
+  const [githubPath, setGithubPath] = useState<string>("");
+  const [githubItems, setGithubItems] = useState<GitHubFile[]>([]);
+
+  const openGitHubModal = async () => {
+    setIsGitHubModalOpen(true);
+    if (!repos || repos.length === 0) {
+      await loadRepositories();
+    }
+    setSelectedRepo(null);
+    setGithubPath("");
+    setGithubItems([]);
+  };
+
+  const toggleFolder = (path: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(path)) {
+      newExpanded.delete(path);
+    } else {
+      newExpanded.add(path);
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  const enterRepo = async (repo: GitHubRepo) => {
+    setSelectedRepo(repo);
+    setGithubPath("");
+    const items = await loadRepositoryContents(repo.owner.login, repo.name, "");
+    setGithubItems(items as any);
+  };
+
+  const navigateGitHub = async (path: string) => {
+    if (!selectedRepo) return;
+    const items = await loadRepositoryContents(selectedRepo.owner.login, selectedRepo.name, path);
+    setGithubItems(items as any);
+    setGithubPath(path);
+  };
+
+  const goUp = async () => {
+    if (!githubPath) return;
+    const parts = githubPath.split("/").filter(Boolean);
+    parts.pop();
+    const newPath = parts.join("/");
+    await navigateGitHub(newPath);
+  };
+
+  const importGitHubFile = async (file: GitHubFile) => {
+    if (!selectedRepo) return;
+    try {
+      const text = await getFileContent(selectedRepo.owner.login, selectedRepo.name, file.path);
+      if (text == null) throw new Error("No content returned");
+      const ext = file.name.split('.').pop() || 'txt';
+      const localPath = `imported/${selectedRepo.name}/${file.path}`;
+      await onCreateFile({ filePath: localPath, content: text, fileType: ext });
+      toast({ title: "Imported", description: `${file.path} → ${localPath}` });
+    } catch (e:any) {
+      toast({ title: "Import failed", description: e?.message || String(e), variant: "destructive" });
+    }
+  };
+
   const buildFileTree = (files: ProjectFile[]): FileTreeNode[] => {
     const root: { [key: string]: FileTreeNode } = {};
     
     files.forEach((file) => {
       const parts = file.filePath.split("/");
-      let current = root;
+      let current: any = root;
       let currentPath = "";
       
       parts.forEach((part, index) => {
@@ -67,29 +131,19 @@ export default function FileExplorer({
         }
         
         if (index < parts.length - 1) {
-          current = current[part].children as any;
+          current = (current[part] as any).children;
         }
       });
     });
     
     const convertToArray = (obj: { [key: string]: FileTreeNode }): FileTreeNode[] => {
-      return Object.values(obj).map((node) => ({
+      return Object.values(obj).map((node: any) => ({
         ...node,
         children: node.children ? convertToArray(node.children as any) : undefined,
       }));
     };
     
     return convertToArray(root);
-  };
-
-  const toggleFolder = (path: string) => {
-    const newExpanded = new Set(expandedFolders);
-    if (newExpanded.has(path)) {
-      newExpanded.delete(path);
-    } else {
-      newExpanded.add(path);
-    }
-    setExpandedFolders(newExpanded);
   };
 
   const getFileIcon = (fileName: string) => {
@@ -381,6 +435,17 @@ export {};`;
               >
                 <FolderOpen className="h-4 w-4" />
               </Button>
+
+              {/* GitHub Import */}
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="p-1"
+                onClick={openGitHubModal}
+                title={isGitHubAuthed ? "Import from GitHub" : "Connect GitHub in Settings to import"}
+              >
+                <Github className="h-4 w-4" />
+              </Button>
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="ghost" className="p-1">
@@ -438,6 +503,82 @@ export {};`;
                       Create File
                     </Button>
                   </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* GitHub Import Dialog */}
+            <Dialog open={isGitHubModalOpen} onOpenChange={setIsGitHubModalOpen}>
+              <DialogContent className="sm:max-w-[700px]">
+                <DialogHeader>
+                  <DialogTitle>Import from GitHub</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  {!isGitHubAuthed && (
+                    <div className="text-sm text-muted-foreground">
+                      Connect your GitHub account in Settings to browse and import files.
+                    </div>
+                  )}
+                  {isGitHubAuthed && !selectedRepo && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium">Your Repositories</h4>
+                        <Button variant="ghost" size="sm" className="p-1" onClick={loadRepositories} title="Refresh">
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="max-h-80 overflow-auto space-y-1">
+                        {isGitHubLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
+                        {(!isGitHubLoading && repos?.length === 0) && (
+                          <div className="text-xs text-muted-foreground">No repositories found.</div>
+                        )}
+                        {repos?.map((r) => (
+                          <button key={r.id} onClick={() => enterRepo(r)} className="w-full text-left p-2 rounded hover:bg-muted">
+                            <div className="text-sm font-medium">{r.full_name}</div>
+                            {r.description && <div className="text-xs text-muted-foreground truncate">{r.description}</div>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {isGitHubAuthed && selectedRepo && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="p-1" onClick={() => setSelectedRepo(null)} title="Back to repos">
+                            <ArrowLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="text-sm font-medium">{selectedRepo.full_name}{githubPath ? ` / ${githubPath}` : ""}</div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" className="p-1" onClick={goUp} disabled={!githubPath} title="Up one level">
+                            <ArrowLeft className="h-4 w-4 rotate-180" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="p-1" onClick={() => navigateGitHub(githubPath)} title="Refresh">
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="max-h-80 overflow-auto">
+                        {githubItems?.map((it) => (
+                          <div key={it.sha} className="flex items-center justify-between p-2 rounded hover:bg-muted">
+                            <div className="flex items-center gap-2">
+                              {it.type === 'dir' ? <Folder className="h-4 w-4 text-primary" /> : getFileIcon(it.name)}
+                              <button className="text-sm" onClick={() => it.type === 'dir' ? navigateGitHub(it.path) : null}>
+                                {it.name}
+                              </button>
+                            </div>
+                            {it.type === 'file' && (
+                              <Button size="sm" variant="outline" onClick={() => importGitHubFile(it)}>
+                                Import
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>

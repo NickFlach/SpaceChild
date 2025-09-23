@@ -158,18 +158,7 @@ export default function Dashboard() {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           
-          {/* GitHub Integration */}
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="p-2"
-            title="GitHub Integration"
-          >
-            <a href="/github">
-              <Github className="h-4 w-4" />
-            </a>
-          </Button>
+          {/* GitHub Integration is now accessible via File Explorer */}
 
           {/* Docs Link */}
           <Button
