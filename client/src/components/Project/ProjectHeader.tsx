@@ -168,7 +168,6 @@ export default function ProjectHeader({
                   Create Project
                 </Button>
               </div>
-            </div>
           </DialogContent>
         </Dialog>
       </div>
