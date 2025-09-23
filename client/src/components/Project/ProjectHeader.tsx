@@ -169,9 +169,9 @@ export default function ProjectHeader({
                   Create Project
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {currentProject ? (
