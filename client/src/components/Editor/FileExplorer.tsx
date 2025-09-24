@@ -79,6 +79,7 @@ export default function FileExplorer({
   const containerRef = useRef<HTMLDivElement>(null);
   const draggedRef = useRef<{ path: string; type: 'file' | 'folder' } | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showFirstRunBanner, setShowFirstRunBanner] = useState<boolean>(false);
 
   const openGitHubModal = async () => {
     setIsGitHubModalOpen(true);
@@ -88,6 +89,19 @@ export default function FileExplorer({
     setSelectedRepo(null);
     setGithubPath("");
     setGithubItems([]);
+  };
+
+  // First-run banner visibility (persisted)
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem('fe_first_run_dismissed');
+      setShowFirstRunBanner(dismissed !== '1');
+    } catch {}
+  }, []);
+
+  const dismissFirstRun = () => {
+    setShowFirstRunBanner(false);
+    try { localStorage.setItem('fe_first_run_dismissed', '1'); } catch {}
   };
 
   const collapseAll = () => setExpandedFolders(new Set());
@@ -390,7 +404,14 @@ export default function FileExplorer({
                   {getFileIcon(node.name)}
                 </>
               )}
-              <span className="text-sm truncate">{node.name}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm truncate">{node.name}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{node.path}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
@@ -920,9 +941,18 @@ export {};`;
           )}
         </div>
 
+        {showFirstRunBanner && (
+          <div className="mb-2 p-2 rounded border bg-accent/20 text-xs flex items-center justify-between">
+            <div>
+              Welcome to the File Explorer. Right-click files/folders for actions, drag to move, drop files to upload. Press ? for help.
+            </div>
+            <Button size="sm" variant="outline" className="h-6 px-2" onClick={dismissFirstRun}>Got it</Button>
+          </div>
+        )}
+
         {fileTree.length > 0 ? (
           <div className="space-y-1">
-            {renderFileTree(fileTree)}
+            {renderFileTree(visibleTree)}
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-8">
@@ -964,6 +994,26 @@ export {};`;
               <DialogTitle>File Explorer Help</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 text-sm">
+              <div>
+                <h4 className="font-medium mb-1">Quick Actions</h4>
+                <div className="flex gap-2 flex-wrap">
+                  <Button size="sm" variant="secondary" onClick={() => {
+                    setIsCreateModalOpen(true);
+                    setFileForm({ filePath: 'src/components/NewComponent.tsx', fileType: 'tsx', content: '' });
+                    setIsHelpOpen(false);
+                  }}>Create React Component</Button>
+                  <Button size="sm" variant="secondary" onClick={() => {
+                    setIsHelpOpen(false);
+                    openGitHubModal();
+                  }}>Import from GitHub</Button>
+                  <Button size="sm" variant="secondary" onClick={async () => {
+                    const base = prompt('Create new folder at path', 'src/new-folder');
+                    if (base && onCreateFolder) {
+                      try { await onCreateFolder(base); toast({ title: 'Folder created', description: base }); } catch (e:any) { toast({ title: 'Create folder failed', description: e?.message || String(e), variant: 'destructive' }); }
+                    }
+                  }}>Create Folder</Button>
+                </div>
+              </div>
               <div>
                 <h4 className="font-medium mb-1">Tips</h4>
                 <ul className="list-disc pl-5 space-y-1">
