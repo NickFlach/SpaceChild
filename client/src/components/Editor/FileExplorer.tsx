@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -582,13 +582,10 @@ export {};`;
   // Keyboard shortcuts and external drop upload
   // F2: rename selected file, Delete: delete selected file, Ctrl+P: Quick Open
   // Also support external file drops to upload
-  // Attach handlers to containerRef
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  (function useKeyboardAndDnDSetup() {
-    // Hook-like immediate setup guarded by ref
-    if (!containerRef.current) return;
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
     const handleKey = (e: KeyboardEvent) => {
-      // Ctrl+P
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'p')) {
         e.preventDefault();
         setIsQuickOpen(true);
@@ -606,8 +603,6 @@ export {};`;
         return;
       }
     };
-    const el = containerRef.current;
-    el.addEventListener('keydown', handleKey);
     const handleDragOver = (e: DragEvent) => {
       if (e.dataTransfer && e.dataTransfer.types.includes('Files')) {
         e.preventDefault();
@@ -621,6 +616,7 @@ export {};`;
         handleFileUpload(filesList);
       }
     };
+    el.addEventListener('keydown', handleKey);
     el.addEventListener('dragover', handleDragOver);
     el.addEventListener('drop', handleDrop);
     return () => {
@@ -628,7 +624,7 @@ export {};`;
       el.removeEventListener('dragover', handleDragOver);
       el.removeEventListener('drop', handleDrop);
     };
-  })();
+  }, [selectedFile]);
 
   return (
     <div className="flex-1 overflow-y-auto" ref={containerRef} tabIndex={0}>
