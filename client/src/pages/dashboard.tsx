@@ -48,6 +48,11 @@ export default function Dashboard() {
     createProject,
     createFile,
     updateFile,
+    deleteFile,
+    renameFile,
+    createFolder,
+    deleteFolder,
+    renameFolder,
   } = useProject();
 
   // Redirect to login if not authenticated
@@ -245,6 +250,11 @@ export default function Dashboard() {
                 onSelectFile={setSelectedFile}
                 onCreateFile={createFile}
                 currentProject={currentProject || null}
+                onDeleteFile={async (path) => deleteFile(path)}
+                onRenameFile={async (fromPath, toPath) => renameFile(fromPath, toPath)}
+                onCreateFolder={async (path) => createFolder(path)}
+                onDeleteFolder={async (path) => deleteFolder(path)}
+                onRenameFolder={async (fromPath, toPath) => renameFolder(fromPath, toPath)}
               />
             </div>
           </ResizablePanel>

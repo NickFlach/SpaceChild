@@ -43,6 +43,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Folder Management Routes
+  // Create a folder by placing a marker file so empty folders can be represented
+  app.post('/api/projects/:id/folders', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { path } = req.body || {};
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      if (!path || typeof path !== 'string') {
+        return res.status(400).json({ message: 'path is required' });
+      }
+      const normalized = path.replace(/\\/g, '/').replace(/\/$/, '');
+      const markerPath = `${normalized}/.folder`;
+      const existing = await storage.getProjectFile(projectId, markerPath);
+      if (existing) {
+        return res.json({ success: true, created: false });
+      }
+      const marker = await storage.createProjectFile({
+        projectId,
+        filePath: markerPath,
+        fileType: 'txt',
+        content: '',
+        version: 1,
+      } as any);
+      res.json({ success: true, created: true, marker });
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      res.status(500).json({ message: 'Failed to create folder' });
+    }
+  });
+
+  // Delete folder (recursively delete all files with prefix)
+  app.delete('/api/projects/:id/folders/*', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const folderPath = (req.params[0] as string).replace(/\\/g, '/').replace(/\/$/, '');
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      const all = await storage.getProjectFiles(projectId);
+      const toDelete = all.filter(f => f.filePath === folderPath || f.filePath.startsWith(folderPath + '/'));
+      for (const f of toDelete) {
+        await storage.deleteProjectFile(f.id);
+      }
+      res.json({ success: true, deleted: toDelete.length });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      res.status(500).json({ message: 'Failed to delete folder' });
+    }
+  });
+
+  // Rename/Move folder (update prefix for all matching files)
+  app.post('/api/projects/:id/folders/rename', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { fromPath, toPath } = req.body || {};
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      if (!fromPath || !toPath) {
+        return res.status(400).json({ message: 'fromPath and toPath are required' });
+      }
+      const fromNorm = (fromPath as string).replace(/\\/g, '/').replace(/\/$/, '');
+      const toNorm = (toPath as string).replace(/\\/g, '/').replace(/\/$/, '');
+      if (fromNorm === toNorm) return res.json({ success: true, moved: 0 });
+      const all = await storage.getProjectFiles(projectId);
+      // Prevent conflicts: ensure no target path already exists for any file
+      const conflicts = all.some(f => f.filePath.startsWith(fromNorm + '/') && all.find(x => x.filePath === f.filePath.replace(fromNorm + '/', toNorm + '/')));
+      if (conflicts) {
+        return res.status(409).json({ message: 'Destination already contains conflicting files' });
+      }
+      let moved = 0;
+      for (const f of all) {
+        if (f.filePath === fromNorm) {
+          await storage.updateProjectFile(f.id, { filePath: toNorm });
+          moved++;
+        } else if (f.filePath.startsWith(fromNorm + '/')) {
+          const newPath = f.filePath.replace(fromNorm + '/', toNorm + '/');
+          await storage.updateProjectFile(f.id, { filePath: newPath });
+          moved++;
+        }
+      }
+      res.json({ success: true, moved });
+    } catch (error) {
+      console.error('Error renaming/moving folder:', error);
+      res.status(500).json({ message: 'Failed to rename/move folder' });
+    }
+  });
+
+  // Delete a file by path
+  app.delete('/api/projects/:id/files/*', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const filePath = req.params[0];
+      const project = await storage.getProject(projectId);
+
+      if (!project || project.userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const file = await storage.getProjectFile(projectId, filePath);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      await storage.deleteProjectFile(file.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
+  // Rename/Move a file: body { fromPath: string, toPath: string }
+  app.post('/api/projects/:id/files/rename', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { fromPath, toPath } = req.body || {};
+      const project = await storage.getProject(projectId);
+
+      if (!project || project.userId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      if (!fromPath || !toPath) {
+        return res.status(400).json({ message: 'fromPath and toPath are required' });
+      }
+
+      const src = await storage.getProjectFile(projectId, fromPath);
+      if (!src) {
+        return res.status(404).json({ message: "Source file not found" });
+      }
+
+      // Prevent overwriting existing file
+      const existing = await storage.getProjectFile(projectId, toPath);
+      if (existing) {
+        return res.status(409).json({ message: "Destination already exists" });
+      }
+
+      const updated = await storage.updateProjectFile(src.id, { filePath: toPath });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error renaming/moving file:", error);
+      res.status(500).json({ message: "Failed to rename/move file" });
+    }
+  });
+
   // Legacy logout route for compatibility
   app.get('/api/logout', (req, res) => {
     // Clear any cookies if they exist

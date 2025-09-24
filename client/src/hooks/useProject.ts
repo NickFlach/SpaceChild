@@ -15,6 +15,108 @@ export function useProject() {
     queryKey: ["/api/projects"]
   });
 
+  // Create folder mutation
+  const createFolderMutation = useMutation({
+    mutationFn: async (path: string) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const response = await apiRequest("POST", `/api/projects/${currentProjectId}/folders`, { path });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", currentProjectId, "files"] });
+      toast({ title: "Folder created", description: "Folder created successfully" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        window.location.href = "/";
+        return;
+      }
+      toast({ title: "Error", description: "Failed to create folder", variant: "destructive" });
+    },
+  });
+
+  // Delete folder mutation
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (path: string) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const encoded = encodeURIComponent(path);
+      const response = await apiRequest("DELETE", `/api/projects/${currentProjectId}/folders/${encoded}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", currentProjectId, "files"] });
+      toast({ title: "Folder deleted", description: "Folder deleted successfully" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        window.location.href = "/";
+        return;
+      }
+      toast({ title: "Error", description: "Failed to delete folder", variant: "destructive" });
+    },
+  });
+
+  // Rename/move folder mutation
+  const renameFolderMutation = useMutation({
+    mutationFn: async ({ fromPath, toPath }: { fromPath: string; toPath: string }) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const response = await apiRequest("POST", `/api/projects/${currentProjectId}/folders/rename`, { fromPath, toPath });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", currentProjectId, "files"] });
+      toast({ title: "Folder renamed", description: "Folder renamed/moved successfully" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        window.location.href = "/";
+        return;
+      }
+      toast({ title: "Error", description: "Failed to rename/move folder", variant: "destructive" });
+    },
+  });
+
+  // Delete file mutation
+  const deleteFileMutation = useMutation({
+    mutationFn: async (filePath: string) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const encodedPath = encodeURIComponent(filePath);
+      const response = await apiRequest("DELETE", `/api/projects/${currentProjectId}/files/${encodedPath}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", currentProjectId, "files"] });
+      toast({ title: "Deleted", description: "File deleted successfully" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        window.location.href = "/";
+        return;
+      }
+      toast({ title: "Error", description: "Failed to delete file", variant: "destructive" });
+    },
+  });
+
+  // Rename/Move file mutation
+  const renameFileMutation = useMutation({
+    mutationFn: async ({ fromPath, toPath }: { fromPath: string; toPath: string }) => {
+      if (!currentProjectId) throw new Error("No project selected");
+      const response = await apiRequest("POST", `/api/projects/${currentProjectId}/files/rename`, { fromPath, toPath });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", currentProjectId, "files"] });
+      toast({ title: "Renamed", description: "File renamed/moved successfully" });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        window.location.href = "/";
+        return;
+      }
+      toast({ title: "Error", description: "Failed to rename/move file", variant: "destructive" });
+    },
+  });
+
   // Handle projects error
   useEffect(() => {
     if (projectsError && isUnauthorizedError(projectsError as Error)) {
@@ -183,11 +285,21 @@ export function useProject() {
     createFile: createFileMutation.mutateAsync,
     updateFile: (fileId: number, content: string) => 
       updateFileMutation.mutateAsync({ fileId, content }),
+    deleteFile: (filePath: string) => deleteFileMutation.mutateAsync(filePath),
+    renameFile: (fromPath: string, toPath: string) => renameFileMutation.mutateAsync({ fromPath, toPath }),
+    createFolder: (path: string) => createFolderMutation.mutateAsync(path),
+    deleteFolder: (path: string) => deleteFolderMutation.mutateAsync(path),
+    renameFolder: (fromPath: string, toPath: string) => renameFolderMutation.mutateAsync({ fromPath, toPath }),
     
     // Mutation states
     isCreatingProject: createProjectMutation.isPending,
     isUpdatingProject: updateProjectMutation.isPending,
     isCreatingFile: createFileMutation.isPending,
     isUpdatingFile: updateFileMutation.isPending,
+    isDeletingFile: deleteFileMutation.isPending,
+    isRenamingFile: renameFileMutation.isPending,
+    isCreatingFolder: createFolderMutation.isPending,
+    isDeletingFolder: deleteFolderMutation.isPending,
+    isRenamingFolder: renameFolderMutation.isPending,
   };
 }

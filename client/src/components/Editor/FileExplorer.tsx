@@ -4,7 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, FileArchive, Github, ArrowLeft, RefreshCw } from "lucide-react";
+import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, Github, ArrowLeft, RefreshCw, Search, Eye, Minimize2 } from "lucide-react";
+import { 
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+  ContextMenuLabel
+} from "@/components/ui/context-menu";
 import type { ProjectFile, Project } from "@shared/schema";
 import JSZip from "jszip";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +25,11 @@ interface FileExplorerProps {
   onSelectFile: (file: ProjectFile) => void;
   onCreateFile: (file: { filePath: string; content: string; fileType: string }) => Promise<void>;
   currentProject: Project | null;
+  onDeleteFile?: (filePath: string) => Promise<void>;
+  onRenameFile?: (fromPath: string, toPath: string) => Promise<void>;
+  onCreateFolder?: (path: string) => Promise<void>;
+  onDeleteFolder?: (path: string) => Promise<void>;
+  onRenameFolder?: (fromPath: string, toPath: string) => Promise<void>;
 }
 
 interface FileTreeNode {
@@ -33,6 +46,11 @@ export default function FileExplorer({
   onSelectFile,
   onCreateFile,
   currentProject,
+  onDeleteFile,
+  onRenameFile,
+  onCreateFolder,
+  onDeleteFolder,
+  onRenameFolder,
 }: FileExplorerProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["src"]));
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -50,6 +68,15 @@ export default function FileExplorer({
   const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
   const [githubPath, setGithubPath] = useState<string>("");
   const [githubItems, setGithubItems] = useState<GitHubFile[]>([]);
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [renameFrom, setRenameFrom] = useState<string>("");
+  const [renameTo, setRenameTo] = useState<string>("");
+  const [renameTarget, setRenameTarget] = useState<"file" | "folder">("file");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isQuickOpen, setIsQuickOpen] = useState(false);
+  const [quickOpenQuery, setQuickOpenQuery] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const draggedRef = useRef<{ path: string; type: 'file' | 'folder' } | null>(null);
 
   const openGitHubModal = async () => {
     setIsGitHubModalOpen(true);
@@ -59,6 +86,20 @@ export default function FileExplorer({
     setSelectedRepo(null);
     setGithubPath("");
     setGithubItems([]);
+  };
+
+  const collapseAll = () => setExpandedFolders(new Set());
+
+  const revealInTree = (path: string | undefined) => {
+    if (!path) return;
+    const parts = path.split('/');
+    const newExpanded = new Set(expandedFolders);
+    let cur = "";
+    for (let i = 0; i < parts.length - 1; i++) {
+      cur = cur ? `${cur}/${parts[i]}` : parts[i];
+      newExpanded.add(cur);
+    }
+    setExpandedFolders(newExpanded);
   };
 
   const toggleFolder = (path: string) => {
@@ -112,6 +153,8 @@ export default function FileExplorer({
     
     files.forEach((file) => {
       const parts = file.filePath.split("/");
+      // Skip folder marker files
+      if (parts[parts.length - 1] === '.folder') return;
       let current: any = root;
       let currentPath = "";
       
@@ -169,45 +212,210 @@ export default function FileExplorer({
     }
   };
 
+  const handleDelete = async (path: string) => {
+    if (!onDeleteFile) return;
+    const ok = window.confirm(`Delete ${path}? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      await onDeleteFile(path);
+      toast({ title: "Deleted", description: `${path} removed` });
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e?.message || String(e), variant: "destructive" });
+    }
+  };
+
+  const openRename = (fromPath: string, target: "file" | "folder" = "file") => {
+    setRenameFrom(fromPath);
+    setRenameTo(fromPath);
+    setRenameTarget(target);
+    setIsRenameOpen(true);
+  };
+
+  const submitRename = async () => {
+    if (!renameFrom || !renameTo || renameFrom === renameTo) {
+      setIsRenameOpen(false);
+      return;
+    }
+    try {
+      if (renameTarget === 'file') {
+        if (!onRenameFile) return;
+        await onRenameFile(renameFrom, renameTo);
+      } else {
+        if (!onRenameFolder) return;
+        await onRenameFolder(renameFrom, renameTo);
+      }
+      toast({ title: "Renamed", description: `${renameFrom} → ${renameTo}` });
+    } catch (e: any) {
+      toast({ title: "Rename failed", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setIsRenameOpen(false);
+    }
+  };
+
+  const handleCreateSubfolder = async (parentPath: string) => {
+    if (!onCreateFolder) return;
+    const name = window.prompt("New folder name", "new-folder");
+    if (!name) return;
+    const path = `${parentPath.replace(/\/$/, '')}/${name}`;
+    try {
+      await onCreateFolder(path);
+      toast({ title: "Folder created", description: path });
+    } catch (e: any) {
+      toast({ title: "Create folder failed", description: e?.message || String(e), variant: "destructive" });
+    }
+  };
+
+  const handleDeleteFolder = async (path: string) => {
+    if (!onDeleteFolder) return;
+    const ok = window.confirm(`Delete folder ${path} and all its contents? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      await onDeleteFolder(path);
+      toast({ title: "Folder deleted", description: path });
+    } catch (e: any) {
+      toast({ title: "Delete folder failed", description: e?.message || String(e), variant: "destructive" });
+    }
+  };
+
+  const handleNewFileInFolder = (folderPath: string) => {
+    const defaultPath = `${folderPath.replace(/\/$/, '')}/NewFile.tsx`;
+    setFileForm({ filePath: defaultPath, fileType: "tsx", content: "" });
+    setIsCreateModalOpen(true);
+  };
+
+  const filterTree = (nodes: FileTreeNode[], query: string): FileTreeNode[] => {
+    const q = query.trim().toLowerCase();
+    if (!q) return nodes;
+    const filterNode = (node: FileTreeNode): FileTreeNode | null => {
+      const selfMatch = node.path.toLowerCase().includes(q) || node.name.toLowerCase().includes(q);
+      if (node.type === 'file') {
+        return selfMatch ? node : null;
+      }
+      const children = (node.children || [])
+        .map(child => filterNode(child))
+        .filter((x): x is FileTreeNode => !!x);
+      if (selfMatch || children.length > 0) {
+        return { ...node, children };
+      }
+      return null;
+    };
+    return nodes.map(n => filterNode(n)).filter((x): x is FileTreeNode => !!x);
+  };
+
   const renderFileTree = (nodes: FileTreeNode[], depth: number = 0) => {
     return nodes.map((node) => (
       <div key={node.path}>
-        <div
-          className={`flex items-center space-x-2 p-1 rounded cursor-pointer transition-colors ${
-            node.type === "file" && selectedFile?.filePath === node.path
-              ? "bg-primary/10 border-l-2 border-primary"
-              : "hover:bg-muted"
-          }`}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
-          onClick={() => {
-            if (node.type === "folder") {
-              toggleFolder(node.path);
-            } else if (node.file) {
-              onSelectFile(node.file);
-            }
-          }}
-        >
-          {node.type === "folder" ? (
-            <>
-              {expandedFolders.has(node.path) ? (
-                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div
+              className={`flex items-center space-x-2 p-1 rounded cursor-pointer transition-colors ${
+                node.type === "file" && selectedFile?.filePath === node.path
+                  ? "bg-primary/10 border-l-2 border-primary"
+                  : "hover:bg-muted"
+              }`}
+              style={{ paddingLeft: `${depth * 16 + 8}px` }}
+              onClick={() => {
+                if (node.type === "folder") {
+                  toggleFolder(node.path);
+                } else if (node.file) {
+                  onSelectFile(node.file);
+                }
+              }}
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                draggedRef.current = { path: node.path, type: node.type };
+                e.dataTransfer.setData('text/plain', node.path);
+              }}
+              onDragOver={(e) => {
+                // Allow dropping into folders
+                if (node.type === 'folder') {
+                  e.preventDefault();
+                }
+              }}
+              onDrop={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Internal move
+                const dragged = draggedRef.current;
+                if (node.type === 'folder' && dragged) {
+                  if (dragged.type === 'file') {
+                    if (!onRenameFile) return;
+                    const name = dragged.path.split('/').pop()!;
+                    const dest = `${node.path.replace(/\/$/, '')}/${name}`;
+                    if (dest === dragged.path) return;
+                    try {
+                      await onRenameFile(dragged.path, dest);
+                      toast({ title: 'Moved', description: `${dragged.path} → ${dest}` });
+                    } catch (err: any) {
+                      toast({ title: 'Move failed', description: err?.message || String(err), variant: 'destructive' });
+                    }
+                  } else if (dragged.type === 'folder') {
+                    if (!onRenameFolder) return;
+                    // prevent dropping into its own subtree
+                    if (node.path === dragged.path || node.path.startsWith(dragged.path + '/')) {
+                      toast({ title: 'Invalid move', description: 'Cannot move a folder into itself or its subfolder', variant: 'destructive' });
+                      return;
+                    }
+                    const name = dragged.path.split('/').pop()!;
+                    const dest = `${node.path.replace(/\/$/, '')}/${name}`;
+                    if (dest === dragged.path) return;
+                    try {
+                      await onRenameFolder(dragged.path, dest);
+                      toast({ title: 'Moved', description: `${dragged.path} → ${dest}` });
+                    } catch (err: any) {
+                      toast({ title: 'Move failed', description: err?.message || String(err), variant: 'destructive' });
+                    }
+                  }
+                  draggedRef.current = null;
+                  return;
+                }
+                draggedRef.current = null;
+              }}
+            >
+              {node.type === "folder" ? (
+                <>
+                  {(expandedFolders.has(node.path) || !!searchQuery) ? (
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                  )}
+                  <Folder className="h-4 w-4 text-primary" />
+                </>
               ) : (
-                <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                <>
+                  <div className="w-3" />
+                  {getFileIcon(node.name)}
+                </>
               )}
-              <Folder className="h-4 w-4 text-primary" />
-            </>
-          ) : (
-            <>
-              <div className="w-3" />
-              {getFileIcon(node.name)}
-            </>
-          )}
-          <span className="text-sm truncate">{node.name}</span>
-        </div>
+              <span className="text-sm truncate">{node.name}</span>
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuLabel>{node.type === 'folder' ? 'Folder' : 'File'}</ContextMenuLabel>
+            <ContextMenuSeparator />
+            {node.type === 'file' && (
+              <>
+                <ContextMenuItem onClick={() => node.file && onSelectFile(node.file)}>Open</ContextMenuItem>
+                <ContextMenuItem disabled={!onRenameFile} onClick={() => openRename(node.path)}>Rename / Move</ContextMenuItem>
+                <ContextMenuItem disabled={!onDeleteFile} onClick={() => handleDelete(node.path)}>Delete</ContextMenuItem>
+              </>
+            )}
+            {node.type === 'folder' && (
+              <>
+                <ContextMenuItem onClick={() => toggleFolder(node.path)}>{expandedFolders.has(node.path) ? 'Collapse' : 'Expand'}</ContextMenuItem>
+                <ContextMenuItem disabled={!onCreateFolder} onClick={() => handleCreateSubfolder(node.path)}>Create Subfolder</ContextMenuItem>
+                <ContextMenuItem onClick={() => handleNewFileInFolder(node.path)}>New File Here</ContextMenuItem>
+                <ContextMenuItem disabled={!onRenameFolder} onClick={() => openRename(node.path, 'folder')}>Rename Folder</ContextMenuItem>
+                <ContextMenuItem disabled={!onDeleteFolder} onClick={() => handleDeleteFolder(node.path)}>Delete Folder</ContextMenuItem>
+              </>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
         
         {node.type === "folder" && 
          node.children && 
-         expandedFolders.has(node.path) && 
+         (expandedFolders.has(node.path) || !!searchQuery) && 
          renderFileTree(node.children, depth + 1)}
       </div>
     ));
@@ -327,11 +535,7 @@ export default function FileExplorer({
         title: "Success",
         description: `Uploaded ${files.length} file(s) successfully`,
       });
-      
-      // Refresh the file list after successful upload
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Parent component (Dashboard via useProject) will refresh files through React Query invalidation.
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -373,17 +577,97 @@ export {};`;
   };
 
   const fileTree = buildFileTree(files);
+  const visibleTree = filterTree(fileTree, searchQuery);
+
+  // Keyboard shortcuts and external drop upload
+  // F2: rename selected file, Delete: delete selected file, Ctrl+P: Quick Open
+  // Also support external file drops to upload
+  // Attach handlers to containerRef
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  (function useKeyboardAndDnDSetup() {
+    // Hook-like immediate setup guarded by ref
+    if (!containerRef.current) return;
+    const handleKey = (e: KeyboardEvent) => {
+      // Ctrl+P
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'p')) {
+        e.preventDefault();
+        setIsQuickOpen(true);
+        setQuickOpenQuery('');
+        return;
+      }
+      if (e.key === 'F2' && selectedFile) {
+        e.preventDefault();
+        openRename(selectedFile.filePath, 'file');
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFile) {
+        e.preventDefault();
+        handleDelete(selectedFile.filePath);
+        return;
+      }
+    };
+    const el = containerRef.current;
+    el.addEventListener('keydown', handleKey);
+    const handleDragOver = (e: DragEvent) => {
+      if (e.dataTransfer && e.dataTransfer.types.includes('Files')) {
+        e.preventDefault();
+      }
+    };
+    const handleDrop = (e: DragEvent) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        e.preventDefault();
+        const filesList = e.dataTransfer.files as unknown as FileList;
+        // @ts-ignore - we can pass FileList-like
+        handleFileUpload(filesList);
+      }
+    };
+    el.addEventListener('dragover', handleDragOver);
+    el.addEventListener('drop', handleDrop);
+    return () => {
+      el.removeEventListener('keydown', handleKey);
+      el.removeEventListener('dragover', handleDragOver);
+      el.removeEventListener('drop', handleDrop);
+    };
+  })();
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto" ref={containerRef} tabIndex={0}>
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium flex items-center space-x-2">
             <Folder className="h-4 w-4 text-primary" />
             <span>File Explorer</span>
           </h3>
+          <div className="flex-1 mx-3">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search files and folders..."
+              className="h-8"
+            />
+          </div>
           {currentProject && (
             <div className="flex items-center space-x-1">
+              {/* Reveal in Tree */}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="p-1"
+                onClick={() => revealInTree(selectedFile?.filePath)}
+                title="Reveal in tree"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              {/* Collapse All */}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="p-1"
+                onClick={collapseAll}
+                title="Collapse all"
+              >
+                <Minimize2 className="h-4 w-4" />
+              </Button>
               {/* File upload input */}
               <input
                 ref={fileInputRef}
@@ -585,7 +869,7 @@ export {};`;
             </div>
           )}
         </div>
-        
+
         {fileTree.length > 0 ? (
           <div className="space-y-1">
             {renderFileTree(fileTree)}
@@ -599,6 +883,29 @@ export {};`;
             )}
           </div>
         )}
+
+        {/* Rename / Move Dialog */}
+        <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename / Move File</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              <div>
+                <Label>From</Label>
+                <Input value={renameFrom} disabled />
+              </div>
+              <div>
+                <Label htmlFor="toPath">To</Label>
+                <Input id="toPath" value={renameTo} onChange={(e) => setRenameTo(e.target.value)} placeholder="new/path/File.tsx" />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setIsRenameOpen(false)}>Cancel</Button>
+                <Button className="flex-1" onClick={submitRename} disabled={!renameTo.trim() || !onRenameFile}>Confirm</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
