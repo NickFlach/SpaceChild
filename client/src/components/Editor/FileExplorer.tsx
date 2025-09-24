@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, Github, ArrowLeft, RefreshCw, Search, Eye, Minimize2 } from "lucide-react";
+import { ChevronRight, ChevronDown, File, Folder, Plus, FileText, Upload, FolderOpen, Github, ArrowLeft, RefreshCw, Eye, Minimize2, HelpCircle } from "lucide-react";
 import { 
   ContextMenu,
   ContextMenuContent,
@@ -13,6 +13,7 @@ import {
   ContextMenuSeparator,
   ContextMenuLabel
 } from "@/components/ui/context-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ProjectFile, Project } from "@shared/schema";
 import JSZip from "jszip";
 import { useToast } from "@/hooks/use-toast";
@@ -77,6 +78,7 @@ export default function FileExplorer({
   const [quickOpenQuery, setQuickOpenQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const draggedRef = useRef<{ path: string; type: 'file' | 'folder' } | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const openGitHubModal = async () => {
     setIsGitHubModalOpen(true);
@@ -592,6 +594,11 @@ export {};`;
         setQuickOpenQuery('');
         return;
       }
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsHelpOpen(true);
+        return;
+      }
       if (e.key === 'F2' && selectedFile) {
         e.preventDefault();
         openRename(selectedFile.filePath, 'file');
@@ -645,25 +652,37 @@ export {};`;
           {currentProject && (
             <div className="flex items-center space-x-1">
               {/* Reveal in Tree */}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-1"
-                onClick={() => revealInTree(selectedFile?.filePath)}
-                title="Reveal in tree"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="p-1"
+                      onClick={() => revealInTree(selectedFile?.filePath)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Reveal selected file in tree</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               {/* Collapse All */}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="p-1"
-                onClick={collapseAll}
-                title="Collapse all"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="p-1"
+                      onClick={collapseAll}
+                    >
+                      <Minimize2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Collapse all folders</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               {/* File upload input */}
               <input
                 ref={fileInputRef}
@@ -695,37 +714,72 @@ export {};`;
               />
               
               {/* File upload button */}
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="p-1"
-                onClick={() => fileInputRef.current?.click()}
-                title="Upload files or zip archives"
-              >
-                <Upload className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-1"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Upload files or zip archives</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
               {/* Folder upload button */}
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="p-1"
-                onClick={() => folderInputRef.current?.click()}
-                title="Upload folder"
-              >
-                <FolderOpen className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-1"
+                      onClick={() => folderInputRef.current?.click()}
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Upload a folder</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {/* GitHub Import */}
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="p-1"
-                onClick={openGitHubModal}
-                title={isGitHubAuthed ? "Import from GitHub" : "Connect GitHub in Settings to import"}
-              >
-                <Github className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-1"
+                      onClick={openGitHubModal}
+                    >
+                      <Github className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isGitHubAuthed ? 'Import from GitHub' : 'Connect GitHub in Settings to import'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Help */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="p-1"
+                      onClick={() => setIsHelpOpen(true)}
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Help and shortcuts (press ?)</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="ghost" className="p-1">
@@ -898,6 +952,43 @@ export {};`;
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setIsRenameOpen(false)}>Cancel</Button>
                 <Button className="flex-1" onClick={submitRename} disabled={!renameTo.trim() || !onRenameFile}>Confirm</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Help Dialog */}
+        <Dialog open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>File Explorer Help</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 text-sm">
+              <div>
+                <h4 className="font-medium mb-1">Tips</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Right-click files or folders for actions.</li>
+                  <li>Drag files/folders into folders to move them.</li>
+                  <li>Drop files from your desktop to upload (zip supported).</li>
+                  <li>Use the search box to filter by name or path; folders auto-expand for matches.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-1">Keyboard Shortcuts</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>Ctrl+P</strong>: Quick Open</li>
+                  <li><strong>F2</strong>: Rename selected file</li>
+                  <li><strong>Delete</strong>: Delete selected file</li>
+                  <li><strong>?</strong>: Open this help</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-1">Folder Operations</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Create Subfolder: adds a hidden <code>.folder</code> marker to keep empty folders.</li>
+                  <li>Rename/Move Folder: moves all nested items; blocked if it would overwrite existing files.</li>
+                  <li>Delete Folder: recursively removes contents.</li>
+                </ul>
               </div>
             </div>
           </DialogContent>
