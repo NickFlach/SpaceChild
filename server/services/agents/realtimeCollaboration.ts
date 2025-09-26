@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { WebSocket } from "ws";
-import { AgentType, AgentMessage, MessageType } from "../multiAgent";
+import { AgentType, AgentMessage, MessageType } from "./baseAgent";
 
 // Real-time collaborative editing and code streaming
 export class RealtimeCollaborationService {

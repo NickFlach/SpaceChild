@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { AgentType, AgentMessage, MessageType, AgentTask } from "../multiAgent";
+import { AgentType, AgentMessage, MessageType, AgentTask } from "./baseAgent";
 
 // Enhanced intelligence patterns for agent collaboration
 export class AgentIntelligenceService {

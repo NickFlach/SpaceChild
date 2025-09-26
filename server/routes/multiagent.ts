@@ -1,6 +1,6 @@
 import express from 'express';
 import { multiAgentService } from '../services/multiAgent';
-import { AgentType } from '../services/multiAgent';
+import { AgentType } from '../services/agents/baseAgent';
 
 const router = express.Router();
 

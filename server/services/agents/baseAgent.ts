@@ -40,7 +40,9 @@ export enum MessageType {
   STATUS_UPDATE = 'status_update',
   CODE_SUGGESTION = 'code_suggestion',
   KNOWLEDGE_SHARE = 'knowledge_share',
-  REVIEW_REQUEST = 'review_request'
+  REVIEW_REQUEST = 'review_request',
+  CONFLICT_DETECTION = 'conflict_detection',
+  INTEGRATION_PROPOSAL = 'integration_proposal'
 }
 
 // Task priority levels
@@ -61,6 +63,7 @@ export interface AgentTask {
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   createdAt: Date;
   updatedAt: Date;
+  dependencies?: string[];
   metadata?: Record<string, any>;
 }
 
