@@ -19,6 +19,12 @@ import { consciousnessService } from "./consciousness";
 import { aiProviderService } from "./aiProviders";
 import { AgentIntelligenceService } from "./agents/agentIntelligence";
 import { RealtimeCollaborationService } from "./agents/realtimeCollaboration";
+import { 
+  BackendArchitectAgent, 
+  SecurityAnalystAgent, 
+  PerformanceOptimizerAgent, 
+  TestingEngineerAgent 
+} from "./agents/specializedAgents";
 
 // Agent types representing different specializations
 export enum AgentType {
@@ -493,26 +499,26 @@ export class MultiAgentService {
   }
 
   private initializeAgents() {
-    // Import specialized agents
-    const { 
-      BackendArchitectAgent, 
-      SecurityAnalystAgent, 
-      PerformanceOptimizerAgent, 
-      TestingEngineerAgent 
-    } = require('./agents/specializedAgents');
-    
-    // Create all specialized agents
-    const frontendExpert = new FrontendExpertAgent(this.eventBus);
-    const backendArchitect = new BackendArchitectAgent(this.eventBus);
-    const securityAnalyst = new SecurityAnalystAgent(this.eventBus);
-    const performanceOptimizer = new PerformanceOptimizerAgent(this.eventBus);
-    const testingEngineer = new TestingEngineerAgent(this.eventBus);
-    
-    this.agents.set(AgentType.FRONTEND_EXPERT, frontendExpert);
-    this.agents.set(AgentType.BACKEND_ARCHITECT, backendArchitect);
-    this.agents.set(AgentType.SECURITY_ANALYST, securityAnalyst);
-    this.agents.set(AgentType.PERFORMANCE_OPTIMIZER, performanceOptimizer);
-    this.agents.set(AgentType.TESTING_ENGINEER, testingEngineer);
+    try {
+      // Create all specialized agents using static imports
+      const frontendExpert = new FrontendExpertAgent(this.eventBus);
+      const backendArchitect = new BackendArchitectAgent(this.eventBus);
+      const securityAnalyst = new SecurityAnalystAgent(this.eventBus);
+      const performanceOptimizer = new PerformanceOptimizerAgent(this.eventBus);
+      const testingEngineer = new TestingEngineerAgent(this.eventBus);
+      
+      // Register all agents
+      this.agents.set(AgentType.FRONTEND_EXPERT, frontendExpert);
+      this.agents.set(AgentType.BACKEND_ARCHITECT, backendArchitect);
+      this.agents.set(AgentType.SECURITY_ANALYST, securityAnalyst);
+      this.agents.set(AgentType.PERFORMANCE_OPTIMIZER, performanceOptimizer);
+      this.agents.set(AgentType.TESTING_ENGINEER, testingEngineer);
+      
+      console.log('✅ All specialized agents initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize specialized agents:', error);
+      throw error;
+    }
   }
 
   private setupMessageLogging() {
