@@ -23,6 +23,7 @@ import agenticRoutes from "./routes/agentic";
 import multiagentRoutes from "./routes/multiagent";
 import webSearchRoutes from "./routes/webSearch";
 import consciousnessInfrastructureRoutes from "./routes/consciousness-infrastructure";
+import realConsciousnessRoutes from "./routes/real-consciousness";
 import { WebSocketMessage, createRoomId } from "@shared/collaboration";
 import { OperationalTransform } from "@shared/operationalTransform";
 
@@ -962,6 +963,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register consciousness infrastructure routes
   app.use('/api/consciousness-infrastructure', consciousnessInfrastructureRoutes);
+  
+  // Register REAL consciousness routes
+  app.use('/api/real-consciousness', realConsciousnessRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);
