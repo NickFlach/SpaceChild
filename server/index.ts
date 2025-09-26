@@ -13,18 +13,21 @@ app.use((req, res, next) => {
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  // Add headers to help with iframe loading
-  res.header('X-Frame-Options', 'SAMEORIGIN');
-  res.header('Content-Security-Policy', "frame-ancestors 'self' 'unsafe-inline' localhost:* *.replit.dev *.replit.com");
+  // Add headers to control embedding. Use a valid CSP frame-ancestors directive.
+  // Note: frame-ancestors supersedes X-Frame-Options; do not set both.
+  res.header(
+    'Content-Security-Policy',
+    "frame-ancestors 'self' http://localhost:* https://*.replit.dev https://*.replit.com"
+  );
   
   // Allow local preview access
   if (req.path === '/preview') {
-    return res.sendFile('/home/runner/workspace/preview.html');
+    return res.sendFile(resolve(process.cwd(), 'preview.html'));
   }
   
   // Allow access guide
   if (req.path === '/access-guide') {
-    return res.sendFile('/home/runner/workspace/access-guide.html');
+    return res.sendFile(resolve(process.cwd(), 'access-guide.html'));
   }
 
   const originalResJson = res.json;
