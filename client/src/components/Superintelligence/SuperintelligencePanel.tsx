@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,19 +107,19 @@ export function SuperintelligencePanel({ project, className }: Superintelligence
   const [activeTab, setActiveTab] = useState('analysis');
 
   // Fetch project analyses
-  const { data: analyses, isLoading: analysesLoading } = useQuery<AnalysesResponse>({
+  const { data: analyses, isLoading: analysesLoading, isError: analysesError, error: analysesErr, refetch: refetchAnalyses } = useQuery<AnalysesResponse>({
     queryKey: ['/api/superintelligence/analyses', project.id],
     enabled: !!project.id
   });
 
   // Fetch project optimizations
-  const { data: optimizations, isLoading: optimizationsLoading } = useQuery<OptimizationsResponse>({
+  const { data: optimizations, isLoading: optimizationsLoading, isError: optimizationsError, error: optimizationsErr, refetch: refetchOptimizations } = useQuery<OptimizationsResponse>({
     queryKey: ['/api/superintelligence/optimizations', project.id],
     enabled: !!project.id
   });
 
   // Fetch project recommendations
-  const { data: recommendations, isLoading: recommendationsLoading } = useQuery<RecommendationsResponse>({
+  const { data: recommendations, isLoading: recommendationsLoading, isError: recommendationsError, error: recommendationsErr, refetch: refetchRecommendations } = useQuery<RecommendationsResponse>({
     queryKey: ['/api/superintelligence/recommendations', project.id],
     enabled: !!project.id
   });
@@ -264,7 +264,7 @@ export function SuperintelligencePanel({ project, className }: Superintelligence
                         <div className="space-y-1">
                           <div className="text-sm font-medium">Suggestions:</div>
                           {analysis.analysis.suggestions.map((suggestion: string, i: number) => (
-                            <div key={i} className="text-sm text-muted-foreground pl-4">• {suggestion}</div>
+                            <div key={i} className="text-sm text-muted-foreground pl-4">â€¢ {suggestion}</div>
                           ))}
                         </div>
                       )}

@@ -13,6 +13,7 @@ Welcome to the SpaceChild documentation! This guide will help you understand, us
 - [Dashboard](user-guide/dashboard.md) - Overview of the main interface
 - [Projects](user-guide/projects.md) - Creating and managing projects
 - [AI Agents](user-guide/ai-agents.md) - Working with AI development assistants
+- [Multi-Agent System](MULTI_AGENT_SYSTEM.md) - **NEW!** Advanced multi-agent collaboration
 - [Code Editor](user-guide/editor.md) - Using the integrated development environment
 - [Version Control](user-guide/version-control.md) - GitHub integration and Git workflows
 

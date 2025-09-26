@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,7 +24,8 @@ import {
   Brain,
   Shield,
   Zap,
-  TestTube
+  TestTube,
+  Code2
 } from "lucide-react";
 import type { Project } from "@shared/schema";
 
@@ -180,7 +181,6 @@ export default function MultiAgentPanel({ project }: MultiAgentPanelProps) {
             Multi-Agent Collaboration
           </CardTitle>
           <CardDescription>
-            Describe your goal and let our AI agents work together to achieve it
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -233,11 +233,13 @@ export default function MultiAgentPanel({ project }: MultiAgentPanelProps) {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="agents">Agents</TabsTrigger>
                 <TabsTrigger value="tasks">Tasks</TabsTrigger>
                 <TabsTrigger value="messages">Messages</TabsTrigger>
+                <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+                <TabsTrigger value="collaboration">Live Code</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
@@ -357,6 +359,149 @@ export default function MultiAgentPanel({ project }: MultiAgentPanelProps) {
                     ))}
                   </div>
                 </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="intelligence" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Brain className="h-4 w-4" />
+                          Knowledge Insights
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">
+                            Cross-agent knowledge sharing active
+                          </div>
+                          <div className="text-sm">
+                            • Security patterns shared across 3 agents
+                          </div>
+                          <div className="text-sm">
+                            • Performance optimizations propagated
+                          </div>
+                          <div className="text-sm">
+                            • Testing strategies synchronized
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Conflict Resolution
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">
+                            No active conflicts
+                          </div>
+                          <div className="text-sm text-green-600">
+                            ✓ All agents in sync
+                          </div>
+                          <div className="text-sm text-green-600">
+                            ✓ Code reviews passing
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Task Optimization</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Workload Balance</span>
+                          <span className="text-green-600">Optimal</span>
+                        </div>
+                        <Progress value={85} className="h-2" />
+                        <div className="text-xs text-muted-foreground">
+                          Tasks automatically redistributed for optimal performance
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="collaboration" className="space-y-4">
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Code2 className="h-4 w-4" />
+                        Live Code Streams
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-2 bg-muted rounded">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-sm font-medium">Frontend Component Stream</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-blue-500 rounded text-white text-xs flex items-center justify-center">F</div>
+                            <div className="w-4 h-4 bg-red-500 rounded text-white text-xs flex items-center justify-center">S</div>
+                            <div className="w-4 h-4 bg-pink-500 rounded text-white text-xs flex items-center justify-center">T</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 bg-gray-900 rounded text-green-400 font-mono text-xs">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-blue-400">[Frontend Expert]</span>
+                            <span className="text-gray-400">typing...</span>
+                          </div>
+                          <div>const UserProfile = ({`{ user }`}) =&gt; {`{`}</div>
+                          <div className="ml-2">return (</div>
+                          <div className="ml-4">&lt;div className="profile"&gt;</div>
+                          <div className="ml-6 text-yellow-400">// Security Analyst: Add input validation</div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Play className="h-3 w-3 mr-1" />
+                            Join Stream
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <MessageSquare className="h-3 w-3 mr-1" />
+                            Suggest
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Real-time Analysis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-lg font-bold text-green-600">95%</div>
+                          <div className="text-xs text-muted-foreground">Code Quality</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-blue-600">12</div>
+                          <div className="text-xs text-muted-foreground">Suggestions</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-purple-600">3</div>
+                          <div className="text-xs text-muted-foreground">Active Reviews</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

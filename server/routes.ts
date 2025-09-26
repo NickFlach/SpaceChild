@@ -20,6 +20,7 @@ import subscriptionRoutes from "./routes/subscriptions";
 import replitUserSearchRoutes from "./routes/replitUserSearch";
 import consciousnessRoutes from "./routes/consciousness";
 import agenticRoutes from "./routes/agentic";
+import multiagentRoutes from "./routes/multiagent";
 import webSearchRoutes from "./routes/webSearch";
 import { WebSocketMessage, createRoomId } from "@shared/collaboration";
 import { OperationalTransform } from "@shared/operationalTransform";
@@ -951,6 +952,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register agentic system routes
   app.use('/api/agentic', agenticRoutes);
+  
+  // Register multi-agent system routes
+  app.use('/api/multiagent', multiagentRoutes);
   
   // Register web search routes
   app.use('/api/web-search', webSearchRoutes);

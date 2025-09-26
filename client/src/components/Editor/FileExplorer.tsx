@@ -570,18 +570,29 @@ export default function FileExplorer({
   };
 
   const getDefaultContent = (fileType: string, filePath: string) => {
-    const fileName = filePath.split("/").pop()?.replace(/\.[^/.]+$/, "");
+    const fileName = filePath.split("/").pop()?.replace(/\.[^/.]+$/i, "");
+    // Sanitize to a valid PascalCase React component name
+    const toPascal = (s: string) => s
+      .split(/[^A-Za-z0-9_]+/g)
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join("");
+    let componentName = toPascal(fileName || "Component");
+    if (!componentName) componentName = "Component";
+    if (/^[0-9]/.test(componentName)) {
+      componentName = `_${componentName}`;
+    }
     
     switch (fileType) {
       case "tsx":
         return `import React from 'react';
 
-interface ${fileName}Props {}
+interface ${componentName}Props {}
 
-export default function ${fileName}({}: ${fileName}Props) {
+export default function ${componentName}({}: ${componentName}Props) {
   return (
     <div>
-      <h1>${fileName} Component</h1>
+      <h1>${componentName} Component</h1>
     </div>
   );
 }`;
@@ -681,6 +692,7 @@ export {};`;
                       variant="ghost"
                       className="p-1"
                       onClick={() => revealInTree(selectedFile?.filePath)}
+                      aria-label="Reveal selected file in tree"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -697,6 +709,7 @@ export {};`;
                       variant="ghost"
                       className="p-1"
                       onClick={collapseAll}
+                      aria-label="Collapse all folders"
                     >
                       <Minimize2 className="h-4 w-4" />
                     </Button>
@@ -743,6 +756,7 @@ export {};`;
                       variant="ghost" 
                       className="p-1"
                       onClick={() => fileInputRef.current?.click()}
+                      aria-label="Upload files or zip archives"
                     >
                       <Upload className="h-4 w-4" />
                     </Button>
@@ -760,6 +774,7 @@ export {};`;
                       variant="ghost" 
                       className="p-1"
                       onClick={() => folderInputRef.current?.click()}
+                      aria-label="Upload a folder"
                     >
                       <FolderOpen className="h-4 w-4" />
                     </Button>
@@ -777,6 +792,7 @@ export {};`;
                       variant="ghost" 
                       className="p-1"
                       onClick={openGitHubModal}
+                      aria-label={isGitHubAuthed ? 'Import from GitHub' : 'Connect GitHub in Settings to import'}
                     >
                       <Github className="h-4 w-4" />
                     </Button>
@@ -794,6 +810,7 @@ export {};`;
                       variant="ghost"
                       className="p-1"
                       onClick={() => setIsHelpOpen(true)}
+                      aria-label="Help and shortcuts"
                     >
                       <HelpCircle className="h-4 w-4" />
                     </Button>
@@ -803,7 +820,7 @@ export {};`;
               </TooltipProvider>
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" variant="ghost" className="p-1">
+                  <Button size="sm" variant="ghost" className="p-1" aria-label="Create new file">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>

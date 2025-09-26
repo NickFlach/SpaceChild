@@ -17,6 +17,8 @@ import { EventEmitter } from "events";
 import { SuperintelligenceService } from "./superintelligence";
 import { consciousnessService } from "./consciousness";
 import { aiProviderService } from "./aiProviders";
+import { AgentIntelligenceService } from "./agents/agentIntelligence";
+import { RealtimeCollaborationService } from "./agents/realtimeCollaboration";
 
 // Agent types representing different specializations
 export enum AgentType {
@@ -49,7 +51,7 @@ export enum MessageType {
   KNOWLEDGE_SHARE = 'knowledge_share'
 }
 
-interface AgentMessage {
+export interface AgentMessage {
   from: AgentType;
   to: AgentType | 'broadcast';
   type: MessageType;
@@ -59,7 +61,7 @@ interface AgentMessage {
   requiresResponse?: boolean;
 }
 
-interface AgentTask {
+export interface AgentTask {
   id: string;
   type: string;
   description: string;
@@ -72,7 +74,7 @@ interface AgentTask {
 }
 
 // Base Agent class - all specialized agents inherit from this
-abstract class BaseAgent {
+export abstract class BaseAgent {
   protected id: string;
   protected type: AgentType;
   protected status: AgentStatus = AgentStatus.IDLE;
@@ -472,10 +474,16 @@ export class MultiAgentService {
   private eventBus = new EventEmitter();
   private agents = new Map<AgentType, BaseAgent>();
   private orchestrator: OrchestratorAgent;
+  private intelligenceService: AgentIntelligenceService;
+  private collaborationService: RealtimeCollaborationService;
 
   constructor() {
     // Initialize orchestrator
     this.orchestrator = new OrchestratorAgent(this.eventBus);
+    
+    // Initialize enhanced services
+    this.intelligenceService = new AgentIntelligenceService(this.eventBus);
+    this.collaborationService = new RealtimeCollaborationService(this.eventBus);
     
     // Initialize specialized agents
     this.initializeAgents();
@@ -485,16 +493,26 @@ export class MultiAgentService {
   }
 
   private initializeAgents() {
+    // Import specialized agents
+    const { 
+      BackendArchitectAgent, 
+      SecurityAnalystAgent, 
+      PerformanceOptimizerAgent, 
+      TestingEngineerAgent 
+    } = require('./agents/specializedAgents');
+    
     // Create all specialized agents
     const frontendExpert = new FrontendExpertAgent(this.eventBus);
+    const backendArchitect = new BackendArchitectAgent(this.eventBus);
+    const securityAnalyst = new SecurityAnalystAgent(this.eventBus);
+    const performanceOptimizer = new PerformanceOptimizerAgent(this.eventBus);
+    const testingEngineer = new TestingEngineerAgent(this.eventBus);
     
     this.agents.set(AgentType.FRONTEND_EXPERT, frontendExpert);
-    
-    // TODO: Initialize other agent types
-    // - BackendArchitectAgent
-    // - SecurityAnalystAgent
-    // - PerformanceOptimizerAgent
-    // - TestingEngineerAgent
+    this.agents.set(AgentType.BACKEND_ARCHITECT, backendArchitect);
+    this.agents.set(AgentType.SECURITY_ANALYST, securityAnalyst);
+    this.agents.set(AgentType.PERFORMANCE_OPTIMIZER, performanceOptimizer);
+    this.agents.set(AgentType.TESTING_ENGINEER, testingEngineer);
   }
 
   private setupMessageLogging() {
@@ -535,6 +553,44 @@ export class MultiAgentService {
     }
     
     return statuses;
+  }
+
+  // Enhanced Intelligence API
+  async initiateCodeReview(code: string, author: AgentType, taskId: string) {
+    return this.intelligenceService.initiateCodeReview(code, author, taskId);
+  }
+
+  getConflictResolutions() {
+    return this.intelligenceService.getConflictResolutionStatus();
+  }
+
+  getKnowledgeInsights() {
+    return this.intelligenceService.getKnowledgeInsights();
+  }
+
+  async optimizeTaskAssignments(tasks: any[]) {
+    return this.intelligenceService.optimizeTaskAssignment(tasks);
+  }
+
+  // Real-time Collaboration API
+  async startCodeStream(sessionId: string, agents: AgentType[]) {
+    return this.collaborationService.startCodeStream(sessionId, agents);
+  }
+
+  async applyCodeOperation(streamId: string, operation: any) {
+    return this.collaborationService.applyCodeOperation(streamId, operation);
+  }
+
+  getActiveStreams() {
+    return this.collaborationService.getActiveStreams();
+  }
+
+  async endCodeStream(streamId: string) {
+    return this.collaborationService.endStream(streamId);
+  }
+
+  connectAgentWebSocket(agent: AgentType, ws: any) {
+    return this.collaborationService.connectAgent(agent, ws);
   }
 }
 
