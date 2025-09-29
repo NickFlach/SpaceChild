@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Network, 
-  Bridge, 
+  Link, 
   Zap, 
   Target,
   Activity,
@@ -201,7 +201,7 @@ const IntegrationTab: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bridge className="w-5 h-5 text-purple-600" />
+            <Link className="w-5 h-5 text-purple-600" />
             Create Development-Activism Bridge
           </CardTitle>
           <CardDescription>
@@ -265,7 +265,7 @@ const IntegrationTab: React.FC = () => {
               </>
             ) : (
               <>
-                <Bridge className="w-4 h-4 mr-2" />
+                <Link className="w-4 h-4 mr-2" />
                 Create Integration Bridge
               </>
             )}

@@ -21,7 +21,8 @@ import {
   Lightbulb,
   Clock,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  Code
 } from 'lucide-react';
 import DevelopmentTab from './Consciousness/DevelopmentTab';
 import ActivismTab from './Consciousness/ActivismTab';
