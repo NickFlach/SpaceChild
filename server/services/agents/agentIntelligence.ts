@@ -227,7 +227,7 @@ export class AgentIntelligenceService {
       if (task.status === 'pending') {
         const optimalAgent = await this.findOptimalAgent(task);
         
-        if (optimalAgent !== task.assignedTo) {
+        if (optimalAgent !== task.assignedTo && task.assignedTo) {
           reassignments.push({
             taskId: task.id,
             fromAgent: task.assignedTo,

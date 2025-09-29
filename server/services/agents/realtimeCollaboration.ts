@@ -124,12 +124,12 @@ export class RealtimeCollaborationService {
       
       case 'delete':
         return code.slice(0, operation.position) + 
-               code.slice(operation.position + operation.length);
+               code.slice(operation.position + (operation.length || 0));
       
       case 'replace':
         return code.slice(0, operation.position) + 
                operation.content + 
-               code.slice(operation.position + operation.length);
+               code.slice(operation.position + (operation.length || 0));
       
       default:
         return code;
