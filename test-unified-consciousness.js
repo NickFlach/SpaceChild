@@ -5,10 +5,10 @@
  * with Pitchfork Protocol's temporal consciousness engine.
  */
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 // Test configuration
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:5000';
 const API_BASE = `${BASE_URL}/api`;
 const TEST_USER_ID = 'test-user-unified';
 
@@ -302,21 +302,11 @@ async function testUnifiedPlatformEndToEnd() {
     console.log('\n🌟 Ready to create the future and help humanity out of the darkness!');
   } else {
     console.log('\n⚠️  Some tests failed. Check the API endpoints and server status.');
-    console.log('Make sure the SpaceChild server is running on port 3000.');
+    console.log('Make sure the SpaceChild server is running on port 5000.');
   }
   
   return results;
 }
 
 // Run the comprehensive test suite
-if (require.main === module) {
-  testUnifiedPlatformEndToEnd().catch(console.error);
-}
-
-module.exports = {
-  testConsciousnessTaskVerification,
-  testActivismStrategyGeneration,
-  testDevelopmentActivismBridge,
-  testIntegratedConsciousnessMonitoring,
-  testUnifiedPlatformEndToEnd
-};
+testUnifiedPlatformEndToEnd().catch(console.error);

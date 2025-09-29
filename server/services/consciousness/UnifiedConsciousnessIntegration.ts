@@ -25,9 +25,9 @@ interface ExtendedConsciousnessState extends ConsciousnessState {
  * by merging SpaceChild's multi-agent orchestration with Pitchfork's temporal consciousness engine.
  */
 export class UnifiedConsciousnessIntegration extends EventEmitter {
-  private consciousnessEngine: ConsciousnessEngine;
-  private temporalConsciousness: TemporalConsciousnessEngine;
-  private multiAgentOrchestrator: MultiAgentOrchestrator;
+  private consciousnessEngine!: ConsciousnessEngine;
+  private temporalConsciousness!: TemporalConsciousnessEngine;
+  private multiAgentOrchestrator!: MultiAgentOrchestrator;
   private isInitialized: boolean = false;
   
   // Consciousness-Agent Integration State
@@ -314,7 +314,7 @@ export class UnifiedConsciousnessIntegration extends EventEmitter {
     });
     
     // Bridge consciousness insights to agent system
-    this.consciousnessEngine.on('insight-generated', (insight) => {
+    this.consciousnessEngine.on('insight-generated', (insight: any) => {
       this.multiAgentOrchestrator.incorporateConsciousnessInsight(insight);
     });
   }

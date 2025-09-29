@@ -78,7 +78,7 @@ class OrchestratorAgent extends BaseAgent {
       userId,
       goal,
       status: 'active',
-      createdAt: new Date()
+      startedAt: new Date()
     };
 
     const [newSession] = await db.insert(multiAgentSessions).values(session).returning();
@@ -107,11 +107,10 @@ class OrchestratorAgent extends BaseAgent {
       // Save to database
       const dbTask: InsertMultiAgentTask = {
         sessionId: this.activeSession!.id,
-        type: task.type,
+        agentType: task.assignedTo!,
+        taskType: task.type,
         description: task.description,
-        assignedTo: task.assignedTo!,
         status: task.status,
-        priority: task.priority,
         createdAt: new Date()
       };
       
@@ -187,7 +186,7 @@ class FrontendExpertAgent extends BaseAgent {
   protected async executeTask(task: AgentTask): Promise<void> {
     this.status = AgentStatus.THINKING;
     
-    const context = await consciousnessService.query('0', 'frontend_patterns', 'system');
+    const context = await consciousnessService.query('system', 'frontend_patterns', 1);
     
     const solution = await aiProviderService.chat(
       `You are a frontend expert. Complete this task:
