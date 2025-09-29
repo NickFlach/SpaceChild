@@ -18,12 +18,12 @@ import sandboxRoutes from "./routes/sandbox";
 import scrapeRoutes from "./routes/scrape";
 import subscriptionRoutes from "./routes/subscriptions";
 import replitUserSearchRoutes from "./routes/replitUserSearch";
-import consciousnessRoutes from "./routes/consciousness";
+import consciousnessRoutes from "./routes/consciousness.js";
 import agenticRoutes from "./routes/agentic";
 import multiagentRoutes from "./routes/multiagent";
 import webSearchRoutes from "./routes/webSearch";
 import consciousnessInfrastructureRoutes from "./routes/consciousness-infrastructure";
-import realConsciousnessRoutes from "./routes/real-consciousness";
+import realConsciousnessRoutes from "./routes/real-consciousness.js";
 import { WebSocketMessage, createRoomId } from "@shared/collaboration";
 import { OperationalTransform } from "@shared/operationalTransform";
 
