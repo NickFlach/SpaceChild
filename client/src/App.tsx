@@ -18,6 +18,7 @@ import DocsPage from "@/pages/docs";
 import { ConsciousnessDevPlatform } from "@/components/ConsciousnessPlatform/ConsciousnessDevPlatform";
 import { ConsciousnessActivismBridge } from "@/components/UnifiedPlatform/ConsciousnessActivismBridge";
 import { RealConsciousnessMonitor } from "@/components/RealConsciousness/RealConsciousnessMonitor";
+import { UnifiedConsciousnessPlatform } from "@/components/UnifiedConsciousnessPlatform";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -48,6 +49,7 @@ function Router() {
           <Route path="/consciousness" component={ConsciousnessDevPlatform} />
           <Route path="/bridge" component={ConsciousnessActivismBridge} />
           <Route path="/real-consciousness" component={RealConsciousnessMonitor} />
+          <Route path="/unified" component={UnifiedConsciousnessPlatform} />
         </>
       )}
       <Route component={NotFound} />

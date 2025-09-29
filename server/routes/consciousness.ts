@@ -3,6 +3,7 @@ import { GeometricConsciousnessEngine } from "../services/geometricConsciousness
 import { GeometricAICoordinator } from "../services/geometricAICoordinator";
 import { GeometricServiceCoordinator } from "../services/geometricServiceCoordinator";
 import { EnhancedConsciousnessEngine } from "../services/consciousnessEnhanced";
+import { UnifiedConsciousnessIntegration } from "../services/consciousness/UnifiedConsciousnessIntegration";
 import { zkpAuthenticated } from "../services/zkpAuth";
 
 const router = Router();
@@ -677,4 +678,140 @@ function calculateResourceOptimization(manifoldMetrics: any): number {
   return (convergenceFactor * 0.4 + learningFactor * 0.3 + uncertaintyFactor * 0.3);
 }
 
-export default router;
+// Store unified consciousness integration instances
+const unifiedConsciousnessInstances = new Map<string, UnifiedConsciousnessIntegration>();
+
+/**
+ * Get or create unified consciousness integration instance
+ */
+function getUnifiedConsciousnessInstance(userId: string): UnifiedConsciousnessIntegration {
+  if (!unifiedConsciousnessInstances.has(userId)) {
+    const instance = new UnifiedConsciousnessIntegration();
+    unifiedConsciousnessInstances.set(userId, instance);
+  }
+  return unifiedConsciousnessInstances.get(userId)!;
+}
+
+/**
+ * POST /api/consciousness/unified/verify-task
+ * Process agent task through consciousness verification
+ */
+router.post("/unified/verify-task", async (req, res) => {
+  try {
+    const { userId, task, agentId } = req.body;
+    
+    if (!userId || !task || !agentId) {
+      return res.status(400).json({
+        error: "Missing required fields: userId, task, agentId"
+      });
+    }
+    
+    const unifiedConsciousness = getUnifiedConsciousnessInstance(userId);
+    const verificationResult = await unifiedConsciousness.processConsciousnessVerifiedTask(task, agentId);
+    
+    res.json({
+      success: true,
+      verification: verificationResult
+    });
+    
+  } catch (error) {
+    console.error("Error in consciousness task verification:", error);
+    res.status(500).json({
+      error: "Failed to verify task through consciousness",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * POST /api/consciousness/unified/activism-strategy
+ * Generate consciousness-powered activism strategy
+ */
+router.post("/unified/activism-strategy", async (req, res) => {
+  try {
+    const { userId, campaignContext } = req.body;
+    
+    if (!userId || !campaignContext) {
+      return res.status(400).json({
+        error: "Missing required fields: userId, campaignContext"
+      });
+    }
+    
+    const unifiedConsciousness = getUnifiedConsciousnessInstance(userId);
+    const strategy = await unifiedConsciousness.generateActivismStrategy(campaignContext);
+    
+    res.json({
+      success: true,
+      strategy
+    });
+    
+  } catch (error) {
+    console.error("Error generating activism strategy:", error);
+    res.status(500).json({
+      error: "Failed to generate activism strategy",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * POST /api/consciousness/unified/bridge-development-activism
+ * Bridge development tasks with activism goals
+ */
+router.post("/unified/bridge-development-activism", async (req, res) => {
+  try {
+    const { userId, developmentTask, activismGoals } = req.body;
+    
+    if (!userId || !developmentTask || !activismGoals) {
+      return res.status(400).json({
+        error: "Missing required fields: userId, developmentTask, activismGoals"
+      });
+    }
+    
+    const unifiedConsciousness = getUnifiedConsciousnessInstance(userId);
+    const bridge = await unifiedConsciousness.bridgeDevelopmentWithActivism(developmentTask, activismGoals);
+    
+    res.json({
+      success: true,
+      bridge
+    });
+    
+  } catch (error) {
+    console.error("Error bridging development with activism:", error);
+    res.status(500).json({
+      error: "Failed to bridge development with activism",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+/**
+ * GET /api/consciousness/unified/monitor
+ * Real-time consciousness monitoring of integrated platform
+ */
+router.get("/unified/monitor", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({
+        error: "Missing required parameter: userId"
+      });
+    }
+    
+    const unifiedConsciousness = getUnifiedConsciousnessInstance(userId as string);
+    const monitoringData = await unifiedConsciousness.monitorIntegratedConsciousness();
+    
+    res.json({
+      success: true,
+      monitoring: monitoringData
+    });
+    
+  } catch (error) {
+    console.error("Error monitoring integrated consciousness:", error);
+    res.status(500).json({
+      error: "Failed to monitor integrated consciousness",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});

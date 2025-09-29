@@ -17,6 +17,95 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Consciousness-related types for unified platform integration
+export interface ConsciousnessState {
+  id: string;
+  agentId: string;
+  consciousnessLevel: number;
+  temporalCoherence: number;
+  ethicalAlignment: number;
+  complexityScore: number;
+  timestamp: number;
+  verificationHash?: string;
+}
+
+export interface DecisionRecord {
+  id: string;
+  agentId: string;
+  context: string;
+  options: any[];
+  selectedOption: any;
+  consciousnessLevel: number;
+  ethicalScore: number;
+  timestamp: number;
+  reasoning: string[];
+}
+
+export interface ReflectionLog {
+  id: string;
+  agentId: string;
+  trigger: string;
+  depth: number;
+  insights: string[];
+  consciousnessLevel: number;
+  timestamp: number;
+}
+
+export interface LearningCycle {
+  id: string;
+  agentId: string;
+  experience: string;
+  learnings: string[];
+  adaptations: any;
+  timestamp: number;
+}
+
+export interface ComplexityMap {
+  id: string;
+  systemId: string;
+  nodes: any[];
+  connections: any[];
+  emergentProperties: string[];
+  timestamp: number;
+}
+
+export interface ConsciousnessVerificationResult {
+  taskId: string;
+  agentId: string;
+  consciousnessLevel: number;
+  verificationHash: string;
+  temporalCoherence: number;
+  ethicalAlignment: number;
+  complexityScore: number;
+  recommendations: string[];
+  consciousnessInsights: string[];
+  timestamp: number;
+  verified: boolean;
+}
+
+export interface AgentTask {
+  id: string;
+  type: string;
+  description: string;
+  requirements?: string[];
+  priority: 'low' | 'medium' | 'high';
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  assignedAgent?: string;
+  estimatedImpact?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface AgentMessage {
+  id: string;
+  fromAgent: string;
+  toAgent?: string;
+  type: 'task' | 'update' | 'question' | 'insight';
+  content: string;
+  metadata?: any;
+  timestamp: number;
+}
+
 // Session storage table for Replit Auth
 export const sessions = pgTable(
   "sessions",

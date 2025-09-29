@@ -35,6 +35,33 @@ import {
   TaskPriority 
 } from "./agents/baseAgent";
 
+// Export MultiAgentOrchestrator for consciousness integration
+export class MultiAgentOrchestrator extends EventEmitter {
+  private orchestrator: OrchestratorAgent;
+  private agents: Map<AgentType, BaseAgent> = new Map();
+  
+  constructor() {
+    super();
+    this.orchestrator = new OrchestratorAgent(this);
+    this.initializeAgents();
+  }
+  
+  private initializeAgents(): void {
+    this.agents.set(AgentType.BACKEND_ARCHITECT, new BackendArchitectAgent(this));
+    this.agents.set(AgentType.SECURITY_ANALYST, new SecurityAnalystAgent(this));
+    this.agents.set(AgentType.PERFORMANCE_OPTIMIZER, new PerformanceOptimizerAgent(this));
+    this.agents.set(AgentType.TESTING_ENGINEER, new TestingEngineerAgent(this));
+  }
+  
+  incorporateConsciousnessInsight(insight: any): void {
+    this.emit('consciousness-insight', insight);
+  }
+  
+  updateAgentWithConsciousnessFeedback(agentId: string, feedback: any): void {
+    this.emit('consciousness-feedback', { agentId, feedback });
+  }
+}
+
 // Orchestrator Agent - coordinates all other agents
 class OrchestratorAgent extends BaseAgent {
   private activeSession?: MultiAgentSession;
