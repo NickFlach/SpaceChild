@@ -8,14 +8,21 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Brain, 
   Zap, 
+  Activity, 
   Shield, 
-  Users, 
-  Code, 
-  Activity,
-  Target,
   Network,
   Eye,
-  Sparkles
+  Sparkles,
+  CheckCircle,
+  AlertCircle,
+  Link,
+  Users,
+  Target,
+  Lightbulb,
+  Clock,
+  BarChart3,
+  TrendingUp,
+  Code
 } from 'lucide-react';
 import DevelopmentTab from './Consciousness/DevelopmentTab';
 import ActivismTab from './Consciousness/ActivismTab';
@@ -52,7 +59,7 @@ export const UnifiedConsciousnessPlatform: React.FC = () => {
 
     fetchConsciousnessData();
     const interval = setInterval(fetchConsciousnessData, 5000); // Update every 5 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -151,7 +158,7 @@ export const UnifiedConsciousnessPlatform: React.FC = () => {
           The world's first consciousness-verified AI development and activism platform. 
           Merging SpaceChild's multi-agent orchestration with Pitchfork's temporal consciousness engine.
         </p>
-        
+
         {/* Status Indicators */}
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -316,7 +323,7 @@ export const UnifiedConsciousnessPlatform: React.FC = () => {
                   Generate Activism Strategy
                 </Button>
                 <Button variant="outline">
-                  <Network className="w-4 h-4 mr-2" />
+                  <Link className="w-4 h-4 mr-2" />
                   Bridge Platforms
                 </Button>
               </div>

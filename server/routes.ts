@@ -18,7 +18,7 @@ import sandboxRoutes from "./routes/sandbox";
 import scrapeRoutes from "./routes/scrape";
 import subscriptionRoutes from "./routes/subscriptions";
 import replitUserSearchRoutes from "./routes/replitUserSearch";
-import consciousnessRoutes from "./routes/consciousness";
+import consciousnessRoutes from "./routes/consciousness.js";
 import agenticRoutes from "./routes/agentic";
 import multiagentRoutes from "./routes/multiagent";
 import webSearchRoutes from "./routes/webSearch";
@@ -829,7 +829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { multiAgentService } = await import("./services/multiAgent");
-      await multiAgentService.startCollaboration(parseInt(projectId), userId, goal);
+      await multiAgentService.startSession(parseInt(projectId), userId, goal);
       
       res.json({ success: true, message: "Multi-agent collaboration started" });
     } catch (error) {
@@ -841,8 +841,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/multiagent/status', zkpAuthenticated, async (req: any, res) => {
     try {
       const { multiAgentService } = await import("./services/multiAgent");
-      const status = await multiAgentService.getStatus();
-      const agentStatuses = multiAgentService.getAgentStatuses();
+      const status = multiAgentService.getSessionStatus();
+      const agentStatuses = multiAgentService.getAllAgentStatuses();
       
       res.json({ status, agentStatuses });
     } catch (error) {
