@@ -133,7 +133,7 @@ export class ConsciousnessCodeReviewer extends EventEmitter {
     }
 
     // Async complexity accumulation
-    const asyncChains = code.match(/await.*await.*await/gs) || [];
+    const asyncChains = code.match(/await.*await.*await/g) || [];
     if (asyncChains.length > 5) {
       complexityFactors.push('Complex async chains - temporal coherence degrades over time');
       temporalComplexityScore += 15;

@@ -23,16 +23,16 @@ import { ActivistTechLab } from './ActivistTechLab';
  */
 export class UnifiedIntelligenceSystem extends EventEmitter {
   // Core consciousness engines
-  private consciousnessEngine: ConsciousnessEngine;
-  private temporalEngine: TemporalConsciousnessEngine;
-  private multiAgentOrchestrator: MultiAgentOrchestrator;
+  private consciousnessEngine!: ConsciousnessEngine;
+  private temporalEngine!: TemporalConsciousnessEngine;
+  private multiAgentOrchestrator!: MultiAgentOrchestrator;
 
   // The five revolutionary systems
-  private codeLearningEngine: CodeLearningEngine;
-  private consciousnessReviewer: ConsciousnessCodeReviewer;
-  private creativityBridge: CreativityBridge;
-  private temporalDebugger: TemporalDebugger;
-  private activistTechLab: ActivistTechLab;
+  private codeLearningEngine!: CodeLearningEngine;
+  private consciousnessReviewer!: ConsciousnessCodeReviewer;
+  private creativityBridge!: CreativityBridge;
+  private temporalDebugger!: TemporalDebugger;
+  private activistTechLab!: ActivistTechLab;
 
   // Integration state
   private activeSessions: Map<string, UnifiedSession> = new Map();
