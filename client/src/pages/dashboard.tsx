@@ -7,7 +7,6 @@ import ProjectHeader from "@/components/Project/ProjectHeader";
 import FileExplorer from "@/components/Editor/FileExplorer";
 import CodeEditor from "@/components/Editor/CodeEditor";
 import ChatInterface from "@/components/Chat/ChatInterface";
-import { ConsciousnessPanel } from "@/components/Consciousness/ConsciousnessPanel";
 import { EnhancedConsciousnessPanel } from "@/components/Consciousness/EnhancedConsciousnessPanel";
 import { SuperintelligencePanel } from "@/components/Superintelligence/SuperintelligencePanel";
 import ComplexityPanel from "@/components/ComplexityAgent/ComplexityPanel";
