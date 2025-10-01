@@ -19,26 +19,29 @@ interface CollaborationContextData {
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
   currentRoom: string | null;
-  
+
   // Users and presence
   users: UserPresence[];
   getUserById: (userId: string) => UserPresence | undefined;
-  
+
   // Document state
   documentRevision: number;
   isTyping: boolean;
   setIsTyping: (typing: boolean) => void;
-  
+
   // Room management
   joinRoom: (projectId: number, fileId: number) => void;
   leaveRoom: () => void;
-  
+
   // Connection management
   connect: () => void;
   disconnect: () => void;
-  
+
   // Full collaboration state
   collaborationState: CollaborationState;
+  
+  // Error state
+  error: string | null;
 }
 
 const CollaborationContext = createContext<CollaborationContextData | null>(null);
@@ -54,23 +57,23 @@ export function CollaborationProvider({
 }: CollaborationProviderProps) {
   const { user } = useAuth();
   const { currentFile, currentProject } = useEditorContext();
-  
+
   // Determine current project and file IDs
   const projectId = currentProject?.id;
   const fileId = currentFile?.id;
-  
+
   // Use collaboration hook with auto-determined project and file
   const collaboration = useCollaboration({
     projectId,
     fileId,
     autoConnect: autoConnect && !!user?.id
   });
-  
+
   // Auto-join room when project/file changes
   useEffect(() => {
     if (collaboration.isConnected && projectId && fileId) {
       const newRoomId = createRoomId(projectId, fileId);
-      
+
       // Only join if we're not already in the correct room
       if (collaboration.currentRoom !== newRoomId) {
         if (collaboration.currentRoom) {
@@ -80,39 +83,42 @@ export function CollaborationProvider({
       }
     }
   }, [collaboration.isConnected, projectId, fileId, collaboration.currentRoom]);
-  
+
   // Auto-disconnect when user logs out
   useEffect(() => {
     if (!user?.id && collaboration.isConnected) {
       collaboration.disconnect();
     }
   }, [user?.id, collaboration.isConnected]);
-  
+
   const contextValue: CollaborationContextData = {
     // Connection state
     isConnected: collaboration.isConnected,
     connectionStatus: collaboration.connectionStatus,
     currentRoom: collaboration.currentRoom,
-    
+
     // Users and presence
     users: collaboration.users,
     getUserById: collaboration.getUserById,
-    
+
     // Document state
     documentRevision: collaboration.documentRevision,
     isTyping: collaboration.isTyping,
     setIsTyping: collaboration.setIsTyping,
-    
+
     // Actions
     joinRoom: collaboration.joinRoom,
     leaveRoom: collaboration.leaveRoom,
     connect: collaboration.connect,
     disconnect: collaboration.disconnect,
-    
+
     // Full state
     collaborationState: collaboration.collaborationState,
+    
+    // Error state
+    error: collaboration.error,
   };
-  
+
   return (
     <CollaborationContext.Provider value={contextValue}>
       {children}
@@ -138,11 +144,11 @@ export function useCollaborationUpdates(
 ) {
   const { users } = useCollaborationContext();
   const [previousUsers, setPreviousUsers] = useState<UserPresence[]>([]);
-  
+
   useEffect(() => {
     const currentUserIds = new Set(users.map(u => u.userId));
     const previousUserIds = new Set(previousUsers.map(u => u.userId));
-    
+
     // Detect new users
     for (const user of users) {
       if (!previousUserIds.has(user.userId)) {
@@ -157,14 +163,14 @@ export function useCollaborationUpdates(
         }
       }
     }
-    
+
     // Detect users who left
     for (const previousUser of previousUsers) {
       if (!currentUserIds.has(previousUser.userId)) {
         onUserLeave?.(previousUser.userId);
       }
     }
-    
+
     setPreviousUsers(users);
   }, [users, previousUsers, onUserJoin, onUserLeave, onCursorUpdate]);
 }
@@ -174,7 +180,7 @@ export function useCollaborationUpdates(
  */
 export function useCollaborationStatus() {
   const context = useContext(CollaborationContext);
-  
+
   if (!context) {
     // Return safe defaults when outside provider
     return {
@@ -184,7 +190,7 @@ export function useCollaborationStatus() {
       currentRoom: null,
     };
   }
-  
+
   return {
     isConnected: context.isConnected,
     connectionStatus: context.connectionStatus,
