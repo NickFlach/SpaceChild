@@ -72,7 +72,6 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/test-auth" component={TestAuth} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/docs" component={DocsPage} />
       {!isAuthenticated ? (
