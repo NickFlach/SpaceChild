@@ -69,92 +69,11 @@ export function useCollaboration({
   /**
    * Initialize WebSocket connection
    */
-  const connect = useCallback(() => {
-    if (!user?.id) {
-      console.log('No user ID available for WebSocket connection');
-      return;
-    }
-
-    // Prevent multiple connections
-    if (wsRef.current?.readyState === WebSocket.CONNECTING || 
-        wsRef.current?.readyState === WebSocket.OPEN) {
-      console.log('WebSocket already connecting or connected');
-      return;
-    }
-
-    setCollaborationState(prev => ({ ...prev, connectionStatus: 'connecting' }));
-
-    // SECURITY FIX: Send authentication token with WebSocket connection
-    const token = localStorage.getItem('zkp_token');
-    if (!token) {
-      console.error('No authentication token available for WebSocket connection');
-      setCollaborationState(prev => ({ 
-        ...prev, 
-        connectionStatus: 'disconnected',
-        isConnected: false 
-      }));
-      return;
-    }
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
-
-    try {
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        console.log('WebSocket connected for collaboration');
-        setCollaborationState(prev => ({ 
-          ...prev, 
-          isConnected: true, 
-          connectionStatus: 'connected' 
-        }));
-
-        // Connection established - ready for collaboration
-      };
-
-    ws.onmessage = (event) => {
-      try {
-        const message: WebSocketMessage = JSON.parse(event.data);
-        handleWebSocketMessage(message);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-
-    ws.onclose = (event) => {
-        console.log('WebSocket disconnected', event.code, event.reason);
-        setCollaborationState(prev => ({ 
-          ...prev, 
-          isConnected: false, 
-          connectionStatus: 'disconnected' 
-        }));
-
-        // Only reconnect if it was an unexpected disconnect and auto-connect is enabled
-        if (autoConnect && event.code !== 1000 && event.code !== 1001) {
-          reconnectTimeoutRef.current = setTimeout(() => {
-            setCollaborationState(prev => ({ ...prev, connectionStatus: 'reconnecting' }));
-            connect();
-          }, 5000); // Increased delay to prevent rapid reconnects
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setCollaborationState(prev => ({ ...prev, connectionStatus: 'disconnected' }));
-      };
-    } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      setCollaborationState(prev => ({ 
-        ...prev, 
-        connectionStatus: 'disconnected',
-        isConnected: false 
-      }));
-    }
-
-  }, [user?.id, projectId, fileId, autoConnect]);
+  const connect = useCallback(async () => {
+    // Collaboration disabled - do nothing
+    console.log('Collaboration is disabled during development');
+    return;
+  }, []);
 
   /**
    * Disconnect WebSocket

@@ -39,7 +39,7 @@ interface CollaborationContextData {
 
   // Full collaboration state
   collaborationState: CollaborationState;
-  
+
   // Error state
   error: string | null;
 
@@ -66,61 +66,70 @@ export function CollaborationProvider({
   const projectId = currentProject?.id;
   const fileId = currentFile?.id;
 
+  // Disable collaboration completely until explicitly enabled
+  const collaborationState = {
+    isConnected: false,
+    isConnecting: false,
+    currentRoom: null,
+    users: [],
+    error: null
+  };
+
+  // Stub functions - collaboration disabled
+  const connect = () => Promise.resolve();
+  const disconnect = () => {};
+  const joinRoom = () => {};
+  const leaveRoom = () => {};
+  const sendMessage = () => {};
+
   // Use collaboration hook with auto-determined project and file
-  const collaboration = useCollaboration({
-    projectId,
-    fileId,
-    autoConnect: false // Never auto-connect, require explicit user action
-  });
+  // const collaboration = useCollaboration({
+  //   projectId,
+  //   fileId,
+  //   autoConnect: false // Never auto-connect, require explicit user action
+  // });
 
   // Handle collaboration errors
   useEffect(() => {
-    if (collaboration.error) {
-      setError(collaboration.error);
-    }
-  }, [collaboration.error]);
+    // if (collaboration.error) {
+    //   setError(collaboration.error);
+    // }
+  }, []); // Removed dependency on collaboration.error as it's not used
 
   // Don't auto-connect on mount - wait for user action
 
   const contextValue: CollaborationContextData = {
     // Connection state
-    isConnected: collaboration.isConnected,
-    connectionStatus: collaboration.connectionStatus,
-    currentRoom: collaboration.currentRoom,
+    isConnected: collaborationState.isConnected,
+    connectionStatus: 'disconnected', // Default to disconnected as collaboration is disabled
+    currentRoom: collaborationState.currentRoom,
 
     // Users and presence
-    users: collaboration.users,
-    getUserById: collaboration.getUserById,
+    users: collaborationState.users,
+    getUserById: (userId: string) => undefined, // Stubbed
 
     // Document state
-    documentRevision: collaboration.documentRevision,
-    isTyping: collaboration.isTyping,
-    setIsTyping: collaboration.setIsTyping,
+    documentRevision: 0, // Default to 0 as collaboration is disabled
+    isTyping: false,
+    setIsTyping: (typing: boolean) => {},
 
     // Actions
-    joinRoom: collaboration.joinRoom,
-    leaveRoom: collaboration.leaveRoom,
-    connect: collaboration.connect,
-    disconnect: collaboration.disconnect,
+    joinRoom: joinRoom,
+    leaveRoom: leaveRoom,
+    connect: connect,
+    disconnect: disconnect,
 
     // Full state
-    collaborationState: collaboration.collaborationState,
-    
+    collaborationState: collaborationState,
+
     // Error state
-    error: error || collaboration.error,
+    error: error || collaborationState.error,
 
     // Enable collaboration
     enableCollaboration: () => {
-      if (!collaboration.isConnected && user?.id) {
-        collaboration.connect();
-        
-        // Auto-join current room if we have project and file
-        setTimeout(() => {
-          if (projectId && fileId) {
-            collaboration.joinRoom(projectId, fileId);
-          }
-        }, 1000);
-      }
+      // This function is a stub and does not enable collaboration in this disabled state.
+      // Real implementation would go here to re-enable collaboration if needed.
+      console.warn("Collaboration is currently disabled.");
     },
   };
 

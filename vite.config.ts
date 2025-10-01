@@ -29,6 +29,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    cors: {
+      origin: true,
+      credentials: true,
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
@@ -38,7 +42,7 @@ export default defineConfig({
     hmr: {
       port: 5000,
       host: '0.0.0.0',
-      clientPort: 5000
+      clientPort: 443
     },
     watch: {
       usePolling: true

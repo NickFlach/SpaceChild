@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/Common/ThemeProvider";
 import { EditorContextProvider } from "@/contexts/EditorContext";
-import { CollaborationProvider } from "@/contexts/CollaborationContext";
 import { GitHubProvider } from "@/providers/GitHubProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
@@ -101,14 +100,12 @@ function App() {
       <ThemeProvider>
         <GitHubProvider>
         <EditorContextProvider>
-          <CollaborationProvider autoConnect={false}>
-            <TooltipProvider>
-              <Toaster />
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Router />
-              </ErrorBoundary>
-            </TooltipProvider>
-          </CollaborationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Router />
+            </ErrorBoundary>
+          </TooltipProvider>
         </EditorContextProvider>
         </GitHubProvider>
       </ThemeProvider>
