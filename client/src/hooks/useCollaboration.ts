@@ -436,17 +436,15 @@ export function useCollaboration({
       collaborationState.currentRoom, collaborationState.isTyping, sendCursorUpdate]);
 
   /**
-   * Auto-connect when component mounts
+   * Cleanup on unmount
    */
   useEffect(() => {
-    if (autoConnect && user?.id) {
-      connect();
-    }
-
     return () => {
-      disconnect();
+      if (wsRef.current) {
+        disconnect();
+      }
     };
-  }, [autoConnect, user?.id, connect, disconnect]);
+  }, []);
 
   /**
    * Join room when project/file changes

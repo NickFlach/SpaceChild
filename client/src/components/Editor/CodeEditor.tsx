@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Save, Play, Download, Upload, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, X } from "lucide-react";
+import { Save, Play, Download, Upload, Brain, Sparkles, AlertTriangle, CheckCircle, XCircle, X, Users } from "lucide-react";
 import { useEditorContext } from "@/contexts/EditorContext";
 import { useContextualAI } from "@/hooks/useContextualAI";
 import { useCollaborationContext, useCollaborationStatus } from "@/contexts/CollaborationContext";
@@ -18,7 +18,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
   const editorRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Use editor context for state management
   const {
     currentFile,
@@ -35,7 +35,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
     getCurrentLine,
     getFileContext
   } = useEditorContext();
-  
+
   // Use contextual AI for real-time suggestions
   const {
     suggestions,
@@ -45,63 +45,66 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
     hasHighSeverity,
     suggestionCount
   } = useContextualAI();
-  
+
   // Use collaboration features
   const collaboration = useCollaborationStatus();
   const {
     users: collaborationUsers,
     isTyping: isUserTyping,
-    setIsTyping
+    setIsTyping,
+    isConnected: isCollabConnected, 
+    enableCollaboration,
+    users: collabUsers 
   } = useCollaborationContext();
 
   // Sync props with context when they change
   useEffect(() => {
     setCurrentFile(file);
   }, [file, setCurrentFile]);
-  
+
   useEffect(() => {
     setCurrentProject(project);
   }, [project, setCurrentProject]);
 
   const handleContentChange = (newContent: string) => {
     updateFileContent(newContent);
-    
+
     // Set typing indicator
     setIsTyping(true);
-    
+
     // Update cursor position based on textarea
     if (textareaRef.current) {
       const textarea = textareaRef.current;
       const text = textarea.value;
       const selectionStart = textarea.selectionStart;
-      
+
       // Calculate line and column from cursor position
       const lines = text.substring(0, selectionStart).split('\n');
       const line = lines.length;
       const column = lines[lines.length - 1].length + 1;
-      
+
       setCursorPosition({ line, column });
     }
   };
-  
+
   const handleCursorChange = () => {
     if (textareaRef.current) {
       const textarea = textareaRef.current;
       const text = textarea.value;
       const selectionStart = textarea.selectionStart;
-      
+
       // Calculate line and column from cursor position
       const lines = text.substring(0, selectionStart).split('\n');
       const line = lines.length;
       const column = lines[lines.length - 1].length + 1;
-      
+
       setCursorPosition({ line, column });
     }
   };
 
   const handleSave = async () => {
     if (!currentFile || !isDirty) return;
-    
+
     setIsLoading(true);
     try {
       await onFileChange(currentFile.id, fileContent);
@@ -112,17 +115,17 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
       setIsLoading(false);
     }
   };
-  
+
 
 
   const renderCodeWithSyntaxHighlighting = (code: string, language: string) => {
     // Simple syntax highlighting for demo purposes
     // In production, this would be replaced with Monaco Editor
     const lines = code.split('\n');
-    
+
     return lines.map((line, index) => {
       let highlightedLine = line;
-      
+
       // Simple keyword highlighting
       if (language === 'typescript' || language === 'javascript') {
         highlightedLine = line
@@ -134,7 +137,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
           .replace(/"([^"]*)"/g, '<span class="text-green-600 dark:text-green-400">"$1"</span>')
           .replace(/\/\/.*$/g, '<span class="text-gray-500 dark:text-gray-400">$&</span>');
       }
-      
+
       return (
         <div key={index} className="flex">
           <div className="text-muted-foreground text-right pr-4 select-none w-12 font-mono text-sm">
@@ -185,7 +188,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               Unsaved
             </Badge>
           )}
-          
+
           {/* Collaboration Status */}
           <CollaborationStatus
             isConnected={collaboration.isConnected}
@@ -194,7 +197,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
             currentRoom={collaboration.currentRoom}
           />
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {/* User Presence */}
           <UserPresence 
@@ -202,7 +205,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
             maxVisible={3}
             showDetails={true}
           />
-          
+
           {/* AI Analysis Indicator */}
           {isAnalyzing && (
             <Badge variant="outline" className="text-xs animate-pulse">
@@ -216,7 +219,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               {suggestionCount} suggestions
             </Badge>
           )}
-          
+
           <Button
             size="sm"
             variant="ghost"
@@ -237,6 +240,18 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
           <Button size="sm" variant="ghost" className="text-xs">
             <Upload className="h-3 w-3" />
           </Button>
+
+          {/* Collaboration Enable Button */}
+          <Button
+            onClick={enableCollaboration}
+            variant={isCollabConnected ? "default" : "outline"}
+            size="sm"
+            className="text-xs flex items-center gap-2"
+            disabled={isCollabConnected}
+          >
+            <Users className="h-4 w-4" />
+            {isCollabConnected ? `Collaborating (${collabUsers.length})` : 'Enable Collaboration'}
+          </Button>
         </div>
       </div>
 
@@ -256,7 +271,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               placeholder="Start typing your code..."
               spellCheck={false}
             />
-            
+
             {/* Collaboration Cursor Indicators */}
             {collaborationUsers.map((user) => (
               <CursorIndicator
@@ -268,7 +283,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               />
             ))}
           </div>
-          
+
           {/* Advanced AI Suggestions Panel */}
           {suggestions.length > 0 && (
             <div className="mt-4 space-y-3">
@@ -281,7 +296,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
                   {suggestionCount} suggestions
                 </Badge>
               </div>
-              
+
               {suggestions.map((suggestion) => (
                 <div key={suggestion.id} className={`p-3 rounded-lg border ${
                   suggestion.severity === 'high' 
@@ -340,7 +355,7 @@ export default function CodeEditor({ file, onFileChange, project }: CodeEditorPr
               ))}
             </div>
           )}
-          
+
           {/* Context Indicator */}
           {currentProject?.consciousnessEnabled && (
             <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">

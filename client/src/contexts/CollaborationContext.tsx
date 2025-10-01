@@ -72,27 +72,7 @@ export function CollaborationProvider({
     autoConnect: false // Never auto-connect, require explicit user action
   });
 
-  // Auto-join room when project/file changes
-  useEffect(() => {
-    if (collaboration.isConnected && projectId && fileId) {
-      const newRoomId = createRoomId(projectId, fileId);
-
-      // Only join if we're not already in the correct room
-      if (collaboration.currentRoom !== newRoomId) {
-        if (collaboration.currentRoom) {
-          collaboration.leaveRoom();
-        }
-        collaboration.joinRoom(projectId, fileId);
-      }
-    }
-  }, [collaboration.isConnected, projectId, fileId, collaboration.currentRoom]);
-
-  // Auto-disconnect when user logs out
-  useEffect(() => {
-    if (!user?.id && collaboration.isConnected) {
-      collaboration.disconnect();
-    }
-  }, [user?.id, collaboration.isConnected]);
+  // Manual room management only - no auto-joining
 
   const contextValue: CollaborationContextData = {
     // Connection state
@@ -125,6 +105,13 @@ export function CollaborationProvider({
     enableCollaboration: () => {
       if (!collaboration.isConnected && user?.id) {
         collaboration.connect();
+        
+        // Auto-join current room if we have project and file
+        setTimeout(() => {
+          if (projectId && fileId) {
+            collaboration.joinRoom(projectId, fileId);
+          }
+        }, 1000);
       }
     },
   };
