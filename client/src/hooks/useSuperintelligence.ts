@@ -12,11 +12,6 @@ export function useSuperintelligence(projectId?: number) {
   const { data: jobs, isLoading: isLoadingJobs } = useQuery<SuperintelligenceJob[]>({
     queryKey: ["/api/superintelligence/jobs", projectId],
     enabled: !!projectId,
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        window.location.href = "/api/login";
-      }
-    },
   });
 
   // Analyze architecture mutation
@@ -140,11 +135,6 @@ export function useSuperintelligence(projectId?: number) {
     return useQuery<SuperintelligenceJob>({
       queryKey: ["/api/superintelligence/jobs", jobId],
       enabled: !!jobId,
-      onError: (error) => {
-        if (isUnauthorizedError(error)) {
-          window.location.href = "/api/login";
-        }
-      },
     });
   };
 

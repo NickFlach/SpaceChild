@@ -1,4 +1,4 @@
-import { getIStorage } from "../storage.ts";
+import { IStorage } from '../storage.ts';
 import type { InsertSubscriptionPlan } from "../../shared/schema.ts";
 
 const subscriptionPlans: InsertSubscriptionPlan[] = [
@@ -121,8 +121,7 @@ const subscriptionPlans: InsertSubscriptionPlan[] = [
   },
 ];
 
-export async function seedSubscriptionPlans() {
-  const storage = getIStorage();
+export async function seedSubscriptionPlans(storage: IStorage) {
   
   console.log('Seeding subscription plans...');
   

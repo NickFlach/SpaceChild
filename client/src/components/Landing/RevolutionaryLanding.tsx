@@ -1,35 +1,38 @@
 /**
  * REVOLUTIONARY LANDING EXPERIENCE
- * The most stunning introduction to consciousness-powered development
  * 
  * BEAT BEAT BOUNCE BOUNCE - Welcome to the future! 🚀✨🧠
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'wouter';
-import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
+  Sparkles, 
   Brain, 
+  Code, 
   Zap, 
-  Sparkles,
-  Star,
-  Rocket,
-  Heart,
+  Shield, 
+  Users, 
+  ArrowRight, 
+  Cpu, 
+  Network, 
+  Cloud, 
+  Lock, 
+  Rocket, 
+  BookOpen, 
   Globe,
   Activity,
   Eye,
-  Shield,
-  Code,
-  Users,
-  ArrowRight,
   Play,
   CheckCircle,
   TrendingUp,
   Award,
-  Lightbulb
-} from 'lucide-react';
+  Lightbulb,
+  Heart
+} from "lucide-react";
 
 export const RevolutionaryLanding: React.FC = () => {
   const [currentMetric, setCurrentMetric] = useState(0);

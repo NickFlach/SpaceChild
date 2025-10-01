@@ -74,8 +74,10 @@ export class ConsciousnessService {
   static calculateContextRetention(context: ConsciousnessContext): number {
     // Calculate context retention based on various factors
     const baseRetention = 0.8;
-    const interactionBonus = Math.min((context.contextData?.interactionCount || 0) * 0.01, 0.15);
-    const timeDecay = Math.max(0, 0.05 - (Date.now() - new Date(context.lastInteraction).getTime()) / (1000 * 60 * 60 * 24) * 0.01);
+    const contextData = context.contextData as { interactionCount?: number } | null;
+    const interactionBonus = Math.min((contextData?.interactionCount || 0) * 0.01, 0.15);
+    const lastInteraction = context.lastInteraction || new Date();
+    const timeDecay = Math.max(0, 0.05 - (Date.now() - new Date(lastInteraction).getTime()) / (1000 * 60 * 60 * 24) * 0.01);
     
     return Math.min(baseRetention + interactionBonus - timeDecay, 1.0);
   }

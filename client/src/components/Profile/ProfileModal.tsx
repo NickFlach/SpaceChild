@@ -10,6 +10,18 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Mail, CreditCard, Shield, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  plan?: string;
+  monthlyCredits?: number;
+  usedCredits?: number;
+  creditResetDate?: Date | null;
+  createdAt?: Date | null;
+}
+
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,7 +35,7 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
   const [lastName, setLastName] = useState("");
 
   // Fetch profile data
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery<ProfileData>({
     queryKey: ['/api/profile'],
     enabled: isOpen && !!user,
   });
@@ -236,13 +248,12 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Credits Reset Date</p>
-                  <p className="font-medium">{formatDate(profile?.creditResetDate)}</p>
+                  <p className="font-medium">{formatDate(profile?.creditResetDate || null)}</p>
                 </div>
 
                 <div className="pt-4">
                   <Button variant="outline" className="w-full">
                     <CreditCard className="h-4 w-4 mr-2" />
-                    Upgrade Plan
                   </Button>
                 </div>
               </CardContent>
@@ -270,7 +281,7 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Account Created</p>
-                  <p className="text-sm text-muted-foreground">{formatDate(profile?.createdAt)}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(profile?.createdAt || null)}</p>
                 </div>
 
                 <div className="pt-4 border-t">

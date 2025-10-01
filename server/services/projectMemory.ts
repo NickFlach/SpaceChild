@@ -285,23 +285,6 @@ export class ProjectMemoryService {
       return [];
     }
   }
-
-  /**
-   * Get project coding style preferences
-   */
-  async getCodingPreferences(projectId: number): Promise<Record<string, any>> {
-    const preferences = await storage.getProjectMemories(projectId, 'preference');
-    
-    const preferenceMap: Record<string, any> = {};
-    preferences.forEach(pref => {
-      const metadata = pref.metadata as any;
-      if (metadata?.preferenceType) {
-        preferenceMap[metadata.preferenceType] = pref.content;
-      }
-    });
-    
-    return preferenceMap;
-  }
 }
 
 export const projectMemoryService = ProjectMemoryService.getInstance();

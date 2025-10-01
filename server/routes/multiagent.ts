@@ -17,7 +17,7 @@ router.post('/start', async (req, res) => {
 
     const session = await multiAgentService.startSession(
       parseInt(projectId),
-      req.user?.id || 'anonymous',
+      (req.user as any)?.id || 'anonymous',
       goal
     );
 

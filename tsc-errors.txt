@@ -1,0 +1,84 @@
+﻿client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(8,1): error TS2593: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha` and then add 'jest' or 'mocha' to the types field in your tsconfig.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(9,3): error TS2593: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha` and then add 'jest' or 'mocha' to the types field in your tsconfig.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(26,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(27,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(28,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(29,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(31,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Editor/__tests__/FileExplorer.a11y.test.tsx(32,5): error TS2304: Cannot find name 'expect'.
+client/src/components/Landing/RevolutionaryLanding.tsx(326,18): error TS2304: Cannot find name 'BookOpen'.
+client/src/components/Profile/ProfileModal.tsx(33,28): error TS2339: Property 'firstName' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(34,27): error TS2339: Property 'lastName' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(184,37): error TS2339: Property 'email' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(197,37): error TS2339: Property 'username' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(217,107): error TS2339: Property 'plan' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(218,32): error TS2339: Property 'plan' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(229,65): error TS2339: Property 'monthlyCredits' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(233,65): error TS2339: Property 'usedCredits' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(239,67): error TS2339: Property 'creditResetDate' does not exist on type '{}'.
+client/src/components/Profile/ProfileModal.tsx(273,85): error TS2339: Property 'createdAt' does not exist on type '{}'.
+client/src/components/Templates/TemplateGallery.tsx(210,11): error TS2322: Type 'string' is not assignable to type 'number'.
+client/src/hooks/useSuperintelligence.ts(15,5): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'DefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UndefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UseQueryOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }[], Error, { ...; }[], QueryKey>'.
+client/src/hooks/useSuperintelligence.ts(15,15): error TS7006: Parameter 'error' implicitly has an 'any' type.
+client/src/hooks/useSuperintelligence.ts(143,7): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'DefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UndefinedInitialDataOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UseQueryOptions<{ id: number; createdAt: Date | null; projectId: number; jobType: string | null; inputData: unknown; status: string | null; results: unknown; processingTimeMs: number | null; completedAt: Date | null; }, Error, { ...; }, QueryKey>'.
+client/src/hooks/useSuperintelligence.ts(143,17): error TS7006: Parameter 'error' implicitly has an 'any' type.
+client/src/services/consciousness.ts(77,61): error TS2339: Property 'interactionCount' does not exist on type '{}'.
+client/src/services/consciousness.ts(78,65): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+client/src/services/intelligence.ts(1,10): error TS2459: Module '"./api"' declares 'apiRequest' locally, but it is not exported.
+server/index_fixed.ts(97,23): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'number'.
+server/routes/multiagent.ts(20,17): error TS2339: Property 'id' does not exist on type 'User'.
+server/routes/multiagent_fixed.ts(20,17): error TS2339: Property 'id' does not exist on type 'User'.
+server/scripts/seedSubscriptionPlans.ts(1,10): error TS2724: '"../storage.ts"' has no exported member named 'getIStorage'. Did you mean 'IStorage'?
+server/services/ai/advancedPromptTemplates.ts(696,70): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+server/services/ai/advancedPromptTemplates.ts(702,74): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+server/services/ai/advancedPromptTemplates.ts(711,68): error TS7006: Parameter 'match' implicitly has an 'any' type.
+server/services/ai/advancedPromptTemplates.ts(711,75): error TS7006: Parameter 'prop' implicitly has an 'any' type.
+server/services/ai/advancedPromptTemplates.ts(813,21): error TS2339: Property 'metadata' does not exist on type 'Omit<PromptTemplate, "metadata">'.
+server/services/ai/advancedPromptTemplates.ts(875,57): error TS7006: Parameter 'h' implicitly has an 'any' type.
+server/services/ai/advancedPromptTemplates.ts(877,15): error TS7006: Parameter 'h' implicitly has an 'any' type.
+server/services/ai/advancedPromptTemplates.ts(878,16): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+server/services/ai/advancedPromptTemplates.ts(878,21): error TS7006: Parameter 'h' implicitly has an 'any' type.
+server/services/ai/advancedToolSystem.ts(585,9): error TS2322: Type 'string[]' is not assignable to type 'never[]'.
+  Type 'string' is not assignable to type 'never'.
+server/services/ai/advancedToolSystem.ts(586,9): error TS2322: Type 'string[]' is not assignable to type 'never[]'.
+  Type 'string' is not assignable to type 'never'.
+server/services/ai/advancedToolSystem.ts(591,11): error TS2322: Type 'string[]' is not assignable to type 'never[]'.
+  Type 'string' is not assignable to type 'never'.
+server/services/ai/advancedToolSystem.ts(639,38): error TS2345: Argument of type '{ severity: string; type: string; description: string; line: number; suggestion: string; }' is not assignable to parameter of type 'never'.
+server/services/ai/advancedToolSystem.ts(659,7): error TS2322: Type 'string[]' is not assignable to type 'never[]'.
+  Type 'string' is not assignable to type 'never'.
+server/services/ai/advancedToolSystem.ts(712,38): error TS7006: Parameter 'change' implicitly has an 'any' type.
+server/services/ai/contextAwareAI.ts(6,25): error TS2307: Cannot find module '../storage' or its corresponding type declarations.
+server/services/ai/contextAwareAI.ts(77,11): error TS2564: Property 'consciousness' has no initializer and is not definitely assigned in the constructor.
+server/services/ai/contextAwareAI.ts(78,11): error TS2564: Property 'reasoningEngine' has no initializer and is not definitely assigned in the constructor.
+server/services/ai/contextAwareAI.ts(541,11): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+server/services/ai/contextAwareAI.ts(559,50): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+server/services/ai/contextAwareAI.ts(565,11): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+server/services/ai/contextAwareAI.ts(700,31): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/services/ai/enhancedReasoningEngine.ts(332,26): error TS2339: Property 'needsStrategyChange' does not exist on type 'MetacognitiveState'.
+server/services/ai/enhancedReasoningEngine.ts(673,5): error TS2741: Property 'evaluation' is missing in type '{ id: string; content: string; confidence: number; depth: number; children: { id: string; parentId: string; content: string; confidence: number; depth: number; children: never[]; evaluation: { feasibility: number; novelty: number; alignment: number; }; }[]; }' but required in type 'TreeOfThoughtNode'.
+server/services/ai/modelEnsembleCoordinator.ts(902,36): error TS2531: Object is possibly 'null'.
+server/services/ai/modelEnsembleCoordinator.ts(995,36): error TS2531: Object is possibly 'null'.
+server/services/ai/streamingEngine.ts(613,9): error TS2353: Object literal may only specify known properties, and 'total_time' does not exist in type '{ reasoning_mode?: ReasoningMode | undefined; confidence?: number | undefined; step_number?: number | undefined; tool_name?: string | undefined; progress?: number | undefined; timestamp?: Date | undefined; }'.
+server/services/geometricContextEngine.ts(48,51): error TS2339: Property 'getMemories' does not exist on type 'ProjectMemoryService'.
+server/services/geometricContextEngine.ts(361,34): error TS2339: Property 'storeMemory' does not exist on type 'ProjectMemoryService'.

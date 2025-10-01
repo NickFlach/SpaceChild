@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import { apiRequest } from '@/lib/queryClient';
 
 /**
  * Frontend service for Unified Intelligence System
@@ -79,64 +79,56 @@ export const intelligenceService = {
    * Start a unified intelligence session
    */
   async startSession(request: UnifiedSessionRequest): Promise<UnifiedSession> {
-    return apiRequest<UnifiedSession>('/api/intelligence/session/start', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/session/start', request);
+    return res.json();
   },
 
   /**
    * Get system-wide statistics
    */
   async getStatistics(): Promise<SystemStatistics> {
-    return apiRequest<SystemStatistics>('/api/intelligence/statistics');
+    const res = await apiRequest('GET', '/api/intelligence/statistics');
+    return res.json();
   },
 
   /**
    * Get unified recommendations
    */
   async getRecommendations(context?: any): Promise<UnifiedRecommendations> {
-    return apiRequest<UnifiedRecommendations>('/api/intelligence/recommendations', {
-      method: 'POST',
-      body: JSON.stringify({ context: context || {} }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/recommendations', { context: context || {} });
+    return res.json();
   },
 
   /**
    * Code Learning Engine - Analyze codebase
    */
   async analyzeCodebase(codebaseId: string, files: any[]): Promise<any> {
-    return apiRequest('/api/intelligence/learning/analyze', {
-      method: 'POST',
-      body: JSON.stringify({ codebaseId, files }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/learning/analyze', { codebaseId, files });
+    return res.json();
   },
 
   /**
    * Get learning statistics
    */
   async getLearningStatistics(): Promise<any> {
-    return apiRequest('/api/intelligence/learning/statistics');
+    const res = await apiRequest('GET', '/api/intelligence/learning/statistics');
+    return res.json();
   },
 
   /**
    * Get learning recommendations
    */
   async getLearningRecommendations(context?: any): Promise<any[]> {
-    return apiRequest('/api/intelligence/learning/recommendations', {
-      method: 'POST',
-      body: JSON.stringify({ context: context || {} }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/learning/recommendations', { context: context || {} });
+    return res.json();
   },
 
   /**
    * Consciousness Code Review - Review code
    */
   async reviewCode(code: string, author: string, context?: any, framework?: string): Promise<any> {
-    return apiRequest('/api/intelligence/review/code', {
-      method: 'POST',
-      body: JSON.stringify({ code, author, context, framework }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/review/code', { code, author, context, framework });
+    return res.json();
   },
 
   /**
@@ -149,20 +141,16 @@ export const intelligenceService = {
     code?: string,
     context?: any
   ): Promise<any> {
-    return apiRequest('/api/intelligence/collaborate/message', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId, userId, message, code, context }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/collaborate/message', { sessionId, userId, message, code, context });
+    return res.json();
   },
 
   /**
    * Provide feedback on collaboration
    */
   async provideFeedback(sessionId: string, feedback: any): Promise<any> {
-    return apiRequest('/api/intelligence/collaborate/feedback', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId, feedback }),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/collaborate/feedback', { sessionId, feedback });
+    return res.json();
   },
 
   /**
@@ -176,17 +164,15 @@ export const intelligenceService = {
     logs?: string[],
     stateHistory?: any[]
   ): Promise<any> {
-    return apiRequest('/api/intelligence/debug/start', {
-      method: 'POST',
-      body: JSON.stringify({
-        error,
-        context,
-        stackTrace,
-        timestamp,
-        logs,
-        stateHistory,
-      }),
+    const res = await apiRequest('POST', '/api/intelligence/debug/start', {
+      error,
+      context,
+      stackTrace,
+      timestamp,
+      logs,
+      stateHistory,
     });
+    return res.json();
   },
 
   /**
@@ -202,33 +188,32 @@ export const intelligenceService = {
     ethicalConsiderations?: string[];
     architecture?: string;
   }): Promise<any> {
-    return apiRequest('/api/intelligence/activist/build', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    const res = await apiRequest('POST', '/api/intelligence/activist/build', request);
+    return res.json();
   },
 
   /**
    * Verify activist tool
    */
   async verifyActivistTool(projectId: string): Promise<any> {
-    return apiRequest(`/api/intelligence/activist/verify/${projectId}`, {
-      method: 'POST',
-    });
+    const res = await apiRequest('POST', `/api/intelligence/activist/verify/${projectId}`);
+    return res.json();
   },
 
   /**
    * Get activist tool recommendations
    */
   async getActivistRecommendations(projectId: string): Promise<any> {
-    return apiRequest(`/api/intelligence/activist/recommendations/${projectId}`);
+    const res = await apiRequest('GET', `/api/intelligence/activist/recommendations/${projectId}`);
+    return res.json();
   },
 
   /**
    * Health check
    */
   async healthCheck(): Promise<any> {
-    return apiRequest('/api/intelligence/health');
+    const res = await apiRequest('GET', '/api/intelligence/health');
+    return res.json();
   },
 };
 

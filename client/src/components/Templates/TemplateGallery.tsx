@@ -207,7 +207,6 @@ export default function TemplateGallery({ onProjectCreated }: TemplateGalleryPro
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 h-7 text-xs"
-          size="sm"
         />
         <Button type="submit" disabled={searchMutation.isPending} size="sm" className="h-7 px-2">
           <Search className="h-3 w-3" />
