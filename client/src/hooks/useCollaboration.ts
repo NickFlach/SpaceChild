@@ -87,7 +87,8 @@ export function useCollaboration({
     }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}`;
+    const host = window.location.host;
+    const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -100,10 +101,7 @@ export function useCollaboration({
         connectionStatus: 'connected' 
       }));
 
-      // Join room if project and file are specified
-      if (projectId && fileId) {
-        joinRoom(projectId, fileId);
-      }
+      // Connection established - ready for collaboration
     };
 
     ws.onmessage = (event) => {
@@ -273,6 +271,11 @@ export function useCollaboration({
 
       case 'sync':
         handleSyncMessage(message as SyncMessage);
+        break;
+
+      case 'welcome':
+        // Server welcome message - no action needed
+        console.log('WebSocket collaboration ready');
         break;
 
       default:
@@ -491,7 +494,7 @@ export function useCollaboration({
         console.error('Error sending WebSocket message:', error);
       }
     } else {
-      console.warn('WebSocket not connected, cannot send message:', message);
+      console.warn('WebSocket not ready, queuing message:', message);
     }
   }, []);
 

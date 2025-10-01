@@ -63,7 +63,7 @@ function App() {
       <ThemeProvider>
         <GitHubProvider>
         <EditorContextProvider>
-          <CollaborationProvider autoConnect={true}>
+          <CollaborationProvider autoConnect={false}>
             <TooltipProvider>
               <Toaster />
               <Router />

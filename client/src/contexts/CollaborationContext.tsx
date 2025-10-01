@@ -42,6 +42,9 @@ interface CollaborationContextData {
   
   // Error state
   error: string | null;
+
+  // Enable collaboration when needed
+  enableCollaboration: () => void;
 }
 
 const CollaborationContext = createContext<CollaborationContextData | null>(null);
@@ -66,7 +69,7 @@ export function CollaborationProvider({
   const collaboration = useCollaboration({
     projectId,
     fileId,
-    autoConnect: autoConnect && !!user?.id
+    autoConnect: false // Never auto-connect, require explicit user action
   });
 
   // Auto-join room when project/file changes
@@ -117,6 +120,13 @@ export function CollaborationProvider({
     
     // Error state
     error: collaboration.error,
+
+    // Enable collaboration
+    enableCollaboration: () => {
+      if (!collaboration.isConnected && user?.id) {
+        collaboration.connect();
+      }
+    },
   };
 
   return (
