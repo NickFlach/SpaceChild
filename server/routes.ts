@@ -25,6 +25,7 @@ import webSearchRoutes from "./routes/webSearch";
 import consciousnessInfrastructureRoutes from "./routes/consciousness-infrastructure";
 import realConsciousnessRoutes from "./routes/real-consciousness";
 import intelligenceRoutes from "./routes/intelligence";
+import v11Routes from "./routes/v1.1";
 import { WebSocketMessage, createRoomId } from "@shared/collaboration";
 import { OperationalTransform } from "@shared/operationalTransform";
 
@@ -970,6 +971,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Unified Intelligence System routes
   app.use('/api/intelligence', intelligenceRoutes);
+  
+  // Register v1.1 Enhanced Intelligence routes
+  app.use('/api/v1.1', v11Routes);
 
   // Create HTTP server
   const httpServer = createServer(app);
