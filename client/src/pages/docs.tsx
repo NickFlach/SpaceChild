@@ -14,11 +14,38 @@ interface DocItem {
 }
 
 const DOCS_INDEX: DocItem[] = [
-  { title: "README", path: "README.md", category: "Overview" },
-  { title: "Quick Start", path: "getting-started/quick-start.md", category: "Getting Started" },
-  { title: "AI Agents", path: "user-guide/ai-agents.md", category: "User Guide" },
-  { title: "Version Control (GitHub)", path: "user-guide/version-control.md", category: "User Guide" },
-  { title: "API Reference", path: "api/README.md", category: "Developer" },
+  // Overview
+  { title: "📖 Documentation Home", path: "README.md", category: "Overview" },
+  
+  // Getting Started
+  { title: "🚀 Quick Start", path: "getting-started/quick-start.md", category: "Getting Started" },
+  
+  // User Guides
+  { title: "🤖 AI Agents", path: "user-guide/ai-agents.md", category: "User Guide" },
+  { title: "🔄 Version Control", path: "user-guide/version-control.md", category: "User Guide" },
+  
+  // Consciousness & Intelligence
+  { title: "🧠 Consciousness Engine", path: "consciousness/consciousness-engine.md", category: "Consciousness" },
+  { title: "👥 Multi-Agent System", path: "consciousness/multi-agent-system.md", category: "Consciousness" },
+  { title: "🚀 Unified Platform", path: "consciousness/unified-consciousness-platform.md", category: "Consciousness" },
+  { title: "⏰ Temporal Consciousness", path: "consciousness/temporal-consciousness.md", category: "Consciousness" },
+  
+  // Platform Features
+  { title: "⚡ v1.1 Features", path: "features/v1.1-features.md", category: "Features" },
+  { title: "🔮 v1.2 Features", path: "features/v1.2-features.md", category: "Features" },
+  { title: "🏗️ Infrastructure Guide", path: "features/infrastructure-guide.md", category: "Features" },
+  { title: "🔌 API Documentation", path: "features/api-documentation.md", category: "Features" },
+  
+  // Developer
+  { title: "📡 API Reference", path: "api/README.md", category: "Developer" },
+  
+  // Release Information
+  { title: "📊 v1.1 Completion", path: "releases/v1.1-completion.md", category: "Releases" },
+  { title: "📊 v1.2 Completion", path: "releases/v1.2-completion.md", category: "Releases" },
+  
+  // About
+  { title: "🎯 Accomplishments", path: "about/accomplishments.md", category: "About" },
+  { title: "🤝 Contributing", path: "about/contributing.md", category: "About" },
 ];
 
 export default function DocsPage() {
