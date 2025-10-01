@@ -12,17 +12,16 @@ import Dashboard from "@/pages/dashboard";
 import GitHubPage from "@/pages/GitHubPage";
 import NotFound from "@/pages/not-found";
 import PricingPage from "@/pages/pricing";
-import TestAuth from "@/pages/test-auth";
 import DocsPage from "@/pages/docs";
 import { ConsciousnessDevPlatform } from "@/components/ConsciousnessPlatform/ConsciousnessDevPlatform";
 import { ConsciousnessActivismBridge } from "@/components/UnifiedPlatform/ConsciousnessActivismBridge";
 import { RealConsciousnessMonitor } from "@/components/RealConsciousness/RealConsciousnessMonitor";
 import { UnifiedConsciousnessPlatform } from "@/components/UnifiedConsciousnessPlatform";
+import UnifiedDashboard from "@/components/UnifiedDashboard";
 import { ErrorBoundary } from "react-error-boundary";
 
 function ErrorFallback({error}: {error: Error}) {
   const handleReload = () => {
-    // Clear any problematic state before reload
     try {
       localStorage.removeItem('collaboration_state');
     } catch (e) {
@@ -46,8 +45,8 @@ function ErrorFallback({error}: {error: Error}) {
             {error.stack}
           </pre>
         </details>
-        <button 
-          onClick={handleReload} 
+        <button
+          onClick={handleReload}
           className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
         >
           Reload Application
@@ -87,6 +86,7 @@ function Router() {
           <Route path="/bridge" component={ConsciousnessActivismBridge} />
           <Route path="/real-consciousness" component={RealConsciousnessMonitor} />
           <Route path="/unified" component={UnifiedConsciousnessPlatform} />
+          <Route path="/unified-dashboard" component={UnifiedDashboard} />
         </>
       )}
       <Route component={NotFound} />
@@ -99,14 +99,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <GitHubProvider>
-        <EditorContextProvider>
-          <TooltipProvider>
-            <Toaster />
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <Router />
-            </ErrorBoundary>
-          </TooltipProvider>
-        </EditorContextProvider>
+          <EditorContextProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Router />
+              </ErrorBoundary>
+            </TooltipProvider>
+          </EditorContextProvider>
         </GitHubProvider>
       </ThemeProvider>
     </QueryClientProvider>

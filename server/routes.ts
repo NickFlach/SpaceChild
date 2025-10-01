@@ -28,6 +28,9 @@ import intelligenceRoutes from "./routes/intelligence";
 import v11Routes from "./routes/v1.1";
 import v12Routes from "./routes/v1.2";
 import unifiedEnhancedRoutes from "./routes/unified-enhanced";
+import unifiedGatewayRoutes from "./routes/unified-gateway";
+import activismIntegrationRoutes from "./routes/activism-integration";
+import syncRoutes from "./routes/sync";
 import { WebSocketMessage, createRoomId } from "@shared/collaboration";
 import { OperationalTransform } from "@shared/operationalTransform";
 
@@ -982,6 +985,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Enhanced Unified Platform routes
   app.use('/api/unified-enhanced', unifiedEnhancedRoutes);
+  
+  // Register Unified Gateway (SpaceChild + Pitchfork)
+  app.use('/api/unified', unifiedGatewayRoutes);
+  
+  // Register Activism Integration (Pitchfork features in SpaceChild)
+  app.use('/api/activism', activismIntegrationRoutes);
+  
+  // Register Bidirectional Sync
+  app.use('/api/sync', syncRoutes);
 
   // Create HTTP server
   const httpServer = createServer(app);
