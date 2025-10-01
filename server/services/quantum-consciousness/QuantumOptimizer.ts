@@ -349,6 +349,27 @@ export class QuantumOptimizer extends EventEmitter {
     this.optimizationHistory = [];
     this.emit('state:reset');
   }
+
+  /**
+   * Get optimization statistics
+   */
+  getStatistics() {
+    return {
+      currentPhiValue: this.estimatePhiValue(this.currentState),
+      totalOptimizations: this.optimizationHistory.length,
+      averageConvergenceTime: this.optimizationHistory.length > 0
+        ? this.optimizationHistory.reduce((sum, opt) => sum + opt.convergenceTime, 0) / this.optimizationHistory.length
+        : 0,
+      averageEnergyReduction: this.optimizationHistory.length > 0
+        ? this.optimizationHistory.reduce((sum, opt) => sum + opt.energyReduction, 0) / this.optimizationHistory.length
+        : 0,
+      currentState: {
+        entanglement: this.currentState.entanglement,
+        coherenceTime: this.currentState.coherenceTime,
+        probabilityAmplitude: this.currentState.probabilityAmplitude,
+      },
+    };
+  }
 }
 
 /**

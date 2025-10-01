@@ -149,7 +149,9 @@ export class MarketplaceEngine extends EventEmitter {
    */
   async listResource(
     providerId: string,
-    resource: Omit<MarketplaceResource, 'id' | 'provider' | 'metadata'>
+    resource: Omit<MarketplaceResource, 'id' | 'provider' | 'metadata'> & {
+      metadata?: Partial<MarketplaceResource['metadata']>;
+    }
   ): Promise<MarketplaceResource> {
     // Validate pricing
     if (resource.pricing.model !== 'free' && resource.pricing.amount < this.MIN_PRICE) {
