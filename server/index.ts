@@ -4,10 +4,24 @@ import { resolve } from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedTemplates } from "./scripts/seedTemplates";
+import { healthCheck, readinessCheck, livenessCheck, metricsEndpoint } from "./middleware/health";
+import { securityHeaders, configureCORS, apiRateLimiter } from "./middleware/security";
 
 const app = express();
+
+// Security middleware (before body parsing)
+app.use(securityHeaders);
+app.use(configureCORS);
+
+// Body parsing with size limits
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: false, limit: '500mb' }));
+
+// Health check endpoints (no authentication required)
+app.get('/health', healthCheck);
+app.get('/ready', readinessCheck);
+app.get('/live', livenessCheck);
+app.get('/metrics', metricsEndpoint);
 
 app.use((req, res, next) => {
   const start = Date.now();
