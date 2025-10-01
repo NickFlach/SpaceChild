@@ -56,10 +56,11 @@ interface CollaborationProviderProps {
 
 export function CollaborationProvider({ 
   children, 
-  autoConnect = true 
+  autoConnect = false // Default to false to prevent auto-connection issues
 }: CollaborationProviderProps) {
   const { user } = useAuth();
   const { currentFile, currentProject } = useEditorContext();
+  const [error, setError] = useState<string | null>(null);
 
   // Determine current project and file IDs
   const projectId = currentProject?.id;
@@ -71,6 +72,13 @@ export function CollaborationProvider({
     fileId,
     autoConnect: false // Never auto-connect, require explicit user action
   });
+
+  // Handle collaboration errors
+  useEffect(() => {
+    if (collaboration.error) {
+      setError(collaboration.error);
+    }
+  }, [collaboration.error]);
 
   // Don't auto-connect on mount - wait for user action
 
@@ -99,7 +107,7 @@ export function CollaborationProvider({
     collaborationState: collaboration.collaborationState,
     
     // Error state
-    error: collaboration.error,
+    error: error || collaboration.error,
 
     // Enable collaboration
     enableCollaboration: () => {

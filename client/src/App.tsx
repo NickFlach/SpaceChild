@@ -22,16 +22,36 @@ import { UnifiedConsciousnessPlatform } from "@/components/UnifiedConsciousnessP
 import { ErrorBoundary } from "react-error-boundary";
 
 function ErrorFallback({error}: {error: Error}) {
+  const handleReload = () => {
+    // Clear any problematic state before reload
+    try {
+      localStorage.removeItem('collaboration_state');
+    } catch (e) {
+      // Ignore storage errors
+    }
+    window.location.reload();
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
-        <p className="text-muted-foreground mb-4">{error.message}</p>
+      <div className="text-center max-w-md">
+        <h2 className="text-xl font-bold mb-2">Application Error</h2>
+        <p className="text-muted-foreground mb-4 text-sm">
+          {error.message || 'An unexpected error occurred'}
+        </p>
+        <details className="mb-4 text-left">
+          <summary className="cursor-pointer text-sm text-muted-foreground">
+            Error Details
+          </summary>
+          <pre className="text-xs mt-2 p-2 bg-muted rounded overflow-auto">
+            {error.stack}
+          </pre>
+        </details>
         <button 
-          onClick={() => window.location.reload()} 
-          className="px-4 py-2 bg-primary text-primary-foreground rounded"
+          onClick={handleReload} 
+          className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
         >
-          Reload Page
+          Reload Application
         </button>
       </div>
     </div>

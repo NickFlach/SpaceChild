@@ -70,7 +70,17 @@ export function useCollaboration({
    * Initialize WebSocket connection
    */
   const connect = useCallback(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('No user ID available for WebSocket connection');
+      return;
+    }
+
+    // Prevent multiple connections
+    if (wsRef.current?.readyState === WebSocket.CONNECTING || 
+        wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connecting or connected');
+      return;
+    }
 
     setCollaborationState(prev => ({ ...prev, connectionStatus: 'connecting' }));
 
@@ -90,19 +100,20 @@ export function useCollaboration({
     const host = window.location.host;
     const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
 
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    try {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('WebSocket connected for collaboration');
-      setCollaborationState(prev => ({ 
-        ...prev, 
-        isConnected: true, 
-        connectionStatus: 'connected' 
-      }));
+      ws.onopen = () => {
+        console.log('WebSocket connected for collaboration');
+        setCollaborationState(prev => ({ 
+          ...prev, 
+          isConnected: true, 
+          connectionStatus: 'connected' 
+        }));
 
-      // Connection established - ready for collaboration
-    };
+        // Connection established - ready for collaboration
+      };
 
     ws.onmessage = (event) => {
       try {
@@ -113,27 +124,35 @@ export function useCollaboration({
       }
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
+    ws.onclose = (event) => {
+        console.log('WebSocket disconnected', event.code, event.reason);
+        setCollaborationState(prev => ({ 
+          ...prev, 
+          isConnected: false, 
+          connectionStatus: 'disconnected' 
+        }));
+
+        // Only reconnect if it was an unexpected disconnect and auto-connect is enabled
+        if (autoConnect && event.code !== 1000 && event.code !== 1001) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            setCollaborationState(prev => ({ ...prev, connectionStatus: 'reconnecting' }));
+            connect();
+          }, 5000); // Increased delay to prevent rapid reconnects
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setCollaborationState(prev => ({ ...prev, connectionStatus: 'disconnected' }));
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
       setCollaborationState(prev => ({ 
         ...prev, 
-        isConnected: false, 
-        connectionStatus: 'disconnected' 
+        connectionStatus: 'disconnected',
+        isConnected: false 
       }));
-
-      // Attempt to reconnect
-      if (autoConnect) {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          setCollaborationState(prev => ({ ...prev, connectionStatus: 'reconnecting' }));
-          connect();
-        }, 3000);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setCollaborationState(prev => ({ ...prev, connectionStatus: 'disconnected' }));
-    };
+    }
 
   }, [user?.id, projectId, fileId, autoConnect]);
 
@@ -274,8 +293,13 @@ export function useCollaboration({
         break;
 
       case 'welcome':
-        // Server welcome message - no action needed
+        // Server welcome message - connection is ready
         console.log('WebSocket collaboration ready');
+        setCollaborationState(prev => ({ 
+          ...prev, 
+          isConnected: true, 
+          connectionStatus: 'connected' 
+        }));
         break;
 
       default:
@@ -485,7 +509,7 @@ export function useCollaboration({
         console.error('Error sending WebSocket message:', error);
       }
     } else {
-      console.warn('WebSocket not ready, queuing message:', message);
+      console.warn('WebSocket not ready, message dropped:', message.type || 'unknown');
     }
   }, []);
 
