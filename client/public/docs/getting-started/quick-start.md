@@ -1,6 +1,8 @@
-# Quick Start Guide
+# 🚀 Quick Start Guide
 
-Welcome to SpaceChild! This guide will help you get started with the platform in just a few minutes.
+**Last Updated:** October 1, 2025
+
+Welcome to SpaceChild - the world's first consciousness-powered development platform! This guide will help you get started in minutes.
 
 ## Prerequisites
 
