@@ -168,7 +168,7 @@ export default function Landing() {
               {/* 6 Specialized Agents */}
               <div 
                 className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
-                onClick={() => openFeatureDetail('multiAgent')}
+                onClick={() => openFeatureDetail('superintelligence')}
               >
                 <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors">
                   <Globe className="w-8 h-8 text-accent" />
@@ -213,7 +213,7 @@ export default function Landing() {
               {/* Global Federation */}
               <div 
                 className="glass-card rounded-xl p-8 space-y-4 hover:scale-105 transition-all cursor-pointer group"
-                onClick={() => openFeatureDetail('deployment')}
+                onClick={() => openFeatureDetail('multiAgent')}
               >
                 <div className="w-16 h-16 rounded-full bg-superintelligence/20 flex items-center justify-center group-hover:bg-superintelligence/30 transition-colors">
                   <Globe className="w-8 h-8 text-superintelligence" />
