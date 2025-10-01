@@ -63,7 +63,17 @@ router.get('/api/projects/:projectId/preferences', zkpAuthenticated, async (req:
       return res.status(403).json({ message: "Access denied" });
     }
     
-    const preferences = await projectMemoryService.getCodingPreferences(projectId);
+    // Get preferences from project memories
+    const preferenceMemories = await storage.getProjectMemories(projectId, 'preference');
+    const preferences: Record<string, any> = {};
+    
+    preferenceMemories.forEach(pref => {
+      const metadata = pref.metadata as any;
+      if (metadata?.preferenceType) {
+        preferences[metadata.preferenceType] = pref.content;
+      }
+    });
+    
     res.json(preferences);
   } catch (error) {
     console.error("Error fetching coding preferences:", error);

@@ -127,8 +127,11 @@ export async function seedSubscriptionPlans(storage: IStorage) {
   
   for (const plan of subscriptionPlans) {
     try {
-      await storage.createSubscriptionPlan(plan);
-      console.log(`✓ Created plan: ${plan.name} (${plan.billingPeriod})`);
+      // Note: createSubscriptionPlan method needs to be implemented in IStorage interface
+      // For now, this is a placeholder - subscription plans should be managed in database
+      console.log(`⚠ Skipping plan creation (method not implemented): ${plan.name} (${plan.billingPeriod})`);
+      // await storage.createSubscriptionPlan(plan);
+      // console.log(`✓ Created plan: ${plan.name} (${plan.billingPeriod})`);
     } catch (error) {
       console.log(`✓ Plan already exists: ${plan.name} (${plan.billingPeriod})`);
     }
