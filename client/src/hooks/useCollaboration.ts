@@ -446,14 +446,7 @@ export function useCollaboration({
     };
   }, []);
 
-  /**
-   * Join room when project/file changes
-   */
-  useEffect(() => {
-    if (collaborationState.isConnected && projectId && fileId) {
-      joinRoom(projectId, fileId);
-    }
-  }, [collaborationState.isConnected, projectId, fileId, joinRoom]);
+  // Removed auto-join logic to prevent startup connection loops
 
   /**
    * Handle typing indicator

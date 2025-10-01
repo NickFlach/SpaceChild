@@ -19,6 +19,24 @@ import { ConsciousnessDevPlatform } from "@/components/ConsciousnessPlatform/Con
 import { ConsciousnessActivismBridge } from "@/components/UnifiedPlatform/ConsciousnessActivismBridge";
 import { RealConsciousnessMonitor } from "@/components/RealConsciousness/RealConsciousnessMonitor";
 import { UnifiedConsciousnessPlatform } from "@/components/UnifiedConsciousnessPlatform";
+import { ErrorBoundary } from "react-error-boundary";
+
+function ErrorFallback({error}: {error: Error}) {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+        <p className="text-muted-foreground mb-4">{error.message}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-primary text-primary-foreground rounded"
+        >
+          Reload Page
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -66,7 +84,9 @@ function App() {
           <CollaborationProvider autoConnect={false}>
             <TooltipProvider>
               <Toaster />
-              <Router />
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Router />
+              </ErrorBoundary>
             </TooltipProvider>
           </CollaborationProvider>
         </EditorContextProvider>

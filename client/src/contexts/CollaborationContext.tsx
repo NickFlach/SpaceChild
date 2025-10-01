@@ -72,7 +72,7 @@ export function CollaborationProvider({
     autoConnect: false // Never auto-connect, require explicit user action
   });
 
-  // Manual room management only - no auto-joining
+  // Don't auto-connect on mount - wait for user action
 
   const contextValue: CollaborationContextData = {
     // Connection state
