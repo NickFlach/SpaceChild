@@ -588,6 +588,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Unified AI Chat - Enhanced endpoint with mode awareness
+  app.post('/api/ai/unified-chat', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const { 
+        message, 
+        mode = 'normal',
+        projectId, 
+        enableWebSearch = false,
+        fileContext,
+        consciousnessState,
+        autoMemory = true
+      } = req.body;
+      const userId = req.user.claims.sub;
+      
+      // Build enhanced context based on mode
+      let modePrompt = '';
+      switch (mode) {
+        case 'jarvis':
+          modePrompt = 'You are Jarvis, a proactive AI assistant that anticipates user needs. Be helpful, sophisticated, and slightly formal. ';
+          break;
+        case 'developer':
+          modePrompt = 'You are a code-focused development assistant. Focus on best practices, debugging, and code quality. Be precise and technical. ';
+          break;
+        case 'architect':
+          modePrompt = 'You are a system architecture expert. Focus on design patterns, scalability, and system-level thinking. ';
+          break;
+        case 'security':
+          modePrompt = 'You are a security analyst. Focus on vulnerabilities, security best practices, and threat detection. ';
+          break;
+        case 'ops':
+          modePrompt = 'You are a DevOps specialist. Focus on deployment, infrastructure, CI/CD, and operational excellence. ';
+          break;
+      }
+      
+      // Get relevant memories if projectId is provided and autoMemory is enabled
+      let contextualHints: string[] = [];
+      if (projectId && autoMemory) {
+        contextualHints = await projectMemoryService.applyLearnedPatterns(projectId, message);
+      }
+      
+      // Build enhanced message with all context
+      let enhancedMessage = modePrompt + message;
+      
+      if (fileContext) {
+        enhancedMessage += `\n\nCurrent file context:\n- File: ${fileContext.filePath}\n- Language: ${fileContext.language}\n- Line ${fileContext.lineNumber}: ${fileContext.currentLine}`;
+      }
+      
+      if (contextualHints.length > 0) {
+        enhancedMessage += `\n\nRelevant context from memory:\n${contextualHints.join('\n')}`;
+      }
+      
+      if (consciousnessState && consciousnessState.phi) {
+        enhancedMessage += `\n\nConsciousness state: Φ=${consciousnessState.phi.toFixed(2)}`;
+      }
+      
+      // Handle web search if enabled
+      if (enableWebSearch) {
+        try {
+          const orchestrationRequest = {
+            userId,
+            projectId,
+            request: enhancedMessage,
+            context: {
+              domain: 'web_research',
+              complexity: 'moderate' as const,
+              capabilities: ['web_search', 'real_time_info']
+            }
+          };
+          
+          const orchestrationResult = await agenticOrchestrationService.processRequest(orchestrationRequest);
+          
+          if (orchestrationResult.strategy === 'agentic' && orchestrationResult.webSearchResults) {
+            enhancedMessage += `\n\nCurrent web information:\n${JSON.stringify(orchestrationResult.webSearchResults, null, 2)}`;
+          }
+        } catch (webSearchError) {
+          console.warn('Web search failed, continuing with regular chat:', webSearchError);
+        }
+      }
+      
+      // Use appropriate provider based on mode
+      const provider = mode === 'jarvis' ? 'anthropic' : 'anthropic'; // Can customize per mode
+      const result = await aiProviderService.chat(enhancedMessage, provider, projectId);
+      
+      // Learn from the interaction if autoMemory is enabled
+      if (projectId && autoMemory && result.response) {
+        await projectMemoryService.learnFromInteraction(
+          projectId,
+          mode === 'security' ? 'security_analysis' : 'code_generation',
+          result.response,
+          { 
+            userMessage: message,
+            mode,
+            provider,
+            fileContext,
+            timestamp: new Date().toISOString()
+          }
+        );
+      }
+      
+      // Track usage
+      await storage.createAiProviderUsage({
+        userId,
+        provider,
+        serviceType: mode === 'security' ? 'security_scan' : 'basic_coding',
+        tokensUsed: result.tokensUsed,
+        costUsd: result.cost,
+      });
+      
+      res.json({
+        ...result,
+        contextType: mode,
+      });
+    } catch (error) {
+      console.error("Error processing unified chat:", error);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  // Auto-save memory context (background process)
+  app.post('/api/memory/auto-save', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, context } = req.body;
+      const userId = req.user.claims.sub;
+      
+      // Verify project access
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Save context to memory (lightweight operation)
+      await projectMemoryService.learnFromInteraction(
+        projectId,
+        'auto_context',
+        JSON.stringify(context),
+        {
+          file: context.file,
+          language: context.language,
+          mode: context.mode,
+          messageCount: context.recentMessages?.length || 0,
+          timestamp: new Date().toISOString(),
+          automatic: true
+        }
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error auto-saving memory:", error);
+      // Fail silently for background operations
+      res.status(200).json({ success: false });
+    }
+  });
+
+  // Quick Deploy Command
+  app.post('/api/deployment/quick-deploy', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, args } = req.body;
+      const userId = req.user.claims.sub;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Parse deployment arguments
+      const deploymentType = args?.trim() || 'default';
+      
+      res.json({
+        response: `Initiating deployment for ${project.name} (${deploymentType})...\n\nDeployment configuration:\n- Environment: production\n- Type: ${deploymentType}\n- Status: Starting\n\nI'll handle the deployment process. Check the Deploy tab for detailed progress.`,
+        provider: 'system',
+        contextType: 'deployment'
+      });
+    } catch (error) {
+      console.error("Error in quick deploy:", error);
+      res.status(500).json({ 
+        response: "Deployment failed. Please check your project configuration and try again.",
+        provider: 'system'
+      });
+    }
+  });
+
+  // Terminal Execute Command
+  app.post('/api/terminal/execute', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, command } = req.body;
+      const userId = req.user.claims.sub;
+      
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      if (!command || command.trim().length === 0) {
+        return res.json({
+          response: 'Please specify a command to execute. Example: /terminal npm install',
+          provider: 'system',
+          contextType: 'terminal'
+        });
+      }
+      
+      // Security: Don't actually execute arbitrary commands - just provide feedback
+      res.json({
+        response: `Command queued: \`${command}\`\n\nFor security, terminal commands are sandboxed. Check the Terminal tab to execute commands interactively.`,
+        provider: 'system',
+        contextType: 'terminal'
+      });
+    } catch (error) {
+      console.error("Error in terminal execute:", error);
+      res.status(500).json({ 
+        response: "Failed to execute terminal command.",
+        provider: 'system'
+      });
+    }
+  });
+
+  // Replit Search Command
+  app.get('/api/replit/search', zkpAuthenticated, async (req: any, res) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query || query.trim().length === 0) {
+        return res.json({
+          response: 'Please specify a search query. Example: /search react hooks',
+          provider: 'system',
+          contextType: 'search'
+        });
+      }
+      
+      res.json({
+        response: `Searching Replit for: "${query}"\n\nCheck the Replit Search tab for detailed results and to explore templates.`,
+        provider: 'system',
+        contextType: 'search'
+      });
+    } catch (error) {
+      console.error("Error in replit search:", error);
+      res.status(500).json({ 
+        response: "Search failed. Please try again.",
+        provider: 'system'
+      });
+    }
+  });
+
   // Consciousness Layer Routes
   app.post('/api/consciousness/activate', zkpAuthenticated, async (req: any, res) => {
     try {

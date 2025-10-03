@@ -6,19 +6,8 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import ProjectHeader from "@/components/Project/ProjectHeader";
 import FileExplorer from "@/components/Editor/FileExplorer";
 import CodeEditor from "@/components/Editor/CodeEditor";
-import ChatInterface from "@/components/Chat/ChatInterface";
-import { EnhancedConsciousnessPanel } from "@/components/Consciousness/EnhancedConsciousnessPanel";
-import { SuperintelligencePanel } from "@/components/Superintelligence/SuperintelligencePanel";
-import ComplexityPanel from "@/components/ComplexityAgent/ComplexityPanel";
+import UnifiedAIAssistant from "@/components/AI/UnifiedAIAssistant";
 import AIProviderSelector from "@/components/Common/AIProviderSelector";
-import ProjectMemoryPanel from "@/components/ProjectMemory/MemoryPanel";
-import TemplateGallery from "@/components/Templates/TemplateGallery";
-import MultiAgentPanel from "@/components/MultiAgent/MultiAgentPanel";
-import DeploymentPanel from "@/components/Deployment/DeploymentPanel";
-import TerminalComponent from "@/components/ui/terminal";
-import ReplitUserSearch from "@/components/ReplitSearch/ReplitUserSearch";
-import DivModLab from "@/components/CryptoTools/DivModLab";
-import PostQuantumLab from "@/components/CryptoTools/PostQuantumLab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -33,7 +22,6 @@ export default function Dashboard() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
-  const [activeTab, setActiveTab] = useState("chat");
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isProjectPanelCollapsed, setIsProjectPanelCollapsed] = useState(false);
   const projectPanelRef = useRef<any>(null);
@@ -317,157 +305,8 @@ export default function Dashboard() {
           <ResizableHandle withHandle />
           
           <ResizablePanel defaultSize={35} minSize={25}>
-            <div className="h-full flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <div className="w-full overflow-x-auto flex-shrink-0 bg-background border-b">
-                  <TabsList className="w-max flex h-12 sm:h-10 bg-transparent">
-                    <TabsTrigger value="chat" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Chat</span>
-                      <span className="sm:hidden">💬</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="consciousness" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">AI Mind</span>
-                      <span className="sm:hidden">🧠</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="complexity" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Complex</span>
-                      <span className="sm:hidden">⚙️</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="memory" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Memory</span>
-                      <span className="sm:hidden">💾</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="templates" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Templates</span>
-                      <span className="sm:hidden">📋</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="analysis" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Analysis</span>
-                      <span className="sm:hidden">📊</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="agents" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Agents</span>
-                      <span className="sm:hidden">🤖</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="crypto" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Crypto</span>
-                      <span className="sm:hidden">🔐</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="quantum" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Quantum</span>
-                      <span className="sm:hidden">⚛️</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="replit-search" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Replit Search</span>
-                      <span className="sm:hidden">🔍</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="terminal" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Terminal</span>
-                      <span className="sm:hidden">⌨️</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="deployment" className="whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm data-[state=active]:bg-accent min-w-[60px] sm:min-w-[80px]">
-                      <span className="hidden sm:inline">Deploy</span>
-                      <span className="sm:hidden">🚀</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-                
-                <TabsContent value="chat" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <ChatInterface project={currentProject || null} />
-                </TabsContent>
-                
-                <TabsContent value="consciousness" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <EnhancedConsciousnessPanel 
-                      projectId={currentProject?.id || null}
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="complexity" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    {currentProject && (
-                      <ComplexityPanel projectId={currentProject.id} />
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="memory" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    {currentProject && (
-                      <ProjectMemoryPanel projectId={currentProject.id} />
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="templates" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <TemplateGallery 
-                      onProjectCreated={async (project) => {
-                        await selectProject(project.id);
-                        setActiveTab("chat");
-                      }}
-                    />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="analysis" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    {currentProject && (
-                      <SuperintelligencePanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="agents" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    {currentProject && (
-                      <MultiAgentPanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="crypto" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <DivModLab />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="quantum" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <PostQuantumLab />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="replit-search" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <ReplitUserSearch />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="terminal" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    <TerminalComponent 
-                      projectId={currentProject?.id}
-                      className="h-full"
-                    />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="deployment" className="flex-1 mt-0 min-h-0 overflow-hidden">
-                  <div className="h-full p-2">
-                    {currentProject && (
-                      <DeploymentPanel 
-                        project={currentProject}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+            <div className="h-full flex flex-col bg-card">
+              <UnifiedAIAssistant project={currentProject || null} />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
