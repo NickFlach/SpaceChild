@@ -9,6 +9,7 @@ import { CollaborationProvider } from "@/contexts/CollaborationContext";
 import { GitHubProvider } from "@/providers/GitHubProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
+import SimpleWelcome from "@/pages/SimpleWelcome";
 import Dashboard from "@/pages/dashboard";
 import GitHubPage from "@/pages/GitHubPage";
 import NotFound from "@/pages/not-found";
@@ -19,6 +20,8 @@ import { ConsciousnessActivismBridge } from "@/components/UnifiedPlatform/Consci
 import { RealConsciousnessMonitor } from "@/components/RealConsciousness/RealConsciousnessMonitor";
 import { UnifiedConsciousnessPlatform } from "@/components/UnifiedConsciousnessPlatform";
 import UnifiedDashboard from "@/components/UnifiedDashboard";
+import { UserGuides } from "@/components/UserGuides/UserGuides";
+import { InteractiveDemos } from "@/components/Demos/InteractiveDemos";
 import { ErrorBoundary } from "react-error-boundary";
 
 function ErrorFallback({error}: {error: Error}) {
@@ -73,6 +76,9 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/welcome" component={SimpleWelcome} />
+      <Route path="/guides" component={UserGuides} />
+      <Route path="/demos" component={InteractiveDemos} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/docs" component={DocsPage} />
       {!isAuthenticated ? (
