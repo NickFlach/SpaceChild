@@ -488,4 +488,4 @@ const projects = await client.projects.list();
 - **API Status**: https://status.spacechild.dev
 - **Issues**: https://github.com/spacechild/platform/issues
 - **Discord**: https://discord.gg/spacechild
-- **Email**: api-support@spacechild.dev
+- **Email**: info@spacechild.love

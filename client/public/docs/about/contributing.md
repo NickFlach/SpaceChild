@@ -296,7 +296,7 @@ Brief description of changes
 - **GitHub Issues**: Bug reports and features
 - **GitHub Discussions**: Questions and ideas
 - **Discord**: Real-time chat and support
-- **Email**: security@spacechild.dev for security issues
+- **Email**: info@spacechild.love for security issues
 
 ### Getting Help
 - **Documentation**: [docs.spacechild.dev](https://docs.spacechild.dev)

@@ -165,7 +165,7 @@ pnpm consciousness:init
 - **Documentation**: [docs.spacechild.dev](https://docs.spacechild.dev)
 - **Discord Support**: [discord.gg/spacechild](https://discord.gg/spacechild)
 - **GitHub Issues**: [Report bugs](https://github.com/spacechild/spacechild/issues)
-- **Email**: support@spacechild.dev
+- **Email**: info@spacechild.love
 
 ---
 

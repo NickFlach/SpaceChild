@@ -469,7 +469,7 @@ kubectl top pods -n spacechild
 - **Documentation**: https://docs.spacechild.dev
 - **Issues**: https://github.com/your-org/spacechild/issues
 - **Discord**: https://discord.gg/spacechild
-- **Email**: support@spacechild.dev
+- **Email**: info@spacechild.love
 
 ---
 

@@ -484,7 +484,7 @@ task = client.agents.create_task(
 
 - **API Status**: [status.spacechild.dev](https://status.spacechild.dev)
 - **Documentation**: [docs.spacechild.dev](https://docs.spacechild.dev)
-- **Support**: api-support@spacechild.dev
+- **Support**: info@spacechild.love
 
 ---
 

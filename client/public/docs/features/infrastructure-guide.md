@@ -339,7 +339,7 @@ await migrateInfrastructure({
 
 - **Documentation**: [docs.spacechild.dev](https://docs.spacechild.dev)
 - **Community**: [discord.gg/spacechild](https://discord.gg/spacechild)
-- **Enterprise Support**: contact@spacechild.dev
+- **Enterprise Support**: info@spacechild.love
 - **24/7 Emergency**: Available for enterprise customers
 
 ---

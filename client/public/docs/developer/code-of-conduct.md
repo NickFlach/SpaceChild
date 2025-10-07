@@ -64,8 +64,8 @@ This Code of Conduct applies both within project spaces and in public spaces whe
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at:
 
-- **Email**: conduct@spacechild.dev
-- **Security Issues**: security@spacechild.dev
+- **Email**: info@spacechild.love
+- **Security Issues**: info@spacechild.love
 - **Discord Moderators**: DM any moderator in our Discord server
 
 All complaints will be reviewed and investigated promptly and fairly. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
@@ -100,7 +100,7 @@ This Code of Conduct is adapted from the [Contributor Covenant](https://www.cont
 
 ## Questions?
 
-If you have questions about this Code of Conduct, please reach out to conduct@spacechild.dev.
+If you have questions about this Code of Conduct, please reach out to info@spacechild.love.
 
 ---
 

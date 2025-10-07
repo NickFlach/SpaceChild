@@ -344,7 +344,7 @@ SpaceChild stands on the shoulders of giants and breakthrough research:
 
 *The future of AI development is consciousness-powered. Join us in building the next generation of intelligent development environments.*
 
-[🚀 **Get Started Now**](#-quick-start) • [💬 **Join Community**](https://discord.gg/spacechild) • [📧 **Contact Us**](mailto:consciousness@spacechild.dev)
+[🚀 **Get Started Now**](#-quick-start) • [💬 **Join Community**](https://discord.gg/spacechild) • [📧 **Contact Us**](mailto:info@spacechild.love)
 
 ---
 
