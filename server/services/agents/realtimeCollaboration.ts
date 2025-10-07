@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { WebSocket } from "ws";
 import { AgentType, AgentMessage, MessageType } from "./baseAgent";
+import { paradoxConflictResolver, type AgentConflict, type ParadoxConflictProposal } from "./paradoxConflictResolver";
 
 // Real-time collaborative editing and code streaming
 export class RealtimeCollaborationService {
@@ -365,17 +366,52 @@ export class RealtimeCollaborationService {
   }
 
   private async analyzeConflictProposals(proposals: ConflictProposal[]): Promise<ConflictResolution> {
-    // Simplified resolution - in production, use AI analysis
-    const bestProposal = proposals.reduce((best, current) => 
-      current.proposal.length > best.proposal.length ? current : best
-    );
+    // Enhanced with ParadoxResolver integration
+    try {
+      // Convert to ParadoxConflict format
+      const paradoxProposals: ParadoxConflictProposal[] = proposals.map(p => ({
+        agent: p.agent,
+        proposal: p.proposal,
+        reasoning: p.reasoning,
+        confidence: 0.8, // Default confidence
+        weight: 1.0
+      }));
 
-    return {
-      resolvedCode: bestProposal.proposal,
-      reasoning: `Selected proposal from ${bestProposal.agent}: ${bestProposal.reasoning}`,
-      confidence: 0.85,
-      timestamp: new Date()
-    };
+      const agentConflict: AgentConflict = {
+        conflictId: `code_${Date.now()}`,
+        agents: proposals.map(p => p.agent),
+        conflictType: 'code',
+        description: 'Code merge conflict',
+        proposals: paradoxProposals,
+        timestamp: new Date()
+      };
+
+      // Use ParadoxResolver for scientific conflict resolution
+      const resolution = await paradoxConflictResolver.resolveConflict(agentConflict);
+
+      return {
+        resolvedCode: typeof resolution.resolvedState.combined === 'string' 
+          ? resolution.resolvedState.combined 
+          : proposals[0].proposal, // Fallback
+        reasoning: resolution.reasoning,
+        confidence: resolution.confidence,
+        timestamp: resolution.timestamp
+      };
+    } catch (error) {
+      console.error('ParadoxResolver failed, using fallback:', error);
+      
+      // Fallback to simple resolution
+      const bestProposal = proposals.reduce((best, current) => 
+        current.proposal.length > best.proposal.length ? current : best
+      );
+
+      return {
+        resolvedCode: bestProposal.proposal,
+        reasoning: `Fallback: Selected proposal from ${bestProposal.agent}: ${bestProposal.reasoning}`,
+        confidence: 0.7,
+        timestamp: new Date()
+      };
+    }
   }
 
   // WebSocket Management for Real-time Communication
