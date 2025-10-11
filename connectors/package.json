@@ -1,0 +1,74 @@
+{
+  "name": "@spacechild/connector-framework",
+  "version": "1.0.0",
+  "description": "Unified Application Connector Framework powered by klaus-kode-agentic-integrator",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "connector-framework": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "cli": "tsx src/cli.ts",
+    "demo": "tsx demo.ts",
+    "generate": "tsx src/cli.ts generate",
+    "discover": "tsx src/cli.ts discover",
+    "test-connectors": "tsx src/cli.ts test",
+    "deploy": "tsx src/cli.ts deploy"
+  },
+  "keywords": [
+    "connectors",
+    "integration",
+    "ai",
+    "klaus-kode",
+    "multi-agent",
+    "typescript",
+    "nodejs"
+  ],
+  "author": "SpaceChild Team",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "ws": "^8.18.0",
+    "express": "^4.21.2",
+    "axios": "^1.7.9",
+    "dotenv": "^16.3.1",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "inquirer": "^9.2.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "@types/ws": "^8.5.13",
+    "@types/express": "^4.17.21",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "typescript": "5.6.3",
+    "tsx": "^4.19.1",
+    "vitest": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spacechild/connector-framework.git"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
