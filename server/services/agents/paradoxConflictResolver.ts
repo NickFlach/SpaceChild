@@ -46,8 +46,8 @@ export interface ResourceAllocationRequest {
 }
 
 export interface ResourceAllocationResult {
-  allocation: Record<AgentType, Record<string, number>>;
-  satisfaction: Record<AgentType, number>;
+  allocation: Partial<Record<AgentType, Record<string, number>>>;
+  satisfaction: Partial<Record<AgentType, number>>;
   fairness: number;
   totalSatisfaction: number;
 }
@@ -241,16 +241,16 @@ export class ParadoxConflictResolver {
         throw new Error(result.error || 'Optimization failed');
       }
       
-      // Transform back to agent-centric format
-      const allocation: Record<AgentType, Record<string, number>> = {};
-      const satisfaction: Record<AgentType, number> = {};
+      // Transform back to agent-centric format (build as Partial then return)
+      const allocation: Partial<Record<AgentType, Record<string, number>>> = {};
+      const satisfaction: Partial<Record<AgentType, number>> = {};
       
-      for (const [stakeholderName, resources] of Object.entries(result.allocation)) {
-        allocation[stakeholderName as AgentType] = resources;
+      for (const [stakeholderName, resources] of Object.entries(result.allocation as Record<string, Record<string, number>>)) {
+        allocation[stakeholderName as AgentType] = resources as Record<string, number>;
       }
       
-      for (const [stakeholderName, score] of Object.entries(result.stakeholder_satisfaction)) {
-        satisfaction[stakeholderName as AgentType] = score;
+      for (const [stakeholderName, score] of Object.entries(result.stakeholder_satisfaction as Record<string, number>)) {
+        satisfaction[stakeholderName as AgentType] = score as number;
       }
       
       return {
