@@ -5,7 +5,7 @@
  * conflict resolution for multi-agent code collaboration.
  */
 
-import { ParadoxResolverClient, createParadoxResolverClient } from '../../../../ParadoxResolver/client/ParadoxResolverClient';
+import { ParadoxResolverClient, createParadoxResolverClient } from '../integrations/paradoxClient';
 import { AgentType } from './baseAgent';
 
 export interface AgentConflict {
@@ -58,7 +58,7 @@ export class ParadoxConflictResolver {
   
   constructor(serviceUrl?: string) {
     this.client = createParadoxResolverClient({ 
-      serviceUrl: serviceUrl || 'http://localhost:3333',
+      serviceUrl: serviceUrl || process.env.PARADOX_RESOLVER_URL || 'http://localhost:3333',
       timeout: 30000
     });
   }
